@@ -1,0 +1,25 @@
+{
+  "name": "native-run",
+  "version": "0.0.0",
+  "description": "A CLI for running apps on iOS/Android devices and simulators/emulators",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ionic-team/native-run.git"
+  },
+  "keywords": [
+    "android",
+    "ios",
+    "cli",
+    "mobile",
+    "app",
+    "hybrid",
+    "native"
+  ],
+  "author": "Ionic Team <hi@ionic.io> (https://ionicframework.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ionic-team/native-run/issues"
+  },
+  "homepage": "https://github.com/ionic-team/native-run#readme"
+}
