@@ -5,6 +5,10 @@
   "bin": {
     "native-run": "./bin/native-run"
   },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w"
+  },
   "main": "index.js",
   "repository": {
     "type": "git",
