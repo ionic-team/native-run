@@ -7,6 +7,12 @@
     "type": "git",
     "url": "git+https://github.com/ionic-team/native-run.git"
   },
+  "dependencies": {
+    "tslib": "^1.9.3"
+  },
+  "devDependencies": {
+    "typescript": "^3.0.1"
+  },
   "keywords": [
     "android",
     "ios",
