@@ -11,10 +11,10 @@
     "url": "git+https://github.com/ionic-team/native-run.git"
   },
   "dependencies": {
-    "@ionic/cli-framework": "^1.0.5",
     "tslib": "^1.9.3"
   },
   "devDependencies": {
+    "@types/node": "^8.10.25",
     "typescript": "^3.0.1"
   },
   "keywords": [

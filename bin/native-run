@@ -4,15 +4,4 @@
 
 process.title = 'native-run';
 
-if (process.argv.includes('--verbose')) {
-  process.env.DEBUG = '*';
-}
-
-if (process.argv.includes('--no-color')) {
-  process.env.DEBUG_COLORS = '0';
-}
-
-var pargv = process.argv.slice(2);
-var cli = require('../');
-
-cli.run(pargv, process.env);
+require('../').run();
