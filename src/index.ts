@@ -1,8 +1,9 @@
 export async function run() {
   const args = process.argv.slice(2);
+
   if (args.length === 0 || args.includes('--help') || args.includes('help') || args.includes('-h')) {
-    //TODO: show help
-    return;
+    const help = await import('./help');
+    return help.run();
   }
 
   const [platform] = args;
@@ -13,6 +14,6 @@ export async function run() {
   if (process.argv.includes('--list')) {
     // TODO: list devices/emulators
     const list = await import('./list');
-    return await list.run();
+    return list.run();
   }
 }

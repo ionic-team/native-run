@@ -9,7 +9,7 @@
     "build": "tsc",
     "watch": "tsc -w"
   },
-  "main": "index.js",
+  "main": "dist/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ionic-team/native-run.git"
