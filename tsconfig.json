@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "allowUnreachableCode": false,
-    "declaration": true,
     "importHelpers": true,
     "module": "commonjs",
     "moduleResolution": "node",

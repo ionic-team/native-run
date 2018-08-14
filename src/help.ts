@@ -1,15 +1,15 @@
 const help = `
-  Usage: native-run <platform> <device> [options]
+  Usage: native-run <platform> [command] [options]
 
   Inputs:
 
-    <platform> ........... android or ios
-    <device> ............. device ID
+    <platform> ........... ios or android
 
   Options:
 
-    --list ............... List devices and simulators/emulators
-    --json ............... Output messages in JSON
+    -h, --help ........... Print help for the platform and quit
+    --version ............ Print version to stdout and quit
+    --verbose ............ Print verbose output to stderr
 `;
 
 export async function run() {

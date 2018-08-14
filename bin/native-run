@@ -4,4 +4,8 @@
 
 process.title = 'native-run';
 
+if (process.argv.includes('--verbose')) {
+  process.env.DEBUG = '*';
+}
+
 require('../').run();
