@@ -1,0 +1,46 @@
+version: 2
+
+aliases:
+  - &restore-cache-deps
+      key: dependency-cache-{{ checksum "package.json" }}
+
+  - &save-cache-deps
+      key: dependency-cache-{{ checksum "package.json" }}
+      paths:
+        - node_modules
+
+defaults: &defaults
+  working_directory: /tmp/workspace
+  docker:
+    - image: circleci/node:8
+
+jobs:
+  build:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache: *restore-cache-deps
+      - run: npm install
+      - save_cache: *save-cache-deps
+      - run: npm run lint
+      - run: npm run build
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - "*"
+  test:
+    <<: *defaults
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - run: npm run test
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
