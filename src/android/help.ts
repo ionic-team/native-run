@@ -1,5 +1,5 @@
 const help = `
-  Usage: native-run android [command] [options]
+  Usage: native-run android [<command>] [options]
 
   Commands:
 

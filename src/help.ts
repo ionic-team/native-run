@@ -1,9 +1,10 @@
 const help = `
-  Usage: native-run <platform> [command] [options]
+  Usage: native-run <platform> [<command>] [options]
 
   Inputs:
 
     <platform> ........... ios or android
+    <command> ............ platform command
 
   Options:
 
