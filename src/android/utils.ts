@@ -89,12 +89,14 @@ export interface AVD {
   readonly id: string;
   readonly path: string;
   readonly name: string;
-  readonly screenWidth: number | null;
-  readonly screenHeight: number | null;
+  readonly target: number;
+  readonly screenWidth: number;
+  readonly screenHeight: number;
 }
 
 export interface AVDINI {
   readonly path: string;
+  readonly target: string;
 }
 
 export interface AVDConfigINI {
@@ -132,21 +134,22 @@ export async function getAVDINIs(sdk: AndroidSDK): Promise<AVDINI[]> {
   return avdInis;
 }
 
-export function getAVDFromConfigINI(p: string, ini: AVDConfigINI): AVD {
+export function getAVDFromConfigINI(ini: AVDINI, configini: AVDConfigINI): AVD {
   return {
-    id: ini.AvdId,
-    path: p,
-    name: ini['avd.ini.displayname'],
-    screenWidth: Number(ini['hw.lcd.width']),
-    screenHeight: Number(ini['hw.lcd.height']),
+    id: configini.AvdId,
+    path: ini.path,
+    name: configini['avd.ini.displayname'],
+    target: Number(ini.target.replace(/^android-(\d+)/, '$1')),
+    screenWidth: Number(configini['hw.lcd.width']),
+    screenHeight: Number(configini['hw.lcd.height']),
   };
 }
 
 export async function getAVDFromINI(ini: AVDINI): Promise<AVD | undefined> {
-  const configIni = await readINI(path.resolve(ini.path, 'config.ini'), isAVDConfigINI);
+  const configini = await readINI(path.resolve(ini.path, 'config.ini'), isAVDConfigINI);
 
-  if (configIni) {
-    return getAVDFromConfigINI(ini.path, configIni);
+  if (configini) {
+    return getAVDFromConfigINI(ini, configini);
   }
 }
 
@@ -161,6 +164,7 @@ export function formatAVD(avd: AVD): string {
   return `
 Name:\t${avd.name} (${avd.id})
 Path:\t${avd.path}
+Target:\tAPI ${avd.target}
 Screen:\t${avd.screenWidth}x${avd.screenHeight}
   `;
 }

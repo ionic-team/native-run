@@ -27,14 +27,14 @@ describe('android/utils', () => {
   describe('getAVDFromINI', () => {
 
     it('should properly parse Pixel_2_API_28', async () => {
-      const ini = {
-        path: path.resolve(__dirname, './fixtures/avd/Pixel_2_API_28.avd'),
-      };
+      const ini = await utils.readINI(path.resolve(__dirname, './fixtures/avd/Pixel_2_API_28.ini'));
+      ini.path = path.resolve(__dirname, './fixtures/avd/Pixel_2_API_28.avd'); // patch path
 
       const expected = {
         id: 'Pixel_2_API_28',
         path: ini.path,
         name: 'Pixel 2 API 28',
+        target: 28,
         screenWidth: 1080,
         screenHeight: 1920,
       };

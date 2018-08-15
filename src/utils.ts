@@ -26,7 +26,9 @@ export const isDir = async (p: string): Promise<boolean> => {
   return false;
 };
 
-export async function readINI<T extends object>(p: string, guard: (o: any) => o is T): Promise<T | undefined> {
+export type INIGuard<T extends object> = (o: any) => o is T;
+
+export async function readINI<T extends object>(p: string, guard: INIGuard<T> = (o: any): o is T => true): Promise<T | undefined> {
   const ini = await import('ini');
 
   try {
@@ -43,6 +45,5 @@ export async function readINI<T extends object>(p: string, guard: (o: any) => o 
     return config;
   } catch (e) {
     debug(e);
-    // TODO: handle error
   }
 }
