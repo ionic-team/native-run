@@ -3,7 +3,7 @@ const help = `
 
   Commands:
 
-    list-avds .......... List virtual devices
+    --list-avds .......... Print virtual devices and quit
 
 `;
 

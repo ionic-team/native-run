@@ -4,11 +4,9 @@ export async function run(args: string[]) {
     return help.run();
   }
 
-  const [ command, ...commandArgs ] = args;
-
-  if (command === 'list-avds') {
+  if (args.includes('--list-avds')) {
     const cmd = await import ('./list-avds');
-    return cmd.run(commandArgs);
+    return cmd.run(args);
   }
 
   const cmd = await import('./run');
