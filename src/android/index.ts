@@ -11,5 +11,6 @@ export async function run(args: string[]) {
     return cmd.run(commandArgs);
   }
 
-  // TODO: run android
+  const cmd = await import('./run');
+  await cmd.run(args);
 }

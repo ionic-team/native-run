@@ -5,5 +5,5 @@ export async function run(args: string[]) {
   }
 
   const cmd = await import('./run');
-  cmd.run(args);
+  await cmd.run(args);
 }
