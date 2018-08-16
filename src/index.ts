@@ -16,7 +16,7 @@ export async function run() {
     const lib = await import('./ios');
     await lib.run(platformArgs);
   } else {
-    if (!platform || platform === 'help' || args.includes('--help') || args.includes('-h')) {
+    if (!platform || platform === 'help' || args.includes('--help') || args.includes('-h') || platform.startsWith('-')) {
       const help = await import('./help');
       return help.run();
     }

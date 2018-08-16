@@ -10,6 +10,7 @@ const help = `
     -h, --help ........... Print help for the platform and quit
     --version ............ Print version and quit
     --verbose ............ Print verbose output to stderr
+
 `;
 
 export async function run() {
