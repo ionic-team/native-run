@@ -13,19 +13,19 @@ const homedir = os.homedir();
 //   ['win32', [path.join('%LOCALAPPDATA%', 'Android', 'sdk')]],
 // ]);
 
-export interface AndroidSDK {
+export interface SDK {
   readonly root: string; // $ANDROID_HOME/$ANDROID_SDK_ROOT
   readonly avdHome: string; // $ANDROID_AVD_HOME
 }
 
-export async function getSDK(): Promise<AndroidSDK> {
+export async function getSDK(): Promise<SDK> {
   const root = await resolveSDKRoot();
 
   // TODO: validate root and resolve source.properties
 
   const avdHome = await resolveAVDHome(root);
 
-  const sdk: AndroidSDK = { root, avdHome };
+  const sdk: SDK = { root, avdHome };
 
   debug('SDK info: %O', sdk);
 
@@ -115,7 +115,7 @@ export const isAVDConfigINI = (o: any): o is AVDConfigINI => o
   && typeof o['hw.lcd.height'] === 'string'
   && typeof o['hw.lcd.width'] === 'string';
 
-export async function getAVDINIs(sdk: AndroidSDK): Promise<AVDINI[]> {
+export async function getAVDINIs(sdk: SDK): Promise<AVDINI[]> {
   const contents = await readdir(sdk.avdHome);
 
   const iniFilePaths = contents
@@ -153,18 +153,9 @@ export async function getAVDFromINI(ini: AVDINI): Promise<AVD | undefined> {
   }
 }
 
-export async function getAVDs(sdk: AndroidSDK): Promise<AVD[]> {
+export async function getAVDs(sdk: SDK): Promise<AVD[]> {
   const avdInis = await getAVDINIs(sdk);
   const avds = await Promise.all(avdInis.map(ini => getAVDFromINI(ini)));
 
   return avds.filter((avd): avd is AVD => typeof avd !== 'undefined');
-}
-
-export function formatAVD(avd: AVD): string {
-  return `
-Name:\t${avd.name} (${avd.id})
-Path:\t${avd.path}
-Target:\tAPI ${avd.target}
-Screen:\t${avd.screenWidth}x${avd.screenHeight}
-  `;
 }

@@ -1,4 +1,4 @@
-import { formatAVD, getAVDs, getSDK } from './utils';
+import { AVD, getAVDs, getSDK } from './utils';
 
 export async function run(args: string[]) {
   const sdk = await getSDK();
@@ -14,9 +14,18 @@ export async function run(args: string[]) {
     return;
   }
 
-  process.stdout.write(`\nDiscovered ${avds.length} AVD(s) within AVD home (${sdk.avdHome}):\n`);
+  process.stdout.write(`\nDiscovered ${avds.length} AVD(s) within AVD home (${sdk.avdHome}):\n\n`);
 
   for (const avd of avds) {
-    process.stdout.write(`${formatAVD(avd)}`);
+    process.stdout.write(`${formatAVD(avd)}\n\n`);
   }
+}
+
+function formatAVD(avd: AVD): string {
+  return `
+Name:\t${avd.name} (${avd.id})
+Path:\t${avd.path}
+Target:\tAPI ${avd.target}
+Screen:\t${avd.screenWidth}x${avd.screenHeight}
+  `.trim();
 }

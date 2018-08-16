@@ -3,6 +3,7 @@ const help = `
 
   Commands:
 
+    --sdk-root ........... Print SDK directory and quit
     --list-avds .......... Print virtual devices and quit
 
 `;

@@ -4,6 +4,11 @@ export async function run(args: string[]) {
     return help.run();
   }
 
+  if (args.includes('--sdk-info')) {
+    const cmd = await import ('./sdk-info');
+    return cmd.run(args);
+  }
+
   if (args.includes('--list-avds')) {
     const cmd = await import ('./list-avds');
     return cmd.run(args);

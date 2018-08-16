@@ -9,7 +9,7 @@ const help = `
   Options:
 
     -h, --help ........... Print help for the platform and quit
-    --version ............ Print version to stdout and quit
+    --version ............ Print version and quit
     --verbose ............ Print verbose output to stderr
 `;
 
