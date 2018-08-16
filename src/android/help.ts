@@ -1,7 +1,7 @@
 const help = `
-  Usage: native-run android [<command>] [options]
+  Usage: native-run android [options]
 
-  Commands:
+  Options:
 
     --sdk-root ........... Print SDK directory and quit
     --list-avds .......... Print virtual devices and quit

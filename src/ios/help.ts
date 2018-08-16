@@ -1,7 +1,7 @@
 const help = `
-  Usage: native-run ios [<command>] [options]
+  Usage: native-run ios [options]
 
-  Commands:
+  Options:
 
 `;
 

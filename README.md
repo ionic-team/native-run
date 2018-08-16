@@ -5,7 +5,7 @@ Utility for running native binaries on iOS and Android devices and simulators/em
 ## Usage
 
 ```bash
-$ native-run <platform> <command> [options]
+$ native-run <platform> [options]
 ```
 
 ### iOS
