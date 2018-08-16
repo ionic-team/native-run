@@ -13,7 +13,8 @@ export async function run() {
     const lib = await import('./android');
     await lib.run(platformArgs);
   } else if (platform === 'ios') {
-    // TODO
+    const lib = await import('./ios');
+    await lib.run(platformArgs);
   } else {
     if (!platform || platform === 'help' || args.includes('--help') || args.includes('-h')) {
       const help = await import('./help');
