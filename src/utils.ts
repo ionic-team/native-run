@@ -47,3 +47,15 @@ export async function readINI<T extends object>(p: string, guard: INIGuard<T> = 
     debug(e);
   }
 }
+
+export function getOptionValue(args: string[], arg: string): string | undefined;
+export function getOptionValue(args: string[], arg: string, defaultValue: string): string;
+export function getOptionValue(args: string[], arg: string, defaultValue?: string): string | undefined {
+  const i = args.indexOf(arg);
+
+  if (i >= 0) {
+    return args[i + 1];
+  }
+
+  return defaultValue;
+}
