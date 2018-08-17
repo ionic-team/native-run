@@ -4,6 +4,8 @@ export async function run(args: string[]) {
     return help.run();
   }
 
-  const cmd = await import('./run');
-  await cmd.run(args);
+  if (args.includes('--list') || args.includes('-l')) {
+    const cmd = await import('./list');
+    await cmd.run(args);
+  }
 }
