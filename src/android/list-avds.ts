@@ -22,10 +22,14 @@ export async function run(args: string[]) {
 }
 
 function formatAVD(avd: AVD): string {
+  const dimensions = avd.screenWidth && avd.screenHeight
+    ? `${avd.screenWidth}x${avd.screenHeight}`
+    : `unknown dimensions`;
+
   return `
 Name:\t${avd.name} (${avd.id})
 Path:\t${avd.path}
 Target:\tAPI ${avd.target}
-Screen:\t${avd.screenWidth}x${avd.screenHeight}
+Screen:\t${dimensions}${avd.screenDPI ? ` (${avd.screenDPI} dpi)` : ''}
   `.trim();
 }

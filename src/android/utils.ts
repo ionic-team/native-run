@@ -90,30 +90,36 @@ export interface AVD {
   readonly path: string;
   readonly name: string;
   readonly target: number;
-  readonly screenWidth: number;
-  readonly screenHeight: number;
+  readonly screenDPI: number | null;
+  readonly screenWidth: number | null;
+  readonly screenHeight: number | null;
 }
 
-export interface AVDINI {
+export interface ConfigFile {
+  readonly __filename: string;
+}
+
+export interface AVDINI extends ConfigFile {
   readonly path: string;
   readonly target: string;
 }
 
-export interface AVDConfigINI {
-  readonly AvdId: string;
-  readonly 'avd.ini.displayname': string;
-  readonly 'hw.lcd.height': string;
-  readonly 'hw.lcd.width': string;
+export interface AVDConfigINI extends ConfigFile {
+  readonly 'avd.ini.displayname'?: string;
+  readonly 'hw.lcd.density'?: string;
+  readonly 'hw.lcd.height'?: string;
+  readonly 'hw.lcd.width'?: string;
 }
 
 export const isAVDINI = (o: any): o is AVDINI => o
-  && typeof o.path === 'string';
+  && typeof o.path === 'string'
+  && typeof o.target === 'string';
 
 export const isAVDConfigINI = (o: any): o is AVDConfigINI => o
-  && typeof o.AvdId === 'string'
-  && typeof o['avd.ini.displayname'] === 'string'
-  && typeof o['hw.lcd.height'] === 'string'
-  && typeof o['hw.lcd.width'] === 'string';
+  && (typeof o.AvdId === 'undefined' || typeof o.AvdId === 'string')
+  && (typeof o['avd.ini.displayname'] === 'undefined' || typeof o['avd.ini.displayname'] === 'string')
+  && (typeof o['hw.lcd.height'] === 'undefined' || typeof o['hw.lcd.height'] === 'string')
+  && (typeof o['hw.lcd.width'] === 'undefined' || typeof o['hw.lcd.width'] === 'string');
 
 export async function getAVDINIs(sdk: SDK): Promise<AVDINI[]> {
   const contents = await readdir(sdk.avdHome);
@@ -135,13 +141,23 @@ export async function getAVDINIs(sdk: SDK): Promise<AVDINI[]> {
 }
 
 export function getAVDFromConfigINI(ini: AVDINI, configini: AVDConfigINI): AVD {
+  const inibasename = path.basename(ini.__filename);
+  const id = inibasename.substring(0, inibasename.length - path.extname(inibasename).length);
+  const name = configini['avd.ini.displayname']
+    ? String(configini['avd.ini.displayname'])
+    : id.replace(/_/g, ' ');
+  const screenDPI = configini['hw.lcd.density'] ? Number(configini['hw.lcd.density']) : null;
+  const screenWidth = configini['hw.lcd.width'] ? Number(configini['hw.lcd.width']) : null;
+  const screenHeight = configini['hw.lcd.height'] ? Number(configini['hw.lcd.height']) : null;
+
   return {
-    id: configini.AvdId,
+    id,
     path: ini.path,
-    name: configini['avd.ini.displayname'],
+    name,
     target: Number(ini.target.replace(/^android-(\d+)/, '$1')),
-    screenWidth: Number(configini['hw.lcd.width']),
-    screenHeight: Number(configini['hw.lcd.height']),
+    screenDPI,
+    screenWidth,
+    screenHeight,
   };
 }
 

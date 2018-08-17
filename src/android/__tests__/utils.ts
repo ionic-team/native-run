@@ -35,6 +35,7 @@ describe('android/utils', () => {
         path: ini.path,
         name: 'Pixel 2 API 28',
         target: 28,
+        screenDPI: 420,
         screenWidth: 1080,
         screenHeight: 1920,
       };

@@ -42,7 +42,7 @@ export async function readINI<T extends object>(p: string, guard: INIGuard<T> = 
       );
     }
 
-    return config;
+    return { __filename: p, ...config as any };
   } catch (e) {
     debug(e);
   }

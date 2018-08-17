@@ -119,7 +119,6 @@ export async function run(args: string[]) {
     }
   }
 
-
   process.stdout.write('\nSimulators:\n\n');
 
   for (const sim of simulators) {
