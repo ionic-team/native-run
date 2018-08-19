@@ -1,33 +1,14 @@
 import * as path from 'path';
 
-import * as utils from '../../utils';
-import * as androidUtils from '../utils';
+import * as iniUtils from '../../../utils/ini';
+import * as avdUtils from '../avd';
 
-describe('android/utils', () => {
-
-  describe('resolveSDKRoot', () => {
-
-    let originalProcessEnv;
-
-    beforeEach(() => {
-      originalProcessEnv = process.env;
-    });
-
-    afterEach(() => {
-      process.env = originalProcessEnv;
-    });
-
-    it('should fail with empty env', async () => {
-      process.env = {};
-      await expect(androidUtils.resolveSDKRoot()).rejects.toThrowError('No valid Android SDK root found.');
-    });
-
-  });
+describe('android/utils/avd', () => {
 
   describe('getAVDFromINI', () => {
 
     it('should properly parse Pixel_2_API_28', async () => {
-      const ini = await utils.readINI(path.resolve(__dirname, './fixtures/avd/Pixel_2_API_28.ini'));
+      const ini = await iniUtils.readINI(path.resolve(__dirname, './fixtures/avd/Pixel_2_API_28.ini'));
       ini.path = path.resolve(__dirname, './fixtures/avd/Pixel_2_API_28.avd'); // patch path
 
       const expected = {
@@ -40,12 +21,12 @@ describe('android/utils', () => {
         screenHeight: 1920,
       };
 
-      const avd = await androidUtils.getAVDFromINI(ini);
+      const avd = await avdUtils.getAVDFromINI(ini);
       expect(avd).toEqual(expected);
     });
 
     it('should properly parse Pixel_2_XL_API_28', async () => {
-      const ini = await utils.readINI(path.resolve(__dirname, './fixtures/avd/Pixel_2_XL_API_28.ini'));
+      const ini = await iniUtils.readINI(path.resolve(__dirname, './fixtures/avd/Pixel_2_XL_API_28.ini'));
       ini.path = path.resolve(__dirname, './fixtures/avd/Pixel_2_XL_API_28.avd'); // patch path
 
       const expected = {
@@ -58,12 +39,12 @@ describe('android/utils', () => {
         screenHeight: 2880,
       };
 
-      const avd = await androidUtils.getAVDFromINI(ini);
+      const avd = await avdUtils.getAVDFromINI(ini);
       expect(avd).toEqual(expected);
     });
 
     it('should properly parse avdmanager_1', async () => {
-      const ini = await utils.readINI(path.resolve(__dirname, './fixtures/avd/avdmanager_1.ini'));
+      const ini = await iniUtils.readINI(path.resolve(__dirname, './fixtures/avd/avdmanager_1.ini'));
       ini.path = path.resolve(__dirname, './fixtures/avd/avdmanager_1.avd'); // patch path
 
       const expected = {
@@ -76,7 +57,7 @@ describe('android/utils', () => {
         screenHeight: null,
       };
 
-      const avd = await androidUtils.getAVDFromINI(ini);
+      const avd = await avdUtils.getAVDFromINI(ini);
       expect(avd).toEqual(expected);
     });
 

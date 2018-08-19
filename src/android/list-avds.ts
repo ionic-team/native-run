@@ -1,4 +1,5 @@
-import { AVD, getAVDs, getSDK } from './utils';
+import { AVD, getAVDs } from './utils/avd';
+import { getSDK } from './utils/sdk';
 
 export async function run(args: string[]) {
   const sdk = await getSDK();
@@ -10,11 +11,11 @@ export async function run(args: string[]) {
   }
 
   if (avds.length === 0) {
-    process.stdout.write(`\nNo AVDs found within AVD home (${sdk.avdHome})\n`);
+    process.stdout.write(`\nNo AVDs found within AVD home (${sdk.avds.home})\n`);
     return;
   }
 
-  process.stdout.write(`\nDiscovered ${avds.length} AVD(s) within AVD home (${sdk.avdHome}):\n\n`);
+  process.stdout.write(`\nDiscovered ${avds.length} AVD(s) within AVD home (${sdk.avds.home}):\n\n`);
 
   for (const avd of avds) {
     process.stdout.write(`${formatAVD(avd)}\n\n`);

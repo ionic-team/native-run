@@ -1,89 +1,12 @@
 import * as Debug from 'debug';
-import * as os from 'os';
 import * as path from 'path';
 
-import { isDir, readINI, readdir } from '../utils';
+import { readdir } from '../../utils/fs';
+import { readINI } from '../../utils/ini';
 
-const debug = Debug('native-run:android:utils');
+import { SDK } from './sdk';
 
-const homedir = os.homedir();
-// const SDK_DIRECTORIES = new Map<NodeJS.Platform, string[] | undefined>([
-//   ['darwin', [path.join(homedir, 'Library', 'Android', 'sdk')]],
-//   ['linux', [path.join(homedir, 'Android', 'sdk')]],
-//   ['win32', [path.join('%LOCALAPPDATA%', 'Android', 'sdk')]],
-// ]);
-
-export interface SDK {
-  readonly root: string; // $ANDROID_HOME/$ANDROID_SDK_ROOT
-  readonly avdHome: string; // $ANDROID_AVD_HOME
-}
-
-export async function getSDK(): Promise<SDK> {
-  const root = await resolveSDKRoot();
-
-  // TODO: validate root and resolve source.properties
-
-  const avdHome = await resolveAVDHome(root);
-
-  const sdk: SDK = { root, avdHome };
-
-  debug('SDK info: %O', sdk);
-
-  return sdk;
-}
-
-/**
- * @see https://developer.android.com/studio/command-line/variables
- */
-export async function resolveSDKRoot(): Promise<string> {
-  debug('Attempting to validate $ANDROID_HOME');
-
-  // $ANDROID_HOME is deprecated, but still overrides $ANDROID_SDK_ROOT if
-  // defined and valid.
-  if (process.env.ANDROID_HOME && await isDir(process.env.ANDROID_HOME)) {
-    debug('$ANDROID_HOME at %s is valid', process.env.ANDROID_HOME);
-    return process.env.ANDROID_HOME;
-  }
-
-  debug('Attempting to validate $ANDROID_SDK_ROOT');
-
-  // No valid $ANDROID_HOME, try $ANDROID_SDK_ROOT.
-  if (process.env.ANDROID_SDK_ROOT && await isDir(process.env.ANDROID_SDK_ROOT)) {
-    debug('$ANDROID_SDK_ROOT at %s is valid', process.env.ANDROID_SDK_ROOT);
-    return process.env.ANDROID_SDK_ROOT;
-  }
-
-  // TODO: No valid $ANDROID_SDK_ROOT, try searching common SDK directories.
-
-  throw new Error(`No valid Android SDK root found.`);
-}
-
-/**
- * @see https://developer.android.com/studio/command-line/variables
- */
-export async function resolveAVDHome(root: string): Promise<string> {
-  debug('Attempting to validate $ANDROID_AVD_HOME');
-
-  // Try $ANDROID_AVD_HOME
-  if (process.env.ANDROID_AVD_HOME && await isDir(process.env.ANDROID_AVD_HOME)) {
-    debug('$ANDROID_AVD_HOME at %s is valid', process.env.$ANDROID_AVD_HOME);
-    return process.env.ANDROID_AVD_HOME;
-  }
-
-  // Try $ANDROID_SDK_HOME/.android/avd/ and then $HOME/.android/avd/
-  const paths = [path.join(root, '.android', 'avd'), path.join(homedir, '.android', 'avd')];
-
-  for (const p of paths) {
-    debug('Attempting to validate %s for AVD home', p);
-
-    if (await isDir(p)) {
-      debug('%s is valid for AVD home', p);
-      return p;
-    }
-  }
-
-  throw new Error(`No valid Android AVD root found.`);
-}
+const debug = Debug('native-run:android:utils:avd');
 
 export interface AVD {
   readonly id: string;
@@ -122,11 +45,11 @@ export const isAVDConfigINI = (o: any): o is AVDConfigINI => o
   && (typeof o['hw.lcd.width'] === 'undefined' || typeof o['hw.lcd.width'] === 'string');
 
 export async function getAVDINIs(sdk: SDK): Promise<AVDINI[]> {
-  const contents = await readdir(sdk.avdHome);
+  const contents = await readdir(sdk.avds.home);
 
   const iniFilePaths = contents
     .filter(f => path.extname(f) === '.ini')
-    .map(f => path.resolve(sdk.avdHome, f));
+    .map(f => path.resolve(sdk.avds.home, f));
 
   debug('Discovered AVD ini files: %O', iniFilePaths);
 

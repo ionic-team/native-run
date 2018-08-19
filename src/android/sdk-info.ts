@@ -1,4 +1,4 @@
-import { SDK, getSDK } from './utils';
+import { SDK, getSDK } from './utils/sdk';
 
 export async function run(args: string[]) {
   const sdk = await getSDK();
@@ -13,7 +13,10 @@ export async function run(args: string[]) {
 
 function formatSDK(sdk: SDK) {
   return `
-Root: ${sdk.root}
-AVD Home: ${sdk.avdHome}
+SDK Root:           ${sdk.root}
+SDK Tools:          ${sdk.tools.path} (${sdk.tools.version})
+SDK Platform Tools: ${sdk.platformTools.path} (${sdk.platformTools.version})
+Android Emulator:   ${sdk.emulator.path} (${sdk.emulator.version})
+AVDs Home:          ${sdk.avds.home}
   `.trim();
 }

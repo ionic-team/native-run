@@ -1,8 +1,12 @@
-import { spawn } from 'child_process';
+import * as Debug from 'debug';
 
-import { getOptionValue } from '../utils';
+import { getOptionValue } from '../utils/cli';
 
-import { getAVDs, getSDK } from './utils';
+import { getAVDs } from './utils/avd';
+import { ERR_UNKNOWN_AVD, runEmulator } from './utils/emulator';
+import { getSDK } from './utils/sdk';
+
+const debug = Debug('native-run:android:run');
 
 export async function run(args: string[]) {
   const sdk = await getSDK();
@@ -10,21 +14,29 @@ export async function run(args: string[]) {
 
   if (avds.length === 0) {
     // TODO: create recommended avd automatically
-    process.stderr.write(`\nNo AVDs found within AVD home (${sdk.avdHome})\n`);
+    process.stderr.write(`\nError: No AVDs found within AVD home (${sdk.avds.home})\n`);
     process.exitCode = 1;
     return;
   }
 
   const avd = getOptionValue(args, '--avd', avds[0].id); // use recommended default
 
-  // if (!avd) {
-  //   process.stdout.write(`--avd not specified\n`); // TODO
-  //   console.log(avds);
-  // }
+  // const devices = await getDevices(sdk);
+  // console.log(devices);
 
-  const p = spawn('emulator', ['-avd', avd]); // TODO: use emulator bin from sdk info
+  try {
+    await runEmulator(sdk, avd);
+    debug('emulator ready, running avd: %s', avd);
+  } catch (e) {
+    if (e.code === ERR_UNKNOWN_AVD) {
+      process.stderr.write(`\n${e.toString()}\n`);
+      process.exitCode = 1;
+      return;
+    }
 
-  process.on('SIGINT', () => {
-    p.kill('SIGTERM');
-  });
+    throw e;
+  }
+
+  // const devices2 = await getDevices(sdk);
+  // console.log(devices2);
 }

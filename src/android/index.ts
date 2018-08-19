@@ -14,6 +14,11 @@ export async function run(args: string[]) {
     return cmd.run(args);
   }
 
+  if (args.includes('--list-devices')) {
+    const cmd = await import ('./list-devices');
+    return cmd.run(args);
+  }
+
   const cmd = await import('./run');
   await cmd.run(args);
 }
