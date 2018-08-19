@@ -24,12 +24,11 @@ export interface Device {
 export function parseAdbDevices(output: string): Device[] {
   const re = /^([\S]+)\s+([a-z\s]+)\s+(.*)$/;
   const lines = output.split('\n');
-  lines.shift(); // remove 'List of devices attached' from lines
 
   const devices: Device[] = [];
 
   for (const line of lines) {
-    if (line) {
+    if (line && !line.startsWith('List')) {
       const m = line.match(re);
 
       if (m) {
