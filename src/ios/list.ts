@@ -51,13 +51,11 @@ export async function getSimulators(): Promise<Simulator[]> {
       .filter(runtime => runtime.name.indexOf('watch') === -1 && runtime.name.indexOf('tv') === -1)
       .map(runtime => output.devices[runtime.name]
         .filter(device => device.availability.indexOf('unavailable') === -1)
-        .map(device => {
-          return {
-            name: device.name,
-            version: runtime.version,
-            udid: device.udid,
-          };
-        })
+        .map(device => ({
+          name: device.name,
+          version: runtime.version,
+          udid: device.udid,
+        }))
       )
       .reduce((prev, next) => prev.concat(next)) // flatten array of runtime devices arrays
       .sort((a, b) => a.name < b.name ? -1 : 1);
