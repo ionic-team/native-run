@@ -9,7 +9,7 @@ export async function run() {
 
   if (args.includes('--version')) {
     const pkg = require('../package.json');
-    process.stdout.write(pkg.version);
+    process.stdout.write(pkg.version + '\n');
     return;
   }
 
