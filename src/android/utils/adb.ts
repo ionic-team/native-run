@@ -6,19 +6,37 @@ import { SDK } from './sdk';
 
 const debug = Debug('native-run:android:utils:adb');
 
-export async function getDevices(sdk: SDK): Promise<Device[]> {
-  const adbBin = `${sdk.platformTools.path}/adb`;
-  const args = ['devices', '-l'];
-  const { stdout } = await execFile(adbBin, args);
-
-  return parseAdbDevices(stdout);
-}
-
 export interface Device {
   serial: string;
   state: string; // 'offline' | 'device' | 'no device'
   type: 'emulator' | 'hardware';
   properties: { [key: string]: string; };
+}
+
+export async function getDevices(sdk: SDK): Promise<Device[]> {
+  const adbBin = `${sdk.platformTools.path}/adb`;
+  const args = ['devices', '-l'];
+  debug('Invoking adb: %O %O', adbBin, args);
+
+  const { stdout } = await execFile(adbBin, args);
+
+  return parseAdbDevices(stdout);
+}
+
+export async function deployApk(sdk: SDK, serial: string, apk: string): Promise<void> {
+  const adbBin = `${sdk.platformTools.path}/adb`;
+  const args = ['-s', serial, 'install', '-r', '-t', apk];
+  debug('Invoking adb: %O %O', adbBin, args);
+
+  await execFile(adbBin, args);
+}
+
+export async function startActivity(sdk: SDK, serial: string, packageName: string, activityName: string): Promise<void> {
+  const adbBin = `${sdk.platformTools.path}/adb`;
+  const args = ['-s', serial, 'shell', 'am', 'start', '-W', '-n', `${packageName}/${activityName}`];
+  debug('Invoking adb: %O %O', adbBin, args);
+
+  await execFile(adbBin, args);
 }
 
 export function parseAdbDevices(output: string): Device[] {

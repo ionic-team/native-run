@@ -3,20 +3,12 @@ import * as Debug from 'debug';
 import * as split2 from 'split2';
 import * as through2 from 'through2';
 
+import { ERR_UNKNOWN_AVD, EmulatorException } from '../../errors';
 import { pkill } from '../../utils/process';
 
 import { SDK } from './sdk';
 
 const debug = Debug('native-run:android:utils:emulator');
-
-export const ERR_UNKNOWN_AVD = 'ERR_UNKNOWN_AVD';
-export type EmulatorErrorCode = typeof ERR_UNKNOWN_AVD;
-
-export class EmulatorError extends Error implements NodeJS.ErrnoException {
-  constructor(readonly message: string, readonly code: EmulatorErrorCode) {
-    super(message);
-  }
-}
 
 /**
  * Resolves when emulator is ready and running with the specified AVD.
@@ -43,6 +35,11 @@ export function runEmulator(sdk: SDK, avd: string): Promise<void> {
       debug('emulator closed, exit code %d', code);
     });
 
+    p.on('error', err => {
+      debug('emulator error: %O', err);
+      reject(err);
+    });
+
     // The Android Emulator does not seem to use stderr, so only pipe stdout
     p.stdout.pipe(split2()).pipe(through2((chunk, enc, cb) => {
       const line = chunk.toString();
@@ -51,7 +48,7 @@ export function runEmulator(sdk: SDK, avd: string): Promise<void> {
       const event = parseEmulatorOutput(line);
 
       if (event === EmulatorEvent.UnknownAVD) {
-        reject(new EmulatorError(`Unknown AVD name [${avd}]`, ERR_UNKNOWN_AVD));
+        reject(new EmulatorException(`Unknown AVD name [${avd}]`, ERR_UNKNOWN_AVD));
       } else if (event === EmulatorEvent.AlreadyRunning) {
         resolve();
       }

@@ -11,14 +11,14 @@ export async function run(args: string[]) {
   }
 
   if (devices.length === 0) {
-    process.stdout.write(`\nNo connected devices or emulators found\n`);
+    process.stdout.write(`No connected devices or emulators found\n`);
     return;
   }
 
   const emulators = devices.filter(device => device.type === 'emulator');
   const hardwares = devices.filter(device => device.type === 'hardware');
 
-  process.stdout.write(`\nFound ${hardwares.length} connected device${hardwares.length === 1 ? '' : 's'} and ${emulators.length} emulator${emulators.length === 1 ? '' : 's'}:\n\n`);
+  process.stdout.write(`Found ${hardwares.length} connected device${hardwares.length === 1 ? '' : 's'} and ${emulators.length} emulator${emulators.length === 1 ? '' : 's'}:\n\n`);
 
   for (const device of devices) {
     process.stdout.write(`${formatDevice(device)}\n\n`);

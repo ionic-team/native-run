@@ -11,11 +11,11 @@ export async function run(args: string[]) {
   }
 
   if (avds.length === 0) {
-    process.stdout.write(`\nNo AVDs found within AVD home (${sdk.avds.home})\n`);
+    process.stdout.write(`No AVDs found within AVD home (${sdk.avds.home})\n`);
     return;
   }
 
-  process.stdout.write(`\nFound ${avds.length} AVD${avds.length === 1 ? '' : 's'} within AVD home (${sdk.avds.home}):\n\n`);
+  process.stdout.write(`Found ${avds.length} AVD${avds.length === 1 ? '' : 's'} within AVD home (${sdk.avds.home}):\n\n`);
 
   for (const avd of avds) {
     process.stdout.write(`${formatAVD(avd)}\n\n`);

@@ -1,5 +1,7 @@
 import * as Debug from 'debug';
 
+import { Exception } from './errors';
+
 const debug = Debug('native-run');
 
 export async function run() {
@@ -26,12 +28,16 @@ export async function run() {
         return help.run();
       }
 
-      process.stderr.write(`Unsupported platform: "${platform}"\n`);
-      process.exitCode = 1;
+      throw new Exception(`Unsupported platform: "${platform}"`);
     }
   } catch (e) {
-    debug('Caught fatal error: %O', e);
-    process.stderr.write(String(e.stack ? e.stack : e));
-    process.exitCode = 1;
+    if (e instanceof Exception) {
+      process.stderr.write(`${e.message}\n`);
+      process.exitCode = e.exitCode;
+    } else {
+      debug('Caught fatal error: %O', e);
+      process.stderr.write(String(e.stack ? e.stack : e));
+      process.exitCode = 1;
+    }
   }
 }
