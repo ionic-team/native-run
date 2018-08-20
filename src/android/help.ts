@@ -3,8 +3,9 @@ const help = `
 
   Options:
 
-    --sdk-root ........... Print SDK directory and quit
-    --list-avds .......... Print virtual devices and quit
+    --sdk-root ........... Print SDK directory, then quit
+    --list-avds .......... Print virtual devices, then quit
+    --list-devices ....... Print connected devices and emulators, then quit
 
 `;
 

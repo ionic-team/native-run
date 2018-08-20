@@ -15,7 +15,7 @@ export async function run(args: string[]) {
     return;
   }
 
-  process.stdout.write(`\nDiscovered ${avds.length} AVD(s) within AVD home (${sdk.avds.home}):\n\n`);
+  process.stdout.write(`\nFound ${avds.length} AVD${avds.length === 1 ? '' : 's'} within AVD home (${sdk.avds.home}):\n\n`);
 
   for (const avd of avds) {
     process.stdout.write(`${formatAVD(avd)}\n\n`);
