@@ -3,10 +3,12 @@ const help = `
 
   Options:
 
-    --sdk-root ........... Print SDK directory, then quit
+    --list ............... Print available targets, then quit
     --list-avds .......... Print virtual devices, then quit
-    --list-devices ....... Print connected devices and emulators, then quit
+    --sdk-info ........... Print SDK information, then quit
 
+    --apk ................ Deploy specified APK
+    --target ............. Use a specific target
 `;
 
 export async function run() {

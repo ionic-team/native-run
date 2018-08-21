@@ -6,6 +6,7 @@ import * as through2 from 'through2';
 import { ERR_UNKNOWN_AVD, EmulatorException } from '../../errors';
 import { pkill } from '../../utils/process';
 
+import { AVD } from './avd';
 import { SDK } from './sdk';
 
 const debug = Debug('native-run:android:utils:emulator');
@@ -13,9 +14,9 @@ const debug = Debug('native-run:android:utils:emulator');
 /**
  * Resolves when emulator is ready and running with the specified AVD.
  */
-export function runEmulator(sdk: SDK, avd: string): Promise<void> {
+export function runEmulator(sdk: SDK, avd: AVD): Promise<void> {
   const emulatorBin = `${sdk.emulator.path}/emulator`;
-  const args = ['-avd', avd];
+  const args = ['-avd', avd.id];
   debug('Invoking emulator: %O %O', emulatorBin, args);
 
   const p = spawn(emulatorBin, args, { stdio: 'pipe' }); // TODO: use emulator bin from sdk info
@@ -48,7 +49,7 @@ export function runEmulator(sdk: SDK, avd: string): Promise<void> {
       const event = parseEmulatorOutput(line);
 
       if (event === EmulatorEvent.UnknownAVD) {
-        reject(new EmulatorException(`Unknown AVD name [${avd}]`, ERR_UNKNOWN_AVD));
+        reject(new EmulatorException(`Unknown AVD name [${avd.id}]`, ERR_UNKNOWN_AVD));
       } else if (event === EmulatorEvent.AlreadyRunning) {
         resolve();
       }
