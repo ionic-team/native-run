@@ -62,9 +62,10 @@ export async function getSimulators(): Promise<Simulator[]> {
 }
 
 export async function getConnectedDevicesUDIDs(): Promise<UDID[]> {
-  const iDeviceId = spawnSync('idevice_id', ['--list'], { encoding: 'utf8' });
+  const { stdout } = spawnSync('idevice_id', ['--list'], { encoding: 'utf8' });
+  // TODO: don't use spawnSync
   // split results on \n
-  return iDeviceId.stdout.match(/.+/g) || [];
+  return stdout.match(/.+/g) || [];
 }
 
 export async function getConnectedDevicesInfo(udids: UDID[]): Promise<IOSDevice[]> {
@@ -108,12 +109,12 @@ export async function run(args: string[]) {
     return;
   }
 
-  process.stdout.write('Devices:\n');
+  process.stdout.write('Devices:\n\n');
   if (devices.length === 0) {
-    process.stdout.write('\n    No connected devices found\n');
+    process.stdout.write('  No connected devices found\n');
   } else {
     for (const device of devices) {
-      process.stdout.write(`${formatDevice(device)}\n\n`);
+      process.stdout.write(`  ${formatDevice(device)}\n`);
     }
   }
 
@@ -126,11 +127,7 @@ export async function run(args: string[]) {
 
 function formatDevice(device: IOSDevice): string {
   return `
-Name:     ${device.deviceName}
-Version:  ${device.productVersion}
-Class:    ${device.deviceClass}
-Model:    ${device.productType}
-UDID:     ${device.uniqueDeviceID}
+${device.deviceName} ${device.productType} (${device.productVersion}) ${device.uniqueDeviceID}
 `.trim();
 }
 
