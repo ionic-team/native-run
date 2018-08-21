@@ -1,7 +1,7 @@
 import * as Debug from 'debug';
 import * as util from 'util';
 
-import { readFile } from './fs';
+import { readFile, writeFile } from './fs';
 
 const debug = Debug('native-run:android:utils:ini');
 
@@ -26,4 +26,11 @@ export async function readINI<T extends object>(p: string, guard: INIGuard<T> = 
   } catch (e) {
     debug(e);
   }
+}
+
+export async function writeINI<T extends object>(p: string, o: T): Promise<void> {
+  const ini = await import ('ini');
+  const contents = ini.encode(o);
+
+  await writeFile(p, contents, 'utf8');
 }
