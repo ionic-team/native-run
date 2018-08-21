@@ -12,7 +12,7 @@ export interface AVD {
   readonly id: string;
   readonly path: string;
   readonly name: string;
-  readonly target: number;
+  readonly sdkVersion: string;
   readonly screenDPI: number | null;
   readonly screenWidth: number | null;
   readonly screenHeight: number | null;
@@ -106,7 +106,7 @@ export function getAVDFromConfigINI(inipath: string, ini: AVDINI, configini: AVD
     id,
     path: ini.path,
     name,
-    target: Number(ini.target.replace(/^android-(\d+)/, '$1')),
+    sdkVersion: ini.target.replace(/^android-(\d+)/, '$1'),
     screenDPI,
     screenWidth,
     screenHeight,

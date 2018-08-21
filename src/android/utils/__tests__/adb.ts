@@ -17,6 +17,10 @@ emulator-5554          device product:sdk_gphone_x86 model:Android_SDK_built_for
           serial: 'emulator-5554',
           state: 'device',
           type: 'emulator',
+          manufacturer: '',
+          model: 'Android_SDK_built_for_x86',
+          product: '',
+          sdkVersion: '',
           properties: {
             product: 'sdk_gphone_x86',
             model: 'Android_SDK_built_for_x86',
@@ -38,6 +42,10 @@ LGUS996e5ef677         device usb:341835776X product:elsa_nao_us model:LG_US996 
           serial: 'LGUS996e5ef677',
           state: 'device',
           type: 'hardware',
+          manufacturer: '',
+          model: 'LG_US996',
+          product: '',
+          sdkVersion: '',
           properties: {
             usb: '341835776X',
             product: 'elsa_nao_us',
@@ -60,6 +68,10 @@ List of devices attached
           serial: '0a388e93',
           state: 'device',
           type: 'hardware',
+          manufacturer: '',
+          model: 'Nexus_7',
+          product: '',
+          sdkVersion: '',
           properties: {
             usb: '1-1',
             product: 'razor',

@@ -4,7 +4,6 @@ const help = `
   Options:
 
     --list ............... Print available targets, then quit
-    --list-avds .......... Print virtual devices, then quit
     --sdk-info ........... Print SDK information, then quit
 
     --apk ................ Deploy specified APK
