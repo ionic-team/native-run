@@ -2,16 +2,15 @@ import { spawnSync } from 'child_process'; // TODO: need cross-spawn for windows
 
 export type UDID = string;
 export interface IOSDevice {
-  readonly deviceClass: string;
-  readonly deviceName: string;
-  readonly productType: string; // TODO: map to actual model (ie. iPhone8,4 -> iPhone SE)
-  readonly productVersion: string;
-  readonly uniqueDeviceID: string;
+  readonly name: string;
+  readonly model: string; // TODO: map to actual model (ie. iPhone8,4 -> iPhone SE)
+  readonly sdkVersion: string;
+  readonly id: string;
 }
 export interface Simulator {
   readonly name: string;
-  readonly version: string;
-  readonly udid: string;
+  readonly sdkVersion: string;
+  readonly id: string;
 }
 
 interface SimCtlOutput {
@@ -53,8 +52,8 @@ export async function getSimulators(): Promise<Simulator[]> {
         .filter(device => device.availability.indexOf('unavailable') === -1)
         .map(device => ({
           name: device.name,
-          version: runtime.version,
-          udid: device.udid,
+          sdkVersion: runtime.version,
+          id: device.udid,
         }))
       )
       .reduce((prev, next) => prev.concat(next)) // flatten array of runtime devices arrays
@@ -81,11 +80,10 @@ export async function getConnectedDeviceInfo(udid: UDID): Promise<IOSDevice> {
 
 function parseDeviceInfo(deviceInfo: string): IOSDevice {
   return {
-    deviceClass: matchDeviceProperty(deviceInfo, 'DeviceClass'),
-    deviceName: matchDeviceProperty(deviceInfo, 'DeviceName'),
-    productType: matchDeviceProperty(deviceInfo, 'ProductType'),
-    productVersion: matchDeviceProperty(deviceInfo, 'ProductVersion'),
-    uniqueDeviceID: matchDeviceProperty(deviceInfo, 'UniqueDeviceID'),
+    name: matchDeviceProperty(deviceInfo, 'DeviceName'),
+    model: matchDeviceProperty(deviceInfo, 'ProductType'),
+    sdkVersion: matchDeviceProperty(deviceInfo, 'ProductVersion'),
+    id: matchDeviceProperty(deviceInfo, 'UniqueDeviceID'),
   };
 }
 
@@ -127,12 +125,12 @@ export async function run(args: string[]) {
 
 function formatDevice(device: IOSDevice): string {
   return `
-${device.deviceName} ${device.productType} (${device.productVersion}) ${device.uniqueDeviceID}
+${device.name} ${device.model} (${device.sdkVersion}) ${device.id}
 `.trim();
 }
 
 function formatSimulator(sim: Simulator): string {
   return `
-${sim.name} (${sim.version}) ${sim.udid}
+${sim.name} (${sim.sdkVersion}) ${sim.id}
 `.trim();
 }
