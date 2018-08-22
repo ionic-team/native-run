@@ -1,9 +1,9 @@
 import * as Debug from 'debug';
 
-import { RunException } from '../errors';
+import { ADBException, ERR_INCOMPATIBLE_UPDATE, RunException } from '../errors';
 import { getOptionValue } from '../utils/cli';
 
-import { Device, deployApk, getDevices, startActivity } from './utils/adb';
+import { Device, getDevices, installApk, startActivity, uninstallApp, waitForBoot } from './utils/adb';
 import { getAVDs, getDefaultAVD } from './utils/avd';
 import { runEmulator } from './utils/emulator';
 import { SDK, getSDK } from './utils/sdk';
@@ -29,11 +29,11 @@ export async function run(args: string[]) {
 
   process.stdout.write(`Selected ${device.type === 'hardware' ? 'hardware device' : 'emulator'} ${device.serial}\n`);
 
-  process.stdout.write(`Installing ${apk}...\n`);
-  await deployApk(sdk, device.serial, apk);
+  await waitForBoot(sdk, device);
+  await installApkToDevice(sdk, device, apk, app);
 
   process.stdout.write(`Starting application activity ${app}/${activity}...\n`);
-  await startActivity(sdk, device.serial, app, activity);
+  await startActivity(sdk, device, app, activity);
 
   process.stdout.write(`Run Successful\n`);
 
@@ -44,6 +44,7 @@ export async function run(args: string[]) {
 export async function selectDevice(sdk: SDK, args: string[]): Promise<Device> {
   const devices = await getDevices(sdk);
   const target = getOptionValue(args, '--target');
+  const preferEmulator = args.includes('--emulator');
 
   if (target) {
     const device = devices.find(d => d.serial === target);
@@ -55,17 +56,44 @@ export async function selectDevice(sdk: SDK, args: string[]): Promise<Device> {
     return device;
   }
 
-  const hardwareDevices = devices.filter(d => d.type === 'hardware');
+  if (!preferEmulator) {
+    const hardwareDevices = devices.filter(d => d.type === 'hardware');
 
-  // If a hardware device is found, we prefer launching to it instead of in an emulator.
-  if (hardwareDevices.length > 0) {
-    return hardwareDevices[0]; // TODO: can probably do better analysis on which to use?
+    // If a hardware device is found, we prefer launching to it instead of in an emulator.
+    if (hardwareDevices.length > 0) {
+      return hardwareDevices[0]; // TODO: can probably do better analysis on which to use?
+    }
+  }
+
+  const emulatorDevices = devices.filter(d => d.type === 'emulator');
+
+  if (emulatorDevices.length > 0) {
+    return emulatorDevices[0];
   }
 
   const avds = await getAVDs(sdk);
   const defaultAvd = await getDefaultAVD(sdk, avds);
-  await runEmulator(sdk, defaultAvd);
-  debug('emulator ready, running avd: %s', target);
-  const emulators = (await getDevices(sdk)).filter(d => d.type === 'emulator');
-  return emulators[0]; // TODO: can probably do better analysis on which to use?
+  const device = await runEmulator(sdk, defaultAvd, 5554); // TODO: will 5554 always be available?
+
+  debug('emulator ready, running avd: %s on %s', defaultAvd.id, device.serial);
+  return device;
+}
+
+export async function installApkToDevice(sdk: SDK, device: Device, apk: string, app: string): Promise<void> {
+  process.stdout.write(`Installing ${apk}...\n`);
+
+  try {
+    await installApk(sdk, device, apk);
+  } catch (e) {
+    if (e instanceof ADBException) {
+      if (e.code === ERR_INCOMPATIBLE_UPDATE) {
+        process.stdout.write(`${e.message} Uninstalling and trying again...\n`);
+        await uninstallApp(sdk, device, app);
+        await installApk(sdk, device, apk);
+        return;
+      }
+    }
+
+    throw e;
+  }
 }

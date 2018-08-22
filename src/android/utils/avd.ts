@@ -52,6 +52,7 @@ export interface AVDConfigINI {
   readonly 'hw.sdCard'?: string;
   readonly 'hw.sensors.orientation'?: string;
   readonly 'hw.sensors.proximity'?: string;
+  readonly 'image.sysdir.1': string;
   readonly 'sdcard.size'?: string;
   readonly 'showDeviceFrame'?: string;
   readonly 'skin.dynamic'?: string;
@@ -169,6 +170,7 @@ const DEFAULT_AVD_CONFIG_INI = {
   'hw.sdCard': 'yes',
   'hw.sensors.orientation': 'yes',
   'hw.sensors.proximity': 'yes',
+  'image.sysdir.1': 'system-images/android-28/google_apis/x86/',
   'sdcard.size': '100M',
   'showDeviceFrame': 'yes',
   'skin.dynamic': 'yes',

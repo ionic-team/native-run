@@ -1,9 +1,5 @@
 const help = `
-  Usage: native-run <platform> [options]
-
-  Inputs:
-
-    <platform> ........... ios or android
+  Usage: native-run [ios|android] [options]
 
   Options:
 
