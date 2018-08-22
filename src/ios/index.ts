@@ -5,7 +5,10 @@ export async function run(args: string[]) {
   }
 
   if (args.includes('--list') || args.includes('-l')) {
-    const cmd = await import('./list');
-    await cmd.run(args);
+    const list = await import('./list');
+    return list.run(args);
   }
+
+  const runCmd = await import('./run');
+  return runCmd.run(args);
 }
