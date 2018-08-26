@@ -6,7 +6,7 @@ import { isDir } from '../../utils/fs';
 
 import { readProperties } from './properties';
 
-const debug = Debug('native-run:android:utils:sdk');
+const modulePrefix = 'native-run:android:utils:sdk';
 
 const homedir = os.homedir();
 // const SDK_DIRECTORIES = new Map<NodeJS.Platform, string[] | undefined>([
@@ -35,6 +35,7 @@ export interface SDK {
 }
 
 export async function getSDK(): Promise<SDK> {
+  const debug = Debug(`${modulePrefix}:${getSDK.name}`);
   const root = await resolveSDKRoot();
 
   // TODO: validate root and resolve source.properties
@@ -86,20 +87,21 @@ export async function getSDK(): Promise<SDK> {
 }
 
 export async function resolveSDKRoot(): Promise<string> {
-  debug('%s: Looking for $ANDROID_HOME', resolveSDKRoot.name);
+  const debug = Debug(`${modulePrefix}:${resolveSDKRoot.name}`);
+  debug('Looking for $ANDROID_HOME');
 
   // $ANDROID_HOME is deprecated, but still overrides $ANDROID_SDK_ROOT if
   // defined and valid.
   if (process.env.ANDROID_HOME && await isDir(process.env.ANDROID_HOME)) {
-    debug('%s: Using $ANDROID_HOME at %s', resolveSDKRoot.name, process.env.ANDROID_HOME);
+    debug('Using $ANDROID_HOME at %s', process.env.ANDROID_HOME);
     return process.env.ANDROID_HOME;
   }
 
-  debug('%s: Looking for $ANDROID_SDK_ROOT', resolveSDKRoot.name);
+  debug('Looking for $ANDROID_SDK_ROOT');
 
   // No valid $ANDROID_HOME, try $ANDROID_SDK_ROOT.
   if (process.env.ANDROID_SDK_ROOT && await isDir(process.env.ANDROID_SDK_ROOT)) {
-    debug('%s: Using $ANDROID_SDK_ROOT at %s', resolveSDKRoot.name, process.env.ANDROID_SDK_ROOT);
+    debug('Using $ANDROID_SDK_ROOT at %s', process.env.ANDROID_SDK_ROOT);
     return process.env.ANDROID_SDK_ROOT;
   }
 
@@ -109,12 +111,13 @@ export async function resolveSDKRoot(): Promise<string> {
 }
 
 export async function resolveToolsPath(root: string): Promise<string> {
+  const debug = Debug(`${modulePrefix}:${resolveToolsPath.name}`);
   const p = path.join(root, 'tools');
 
-  debug('%s: Looking at %s for tools path', resolveToolsPath.name, p);
+  debug('Looking at %s for tools path', p);
 
   if (await isDir(p)) {
-    debug('%s: Using %s', resolveToolsPath.name, p);
+    debug('Using %s', p);
     return p;
   }
 
@@ -122,12 +125,13 @@ export async function resolveToolsPath(root: string): Promise<string> {
 }
 
 export async function resolvePlatformToolsPath(root: string): Promise<string> {
+  const debug = Debug(`${modulePrefix}:${resolvePlatformToolsPath.name}`);
   const p = path.join(root, 'platform-tools');
 
-  debug('%s: Looking at %s for platform-tools path', resolvePlatformToolsPath.name, p);
+  debug('Looking at %s for platform-tools path', p);
 
   if (await isDir(p)) {
-    debug('%s: Using %s', resolvePlatformToolsPath.name, p);
+    debug('Using %s', p);
     return p;
   }
 
@@ -135,14 +139,15 @@ export async function resolvePlatformToolsPath(root: string): Promise<string> {
 }
 
 export async function resolveEmulatorPath(root: string): Promise<string> {
+  const debug = Debug(`${modulePrefix}:${resolveEmulatorPath.name}`);
   // The emulator was separated out from tools as of 25.3.0 (March 2017)
   const paths = [path.join(root, 'emulator'), path.join(root, 'tools')];
 
   for (const p of paths) {
-    debug('%s: Looking at %s for emulator path', resolveEmulatorPath.name, p);
+    debug('s: Looking at %s for emulator path', p);
 
     if (await isDir(p)) {
-      debug('%s: Using %s', resolveEmulatorPath.name, p);
+      debug('Using %s', p);
       return p;
     }
   }
@@ -168,11 +173,12 @@ export async function getAndroidPackageVersion(pkgPath: string): Promise<string>
 }
 
 export async function resolveAVDHome(root: string): Promise<string> {
-  debug('%s: Looking for $ANDROID_AVD_HOME', resolveAVDHome.name);
+  const debug = Debug(`${modulePrefix}:${resolveAVDHome.name}`);
+  debug('Looking for $ANDROID_AVD_HOME');
 
   // Try $ANDROID_AVD_HOME
   if (process.env.ANDROID_AVD_HOME && await isDir(process.env.ANDROID_AVD_HOME)) {
-    debug('%s: Using $ANDROID_AVD_HOME at %s', resolveAVDHome.name, process.env.$ANDROID_AVD_HOME);
+    debug('Using $ANDROID_AVD_HOME at %s', process.env.$ANDROID_AVD_HOME);
     return process.env.ANDROID_AVD_HOME;
   }
 
@@ -180,10 +186,10 @@ export async function resolveAVDHome(root: string): Promise<string> {
   const paths = [path.join(root, '.android', 'avd'), path.join(homedir, '.android', 'avd')];
 
   for (const p of paths) {
-    debug('%s: Looking at %s for AVD home', resolveAVDHome.name, p);
+    debug('Looking at %s for AVD home', p);
 
     if (await isDir(p)) {
-      debug('%s: Using %s', resolveAVDHome.name, p);
+      debug('Using %s', p);
       return p;
     }
   }

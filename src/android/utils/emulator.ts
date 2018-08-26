@@ -13,7 +13,7 @@ import { Device, getDevices, waitForDevice } from './adb';
 import { AVD } from './avd';
 import { SDK } from './sdk';
 
-const debug = Debug('native-run:android:utils:emulator');
+const modulePrefix = 'native-run:android:utils:emulator';
 
 /**
  * Resolves when emulator is ready and running with the specified AVD.
@@ -39,6 +39,7 @@ export async function runEmulator(sdk: SDK, avd: AVD, port: number): Promise<Dev
 }
 
 export async function spawnEmulator(sdk: SDK, avd: AVD, port: number): Promise<void> {
+  const debug = Debug(`${modulePrefix}:${spawnEmulator.name}`);
   const emulatorBin = `${sdk.emulator.path}/emulator`;
   const args = ['-avd', avd.id, '-port', port.toString()];
   debug('Invoking emulator: %O %O', emulatorBin, args);
@@ -102,6 +103,7 @@ export enum EmulatorEvent {
 }
 
 export function parseEmulatorOutput(line: string): EmulatorEvent | undefined {
+  const debug = Debug(`${modulePrefix}:${parseEmulatorOutput.name}`);
   let event: EmulatorEvent | undefined;
 
   if (line.includes('Unknown AVD name')) {
@@ -120,6 +122,7 @@ export function parseEmulatorOutput(line: string): EmulatorEvent | undefined {
 }
 
 export async function getAVDFromEmulator(emulator: Device, avds: ReadonlyArray<AVD>): Promise<AVD> {
+  const debug = Debug(`${modulePrefix}:${getAVDFromEmulator.name}`);
   const emulatorPortRegex = /^emulator-(\d+)$/;
   const m = emulator.serial.match(emulatorPortRegex);
 
@@ -141,12 +144,31 @@ export async function getAVDFromEmulator(emulator: Device, avds: ReadonlyArray<A
     });
   });
 
+  enum Stage {
+    Initial,
+    Auth,
+    AuthSuccess,
+    Response,
+    Complete,
+  }
+
   return new Promise<AVD>((resolve, reject) => {
-    let stage: 'pre_auth' | 'auth' | 'post_auth' | 'avd_name' = 'pre_auth';
+    let stage = Stage.Initial;
+
+    const timer = setTimeout(() => {
+      if (stage !== Stage.Complete) {
+        reject(new EmulatorException(`Took too long to get AVD name from Android Emulator Console, something went wrong.`));
+      }
+    }, 3000);
+
+    const cleanup = () => {
+      clearTimeout(timer);
+      sock.end();
+    };
 
     sock.on('timeout', () => {
       reject(new EmulatorException(`Socket timeout on ${host}:${port}`));
-      sock.end();
+      cleanup();
     });
 
     sock.pipe(split2()).pipe(through2((chunk: string, enc, cb) => {
@@ -154,15 +176,15 @@ export async function getAVDFromEmulator(emulator: Device, avds: ReadonlyArray<A
 
       debug('Android Console: %O', line);
 
-      if (stage === 'pre_auth' && line.includes('Authentication required')) {
-        stage = 'auth';
-      } else if (stage === 'auth' && line.trim() === 'OK') {
+      if (stage === Stage.Initial && line.includes('Authentication required')) {
+        stage = Stage.Auth;
+      } else if (stage === Stage.Auth && line.trim() === 'OK') {
         readAuthFile.then(token => sock.write(`auth ${token}\n`, 'utf8'), err => reject(err));
-        stage = 'post_auth';
-      } else if (stage === 'post_auth' && line.trim() === 'OK') {
+        stage = Stage.AuthSuccess;
+      } else if (stage === Stage.AuthSuccess && line.trim() === 'OK') {
         sock.write('avd name\n', 'utf8');
-        stage = 'avd_name';
-      } else if (stage === 'avd_name') {
+        stage = Stage.Response;
+      } else if (stage === Stage.Response) {
         const avdId = line.trim();
         const avd = avds.find(avd => avd.id === avdId);
 
@@ -172,7 +194,8 @@ export async function getAVDFromEmulator(emulator: Device, avds: ReadonlyArray<A
           reject(new EmulatorException(`Unknown AVD name [${avdId}]`, ERR_UNKNOWN_AVD));
         }
 
-        sock.end();
+        stage = Stage.Complete;
+        cleanup();
       }
 
       cb();
@@ -181,6 +204,7 @@ export async function getAVDFromEmulator(emulator: Device, avds: ReadonlyArray<A
 }
 
 export function parseAndroidConsoleResponse(output: string): string | undefined {
+  const debug = Debug(`${modulePrefix}:${parseAndroidConsoleResponse.name}`);
   const m = /([\s\S]+)OK\r?\n/g.exec(output);
 
   if (m) {
