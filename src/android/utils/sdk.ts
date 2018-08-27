@@ -2,6 +2,7 @@ import * as Debug from 'debug';
 import * as os from 'os';
 import * as path from 'path';
 
+import { ERR_AVD_HOME_NOT_FOUND, ERR_EMULATOR_NOT_FOUND, ERR_SDK_NOT_FOUND, ERR_SDK_PLATFORM_TOOLS_NOT_FOUND, ERR_SDK_TOOLS_NOT_FOUND, SDKException } from '../../errors';
 import { isDir } from '../../utils/fs';
 
 import { readProperties } from './properties';
@@ -9,11 +10,11 @@ import { readProperties } from './properties';
 const modulePrefix = 'native-run:android:utils:sdk';
 
 const homedir = os.homedir();
-// const SDK_DIRECTORIES = new Map<NodeJS.Platform, string[] | undefined>([
-//   ['darwin', [path.join(homedir, 'Library', 'Android', 'sdk')]],
-//   ['linux', [path.join(homedir, 'Android', 'sdk')]],
-//   ['win32', [path.join('%LOCALAPPDATA%', 'Android', 'sdk')]],
-// ]);
+const SDK_DIRECTORIES = new Map<NodeJS.Platform, string[] | undefined>([
+  ['darwin', [path.join(homedir, 'Library', 'Android', 'sdk')]],
+  ['linux', [path.join(homedir, 'Android', 'sdk')]],
+  ['win32', [path.join('%LOCALAPPDATA%', 'Android', 'sdk')]],
+]);
 
 export interface SDK {
   readonly root: string; // $ANDROID_HOME/$ANDROID_SDK_ROOT
@@ -49,7 +50,7 @@ export async function getSDK(): Promise<SDK> {
     resolveToolsPath(root),
     resolvePlatformToolsPath(root),
     resolveEmulatorPath(root),
-    resolveAVDHome(root),
+    resolveAVDHome(),
   ]);
 
   const [
@@ -105,9 +106,22 @@ export async function resolveSDKRoot(): Promise<string> {
     return process.env.ANDROID_SDK_ROOT;
   }
 
-  // TODO: No valid $ANDROID_SDK_ROOT, try searching common SDK directories.
+  const sdkDirs = SDK_DIRECTORIES.get(process.platform);
 
-  throw new Error(`No valid Android SDK root found.`);
+  if (!sdkDirs) {
+    throw new SDKException(`Unsupported platform: ${process.platform}`);
+  }
+
+  debug('Looking at following directories: %O', sdkDirs);
+
+  for (const sdkDir of sdkDirs) {
+    if (await isDir(sdkDir)) {
+      debug('Using %s', sdkDir);
+      return sdkDir;
+    }
+  }
+
+  throw new SDKException(`No valid Android SDK root found.`, ERR_SDK_NOT_FOUND);
 }
 
 export async function resolveToolsPath(root: string): Promise<string> {
@@ -121,7 +135,7 @@ export async function resolveToolsPath(root: string): Promise<string> {
     return p;
   }
 
-  throw new Error(`No valid Android SDK Tools path found.`);
+  throw new SDKException(`No valid Android SDK Tools path found.`, ERR_SDK_TOOLS_NOT_FOUND);
 }
 
 export async function resolvePlatformToolsPath(root: string): Promise<string> {
@@ -135,7 +149,7 @@ export async function resolvePlatformToolsPath(root: string): Promise<string> {
     return p;
   }
 
-  throw new Error(`No valid Android SDK Platform Tools path found.`);
+  throw new SDKException(`No valid Android SDK Platform Tools path found.`, ERR_SDK_PLATFORM_TOOLS_NOT_FOUND);
 }
 
 export async function resolveEmulatorPath(root: string): Promise<string> {
@@ -152,7 +166,7 @@ export async function resolveEmulatorPath(root: string): Promise<string> {
     }
   }
 
-  throw new Error(`No valid Android Emulator path found.`);
+  throw new SDKException(`No valid Android Emulator path found.`, ERR_EMULATOR_NOT_FOUND);
 }
 
 export interface AndroidPackage {
@@ -166,13 +180,13 @@ export async function getAndroidPackageVersion(pkgPath: string): Promise<string>
   const sourceProps = await readProperties(sourcePropsPath, isAndroidPackage);
 
   if (!sourceProps) {
-    throw new Error(`Invalid package file: ${sourcePropsPath}`);
+    throw new SDKException(`Invalid package file: ${sourcePropsPath}`);
   }
 
   return sourceProps['Pkg.Revision'];
 }
 
-export async function resolveAVDHome(root: string): Promise<string> {
+export async function resolveAVDHome(): Promise<string> {
   const debug = Debug(`${modulePrefix}:${resolveAVDHome.name}`);
   debug('Looking for $ANDROID_AVD_HOME');
 
@@ -182,17 +196,23 @@ export async function resolveAVDHome(root: string): Promise<string> {
     return process.env.ANDROID_AVD_HOME;
   }
 
-  // Try $ANDROID_SDK_ROOT/.android/avd/ and then $HOME/.android/avd/
-  const paths = [path.join(root, '.android', 'avd'), path.join(homedir, '.android', 'avd')];
+  // Try $ANDROID_SDK_HOME/.android/avd/
+  if (process.env.ANDROID_SDK_HOME) {
+    const sdkHomeAvdHome = path.join(process.env.ANDROID_SDK_HOME, '.android', 'avd');
 
-  for (const p of paths) {
-    debug('Looking at %s for AVD home', p);
-
-    if (await isDir(p)) {
-      debug('Using %s', p);
-      return p;
+    if (await isDir(sdkHomeAvdHome)) {
+      debug('Using $ANDROID_SDK_HOME/.android/avd/ at %s', sdkHomeAvdHome);
+      return sdkHomeAvdHome;
     }
   }
 
-  throw new Error(`No valid Android AVD root found.`);
+  // Try $HOME/.android/avd/
+  const homeAvdHome = path.join(homedir, '.android', 'avd');
+
+  if (await isDir(homeAvdHome)) {
+    debug('Using $HOME/.android/avd/ at %s', homeAvdHome);
+    return homeAvdHome;
+  }
+
+  throw new SDKException(`No valid Android AVD home found.`, ERR_AVD_HOME_NOT_FOUND);
 }

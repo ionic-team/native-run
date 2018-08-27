@@ -7,10 +7,14 @@ export class Exception<T extends string> extends Error implements NodeJS.ErrnoEx
 export const ERR_ALREADY_RUNNING = 'ERR_ALREADY_RUNNING ';
 export const ERR_AVD_HOME_NOT_FOUND = 'ERR_AVD_HOME_NOT_FOUND';
 export const ERR_INCOMPATIBLE_UPDATE = 'ERR_INCOMPATIBLE_UPDATE';
+export const ERR_EMULATOR_NOT_FOUND = 'ERR_EMULATOR_NOT_FOUND';
+export const ERR_INVALID_SERIAL = 'ERR_INVALID_SERIAL';
 export const ERR_NON_ZERO_EXIT = 'ERR_NON_ZERO_EXIT';
 export const ERR_NO_AVDS_FOUND = 'ERR_NO_AVDS_FOUND';
+export const ERR_SDK_NOT_FOUND = 'ERR_SDK_NOT_FOUND';
+export const ERR_SDK_TOOLS_NOT_FOUND = 'ERR_SDK_TOOLS_NOT_FOUND';
+export const ERR_SDK_PLATFORM_TOOLS_NOT_FOUND = 'ERR_SDK_PLATFORM_TOOLS_NOT_FOUND';
 export const ERR_UNKNOWN_AVD = 'ERR_UNKNOWN_AVD';
-export const ERR_INVALID_SERIAL = 'ERR_INVALID_SERIAL';
 
 export type ADBExceptionCode = (
   typeof ERR_NON_ZERO_EXIT |
@@ -34,3 +38,13 @@ export type RunExceptionCode = (
 );
 
 export class RunException extends Exception<RunExceptionCode> {}
+
+export type SDKExceptionCode = (
+  typeof ERR_EMULATOR_NOT_FOUND |
+  typeof ERR_SDK_NOT_FOUND |
+  typeof ERR_SDK_TOOLS_NOT_FOUND |
+  typeof ERR_SDK_PLATFORM_TOOLS_NOT_FOUND |
+  typeof ERR_AVD_HOME_NOT_FOUND
+);
+
+export class SDKException extends Exception<SDKExceptionCode> {}
