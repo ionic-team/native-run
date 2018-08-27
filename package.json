@@ -52,7 +52,7 @@
     "hybrid",
     "native"
   ],
-  "author": "Ionic Team <hi@ionic.io> (https://ionicframework.com)",
+  "author": "Ionic Team <hi@ionicframework.com> (https://ionicframework.com)",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/ionic-team/native-run/issues"
