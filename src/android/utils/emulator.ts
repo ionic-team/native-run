@@ -47,13 +47,16 @@ export async function spawnEmulator(sdk: SDK, avd: AVD, port: number): Promise<v
   const p = spawn(emulatorBin, args, { detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
   p.unref();
 
-  return new Promise<void>((resolve, reject) => {
-    waitForDevice(sdk, `emulator-${port}`).then(() => resolve(), () => { /* TODO */ });
+  return new Promise<void>((_resolve, _reject) => {
+    const resolve: typeof _resolve = () => { _resolve(); cleanup(); };
+    const reject: typeof _reject = err => { _reject(err); cleanup(); };
+
+    waitForDevice(sdk, `emulator-${port}`).then(() => resolve(), err => reject(err));
 
     const eventParser = through2((chunk: string, enc, cb) => {
       const line = chunk.toString();
 
-      debug('emulator: %O', line);
+      debug('Android Emulator: %O', line);
       const event = parseEmulatorOutput(line);
 
       if (event === EmulatorEvent.AlreadyRunning) {
@@ -74,24 +77,22 @@ export async function spawnEmulator(sdk: SDK, avd: AVD, port: number): Promise<v
     stderrStream.pipe(eventParser);
 
     const cleanup = () => {
-      stdoutStream.unpipe(eventParser);
-      stderrStream.unpipe(eventParser);
+      debug('Unhooking stdout/stderr streams from emulator process');
+      p.stdout.push(null);
+      p.stderr.push(null);
     };
 
     p.on('close', code => {
-      debug('emulator closed, exit code %d', code);
+      debug('Emulator closed, exit code %d', code);
 
       if (code > 0) {
-        reject(new EmulatorException(`Non-zero exit code from emulator: ${code}`, ERR_NON_ZERO_EXIT));
+        reject(new EmulatorException(`Non-zero exit code from Emulator: ${code}`, ERR_NON_ZERO_EXIT));
       }
-
-      cleanup();
     });
 
     p.on('error', err => {
-      debug('emulator error: %O', err);
+      debug('Emulator error: %O', err);
       reject(err);
-      cleanup();
     });
   });
 }

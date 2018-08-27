@@ -6,7 +6,7 @@ import { readINI, writeINI } from '../../utils/ini';
 
 import { SDK } from './sdk';
 
-const debug = Debug('native-run:android:utils:avd');
+const modulePrefix = 'native-run:android:utils:avd';
 
 export interface AVD {
   readonly id: string;
@@ -75,6 +75,7 @@ export const isAVDConfigINI = (o: any): o is AVDConfigINI => o
   && (typeof o['hw.lcd.width'] === 'undefined' || typeof o['hw.lcd.width'] === 'string');
 
 export async function getAVDINIs(sdk: SDK): Promise<[string, AVDINI][]> {
+  const debug = Debug(`${modulePrefix}:${getAVDINIs.name}`);
   const contents = await readdir(sdk.avds.home);
 
   const iniFilePaths = contents

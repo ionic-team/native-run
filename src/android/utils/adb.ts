@@ -8,7 +8,7 @@ import { execFile } from '../../utils/process';
 
 import { SDK } from './sdk';
 
-const debug = Debug('native-run:android:utils:adb');
+const modulePrefix = 'native-run:android:utils:adb';
 
 export interface DeviceProperties {
   [key: string]: string | undefined;
@@ -32,19 +32,8 @@ const ADB_GETPROP_MAP: ReadonlyMap<string, keyof Device> = new Map<string, keyof
   ['ro.build.version.sdk', 'sdkVersion'],
 ]);
 
-// export async function getDeviceSerials(sdk: SDK): Promise<string[]> {
-//   const adbBin = `${sdk.platformTools.path}/adb`;
-//   const args = ['devices'];
-//   debug('Invoking adb: %O %O', adbBin, args);
-
-//   const { stdout } = await execFile(adbBin, args);
-
-//   const devices = parseAdbDevices(stdout);
-
-//   return devices.map(device => device.serial);
-// }
-
 export async function getDevices(sdk: SDK): Promise<Device[]> {
+  const debug = Debug(`${modulePrefix}:${getDevices.name}`);
   const adbBin = `${sdk.platformTools.path}/adb`;
   const args = ['devices', '-l'];
   debug('Invoking adb: %O %O', adbBin, args);
@@ -69,6 +58,7 @@ export async function getDevices(sdk: SDK): Promise<Device[]> {
 }
 
 export async function getDeviceProperty(sdk: SDK, device: Device, property: string): Promise<string> {
+  const debug = Debug(`${modulePrefix}:${getDeviceProperty.name}`);
   const adbBin = `${sdk.platformTools.path}/adb`;
   const args = ['-s', device.serial, 'shell', 'getprop', property];
   debug('Invoking adb: %O %O', adbBin, args);
@@ -79,6 +69,7 @@ export async function getDeviceProperty(sdk: SDK, device: Device, property: stri
 }
 
 export async function getDeviceProperties(sdk: SDK, device: Device): Promise<DeviceProperties> {
+  const debug = Debug(`${modulePrefix}:${getDeviceProperties.name}`);
   const re = /^\[([a-z0-9\.]+)\]: \[(.*)\]$/;
   const adbBin = `${sdk.platformTools.path}/adb`;
   const args = ['-s', device.serial, 'shell', 'getprop'];
@@ -104,19 +95,25 @@ export async function getDeviceProperties(sdk: SDK, device: Device): Promise<Dev
 }
 
 export async function waitForDevice(sdk: SDK, serial: string): Promise<void> {
+  const debug = Debug(`${modulePrefix}:${waitForDevice.name}`);
   const adbBin = `${sdk.platformTools.path}/adb`;
   const args = ['-s', serial, 'wait-for-any-device'];
   debug('Invoking adb: %O %O', adbBin, args);
 
   await execFile(adbBin, args);
+
+  debug('Device %s is connected to ADB!', serial);
 }
 
 export async function waitForBoot(sdk: SDK, device: Device): Promise<void> {
+  const debug = Debug(`${modulePrefix}:${waitForBoot.name}`);
+
   return new Promise<void>(resolve => {
     const interval = setInterval(async () => {
       const booted = await getDeviceProperty(sdk, device, 'dev.bootcomplete');
 
       if (booted) {
+        debug('Device %s is booted!', device.serial);
         clearInterval(interval);
         resolve();
       }
@@ -125,6 +122,7 @@ export async function waitForBoot(sdk: SDK, device: Device): Promise<void> {
 }
 
 export async function installApk(sdk: SDK, device: Device, apk: string): Promise<void> {
+  const debug = Debug(`${modulePrefix}:${installApk.name}`);
   const adbBin = `${sdk.platformTools.path}/adb`;
   const args = ['-s', device.serial, 'install', '-r', '-t', apk];
   debug('Invoking adb: %O %O', adbBin, args);
@@ -161,6 +159,7 @@ export async function installApk(sdk: SDK, device: Device, apk: string): Promise
 }
 
 export async function uninstallApp(sdk: SDK, device: Device, app: string): Promise<void> {
+  const debug = Debug(`${modulePrefix}:${uninstallApp.name}`);
   const adbBin = `${sdk.platformTools.path}/adb`;
   const args = ['-s', device.serial, 'uninstall', app];
   debug('Invoking adb: %O %O', adbBin, args);
@@ -173,6 +172,7 @@ export enum ADBEvent {
 }
 
 export function parseAdbInstallOutput(line: string): ADBEvent | undefined {
+  const debug = Debug(`${modulePrefix}:${parseAdbInstallOutput.name}`);
   let event: ADBEvent | undefined;
 
   if (line.includes('INSTALL_FAILED_UPDATE_INCOMPATIBLE')) {
@@ -187,6 +187,7 @@ export function parseAdbInstallOutput(line: string): ADBEvent | undefined {
 }
 
 export async function startActivity(sdk: SDK, device: Device, packageName: string, activityName: string): Promise<void> {
+  const debug = Debug(`${modulePrefix}:${startActivity.name}`);
   const adbBin = `${sdk.platformTools.path}/adb`;
   const args = ['-s', device.serial, 'shell', 'am', 'start', '-W', '-n', `${packageName}/${activityName}`];
   debug('Invoking adb: %O %O', adbBin, args);
@@ -195,6 +196,7 @@ export async function startActivity(sdk: SDK, device: Device, packageName: strin
 }
 
 export function parseAdbDevices(output: string): Device[] {
+  const debug = Debug(`${modulePrefix}:${parseAdbDevices.name}`);
   const re = /^([\S]+)\s+([a-z\s]+)\s+(.*)$/;
   const lines = output.split('\n');
 

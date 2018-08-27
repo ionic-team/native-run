@@ -144,7 +144,7 @@ export async function resolveEmulatorPath(root: string): Promise<string> {
   const paths = [path.join(root, 'emulator'), path.join(root, 'tools')];
 
   for (const p of paths) {
-    debug('s: Looking at %s for emulator path', p);
+    debug('Looking at %s for emulator path', p);
 
     if (await isDir(p)) {
       debug('Using %s', p);
