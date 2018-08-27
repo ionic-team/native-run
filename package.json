@@ -7,10 +7,11 @@
   },
   "scripts": {
     "clean": "rm -rf dist",
-    "build": "tsc",
+    "build": "npm run clean && tsc",
     "watch": "tsc -w",
     "test": "jest",
     "lint": "tslint --config tslint.json --project tsconfig.json",
+    "prepublishOnly": "npm run build",
     "precommit": "npm run lint"
   },
   "main": "dist/index.js",
