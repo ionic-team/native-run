@@ -7,6 +7,7 @@ import * as split2 from 'split2';
 import * as through2 from 'through2';
 
 import { ERR_ALREADY_RUNNING, ERR_AVD_HOME_NOT_FOUND, ERR_NON_ZERO_EXIT, ERR_UNKNOWN_AVD, EmulatorException } from '../../errors';
+import { once } from '../../utils/fn';
 import { readFile } from '../../utils/fs';
 
 import { Device, getDevices, waitForDevice } from './adb';
@@ -48,8 +49,8 @@ export async function spawnEmulator(sdk: SDK, avd: AVD, port: number): Promise<v
   p.unref();
 
   return new Promise<void>((_resolve, _reject) => {
-    const resolve: typeof _resolve = () => { _resolve(); cleanup(); };
-    const reject: typeof _reject = err => { _reject(err); cleanup(); };
+    const resolve: typeof _resolve = once(() => { _resolve(); cleanup(); });
+    const reject: typeof _reject = once(err => { _reject(err); cleanup(); });
 
     waitForDevice(sdk, `emulator-${port}`).then(() => resolve(), err => reject(err));
 
@@ -162,10 +163,10 @@ export async function getAVDFromEmulator(emulator: Device, avds: ReadonlyArray<A
       }
     }, 3000);
 
-    const cleanup = () => {
+    const cleanup = once(() => {
       clearTimeout(timer);
       sock.end();
-    };
+    });
 
     sock.on('timeout', () => {
       reject(new EmulatorException(`Socket timeout on ${host}:${port}`));
