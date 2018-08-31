@@ -76,11 +76,11 @@ export const isAVDConfigINI = (o: any): o is AVDConfigINI => o
 
 export async function getAVDINIs(sdk: SDK): Promise<[string, AVDINI][]> {
   const debug = Debug(`${modulePrefix}:${getAVDINIs.name}`);
-  const contents = await readdir(sdk.avds.home);
+  const contents = await readdir(sdk.avdHome);
 
   const iniFilePaths = contents
     .filter(f => path.extname(f) === '.ini')
-    .map(f => path.resolve(sdk.avds.home, f));
+    .map(f => path.resolve(sdk.avdHome, f));
 
   debug('Discovered AVD ini files: %O', iniFilePaths);
 
@@ -181,14 +181,14 @@ const DEFAULT_AVD_CONFIG_INI = {
 };
 
 export function getDefaultAVDPath(sdk: SDK): string {
-  return path.join(sdk.avds.home, `${DEFAULT_AVD_ID}.avd`);
+  return path.join(sdk.avdHome, `${DEFAULT_AVD_ID}.avd`);
 }
 
 export function getDefaultAVDINI(sdk: SDK): [string, Required<AVDINI>] {
   const avdpath = getDefaultAVDPath(sdk);
 
   return [
-    path.join(sdk.avds.home, `${DEFAULT_AVD_ID}.ini`),
+    path.join(sdk.avdHome, `${DEFAULT_AVD_ID}.ini`),
     {
       'path': avdpath,
       ...DEFAULT_AVD_INI,

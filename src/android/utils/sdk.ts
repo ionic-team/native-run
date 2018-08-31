@@ -1,90 +1,176 @@
 import * as Debug from 'debug';
 import * as os from 'os';
-import * as path from 'path';
+import * as pathlib from 'path';
 
-import { ERR_AVD_HOME_NOT_FOUND, ERR_EMULATOR_NOT_FOUND, ERR_SDK_NOT_FOUND, ERR_SDK_PLATFORM_TOOLS_NOT_FOUND, ERR_SDK_TOOLS_NOT_FOUND, SDKException } from '../../errors';
-import { isDir } from '../../utils/fs';
-
-import { readProperties } from './properties';
+import { ERR_AVD_HOME_NOT_FOUND, ERR_INVALID_SDK_PACKAGE, ERR_SDK_NOT_FOUND, ERR_SDK_PACKAGE_NOT_FOUND, SDKException } from '../../errors';
+import { isDir, readFile, readdirr } from '../../utils/fs';
 
 const modulePrefix = 'native-run:android:utils:sdk';
 
 const homedir = os.homedir();
 const SDK_DIRECTORIES = new Map<NodeJS.Platform, string[] | undefined>([
-  ['darwin', [path.join(homedir, 'Library', 'Android', 'sdk')]],
-  ['linux', [path.join(homedir, 'Android', 'sdk')]],
-  ['win32', [path.join('%LOCALAPPDATA%', 'Android', 'sdk')]],
+  ['darwin', [pathlib.join(homedir, 'Library', 'Android', 'sdk')]],
+  ['linux', [pathlib.join(homedir, 'Android', 'sdk')]],
+  ['win32', [pathlib.join('%LOCALAPPDATA%', 'Android', 'sdk')]],
 ]);
 
 export interface SDK {
-  readonly root: string; // $ANDROID_HOME/$ANDROID_SDK_ROOT
-  readonly tools: {
-    readonly path: string;
-    readonly version: string;
-  };
-  readonly platformTools: {
-    readonly path: string;
-    readonly version: string;
-  };
-  readonly emulator: {
-    readonly path: string; // $ANDROID_SDK_ROOT/emulator
-    readonly version: string;
-  };
-  readonly avds: {
-    readonly home: string; // $ANDROID_AVD_HOME
-  };
+  readonly root: string;
+  readonly avdHome: string;
 }
 
 export async function getSDK(): Promise<SDK> {
-  const debug = Debug(`${modulePrefix}:${getSDK.name}`);
-  const root = await resolveSDKRoot();
+  const [ root, avdHome ] = await Promise.all([resolveSDKRoot(), resolveAVDHome()]);
 
-  // TODO: validate root and resolve source.properties
+  return { root, avdHome };
+}
 
-  const [
-    toolsPath,
-    platformToolsPath,
-    emulatorPath,
-    avdHome,
-  ] = await Promise.all([
-    resolveToolsPath(root),
-    resolvePlatformToolsPath(root),
-    resolveEmulatorPath(root),
-    resolveAVDHome(),
-  ]);
+export interface SDKPackage {
+  readonly path: string;
+  readonly location: string;
+  readonly version: string;
+  readonly name: string;
+}
 
-  const [
-    toolsVersion,
-    platformToolsVersion,
-    emulatorVersion,
-  ] = await Promise.all([
-    getAndroidPackageVersion(toolsPath),
-    getAndroidPackageVersion(platformToolsPath),
-    getAndroidPackageVersion(emulatorPath),
-  ]);
+const pkgcache = new Map<string, SDKPackage | undefined>();
 
-  const sdk: SDK = {
-    root,
-    tools: {
-      path: toolsPath,
-      version: toolsVersion,
+export async function findAllSDKPackages(sdk: SDK): Promise<SDKPackage[]> {
+  const sourcesRe = /^sources\/android-\d+\/.+/;
+  const contents = await readdirr(sdk.root, {
+    filter: item => pathlib.basename(item.path) === 'package.xml',
+    walkerOptions: {
+      pathFilter: p => {
+        if ([
+          'bin',
+          'bin64',
+          'lib',
+          'lib64',
+          'include',
+          'clang-include',
+          'skins',
+          'data',
+          'examples',
+          'resources',
+          'systrace',
+          'extras',
+          // 'm2repository',
+        ].includes(pathlib.basename(p))) {
+          return false;
+        }
+
+        if (p.match(sourcesRe)) {
+          return false;
+        }
+
+        return true;
+      },
     },
-    platformTools: {
-      path: platformToolsPath,
-      version: platformToolsVersion,
-    },
-    emulator: {
-      path: emulatorPath,
-      version: emulatorVersion,
-    },
-    avds: {
-      home: avdHome,
-    },
-  };
+  });
 
-  debug('SDK info:\n%O', sdk);
+  const packages = await Promise.all(
+    contents
+      .map(p => pathlib.dirname(p))
+      .map(p => getSDKPackage(p))
+  );
 
-  return sdk;
+  packages.sort((a, b) => a.name.localeCompare(b.name));
+
+  return packages;
+}
+
+export async function getSDKPackage(location: string): Promise<SDKPackage> {
+  const debug = Debug(`${modulePrefix}:${getSDKPackage.name}`);
+  let pkg = pkgcache.get(location);
+
+  if (!pkg) {
+    const packageXmlPath = pathlib.join(location, 'package.xml');
+    debug('Parsing %s', packageXmlPath);
+
+    try {
+      const packageXml = await readPackageXml(packageXmlPath);
+      const name = getNameFromPackageXml(packageXml);
+      const version = getVersionFromPackageXml(packageXml);
+      const path = getPathFromPackageXml(packageXml);
+
+      pkg = {
+        path,
+        location,
+        version,
+        name,
+      };
+    } catch (e) {
+      debug('Encountered error: %O', e);
+
+      if (e.code === 'ENOENT') {
+        throw new SDKException(`SDK package not found by location: ${location}.`, ERR_SDK_PACKAGE_NOT_FOUND);
+      }
+
+      throw e;
+    }
+
+    pkgcache.set(location, pkg);
+  }
+
+  return pkg;
+}
+
+export async function readPackageXml(path: string): Promise<import('elementtree').ElementTree> {
+  const et = await import('elementtree');
+  const contents = await readFile(path, 'utf8');
+  const etree = et.parse(contents);
+
+  return etree;
+}
+
+export function getPathFromPackageXml(packageXml: import('elementtree').ElementTree): string {
+  const localPackage = packageXml.find('./localPackage');
+
+  if (!localPackage) {
+    throw new SDKException(`Invalid SDK package.`, ERR_INVALID_SDK_PACKAGE);
+  }
+
+  const path = localPackage.get('path');
+
+  if (!path) {
+    throw new SDKException(`Invalid SDK package path.`, ERR_INVALID_SDK_PACKAGE);
+  }
+
+  return path.toString();
+}
+
+export function getNameFromPackageXml(packageXml: import('elementtree').ElementTree): string {
+  const name = packageXml.find('./localPackage/display-name');
+
+  if (!name || !name.text) {
+    throw new SDKException(`Invalid SDK package name.`, ERR_INVALID_SDK_PACKAGE);
+  }
+
+  return name.text.toString();
+}
+
+export function getVersionFromPackageXml(packageXml: import('elementtree').ElementTree): string {
+  const versionElements = [
+    packageXml.find('./localPackage/revision/major'),
+    packageXml.find('./localPackage/revision/minor'),
+    packageXml.find('./localPackage/revision/micro'),
+  ];
+
+  const textFromElement = (e: import('elementtree').Element | null): string => e && e.text ? e.text.toString() : '';
+  const versions: string[] = [];
+
+  for (const version of versionElements.map(textFromElement)) {
+    if (!version) {
+      break;
+    }
+
+    versions.push(version);
+  }
+
+  if (versions.length === 0) {
+    throw new SDKException(`Invalid SDK package version.`, ERR_INVALID_SDK_PACKAGE);
+  }
+
+  return versions.join('.');
 }
 
 export async function resolveSDKRoot(): Promise<string> {
@@ -124,68 +210,6 @@ export async function resolveSDKRoot(): Promise<string> {
   throw new SDKException(`No valid Android SDK root found.`, ERR_SDK_NOT_FOUND);
 }
 
-export async function resolveToolsPath(root: string): Promise<string> {
-  const debug = Debug(`${modulePrefix}:${resolveToolsPath.name}`);
-  const p = path.join(root, 'tools');
-
-  debug('Looking at %s for tools path', p);
-
-  if (await isDir(p)) {
-    debug('Using %s', p);
-    return p;
-  }
-
-  throw new SDKException(`No valid Android SDK Tools path found.`, ERR_SDK_TOOLS_NOT_FOUND);
-}
-
-export async function resolvePlatformToolsPath(root: string): Promise<string> {
-  const debug = Debug(`${modulePrefix}:${resolvePlatformToolsPath.name}`);
-  const p = path.join(root, 'platform-tools');
-
-  debug('Looking at %s for platform-tools path', p);
-
-  if (await isDir(p)) {
-    debug('Using %s', p);
-    return p;
-  }
-
-  throw new SDKException(`No valid Android SDK Platform Tools path found.`, ERR_SDK_PLATFORM_TOOLS_NOT_FOUND);
-}
-
-export async function resolveEmulatorPath(root: string): Promise<string> {
-  const debug = Debug(`${modulePrefix}:${resolveEmulatorPath.name}`);
-  // The emulator was separated out from tools as of 25.3.0 (March 2017)
-  const paths = [path.join(root, 'emulator'), path.join(root, 'tools')];
-
-  for (const p of paths) {
-    debug('Looking at %s for emulator path', p);
-
-    if (await isDir(p)) {
-      debug('Using %s', p);
-      return p;
-    }
-  }
-
-  throw new SDKException(`No valid Android Emulator path found.`, ERR_EMULATOR_NOT_FOUND);
-}
-
-export interface AndroidPackage {
-  'Pkg.Revision': string;
-}
-
-export const isAndroidPackage = (o: any): o is AndroidPackage => o && typeof o['Pkg.Revision'] === 'string';
-
-export async function getAndroidPackageVersion(pkgPath: string): Promise<string> {
-  const sourcePropsPath = path.resolve(pkgPath, 'source.properties');
-  const sourceProps = await readProperties(sourcePropsPath, isAndroidPackage);
-
-  if (!sourceProps) {
-    throw new SDKException(`Invalid package file: ${sourcePropsPath}`);
-  }
-
-  return sourceProps['Pkg.Revision'];
-}
-
 export async function resolveAVDHome(): Promise<string> {
   const debug = Debug(`${modulePrefix}:${resolveAVDHome.name}`);
   debug('Looking for $ANDROID_AVD_HOME');
@@ -198,7 +222,7 @@ export async function resolveAVDHome(): Promise<string> {
 
   // Try $ANDROID_SDK_HOME/.android/avd/
   if (process.env.ANDROID_SDK_HOME) {
-    const sdkHomeAvdHome = path.join(process.env.ANDROID_SDK_HOME, '.android', 'avd');
+    const sdkHomeAvdHome = pathlib.join(process.env.ANDROID_SDK_HOME, '.android', 'avd');
 
     if (await isDir(sdkHomeAvdHome)) {
       debug('Using $ANDROID_SDK_HOME/.android/avd/ at %s', sdkHomeAvdHome);
@@ -207,7 +231,7 @@ export async function resolveAVDHome(): Promise<string> {
   }
 
   // Try $HOME/.android/avd/
-  const homeAvdHome = path.join(homedir, '.android', 'avd');
+  const homeAvdHome = pathlib.join(homedir, '.android', 'avd');
 
   if (await isDir(homeAvdHome)) {
     debug('Using $HOME/.android/avd/ at %s', homeAvdHome);

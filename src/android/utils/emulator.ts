@@ -12,7 +12,7 @@ import { readFile } from '../../utils/fs';
 
 import { Device, getDevices, waitForDevice } from './adb';
 import { AVD } from './avd';
-import { SDK } from './sdk';
+import { SDK, getSDKPackage } from './sdk';
 
 const modulePrefix = 'native-run:android:utils:emulator';
 
@@ -41,7 +41,8 @@ export async function runEmulator(sdk: SDK, avd: AVD, port: number): Promise<Dev
 
 export async function spawnEmulator(sdk: SDK, avd: AVD, port: number): Promise<void> {
   const debug = Debug(`${modulePrefix}:${spawnEmulator.name}`);
-  const emulatorBin = `${sdk.emulator.path}/emulator`;
+  const emulator = await getSDKPackage(path.join(sdk.root, 'emulator'));
+  const emulatorBin = `${emulator.location}/emulator`;
   const args = ['-avd', avd.id, '-port', port.toString(), '-verbose'];
   debug('Invoking emulator: %O %O', emulatorBin, args);
 

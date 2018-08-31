@@ -1,22 +1,39 @@
-import { SDK, getSDK } from './utils/sdk';
+import { SDKPackage, findAllSDKPackages, getSDK } from './utils/sdk';
+
+interface SDKInfo {
+  root: string;
+  packages: SDKPackage[];
+}
 
 export async function run(args: string[]) {
   const sdk = await getSDK();
+  const packages = await findAllSDKPackages(sdk);
+
+  const sdkinfo = {
+    ...sdk,
+    packages,
+  };
 
   if (args.includes('--json')) {
-    process.stdout.write(JSON.stringify(sdk));
+    process.stdout.write(JSON.stringify(sdkinfo));
     return;
   }
 
-  process.stdout.write(`${formatSDK(sdk)}\n\n`);
+  process.stdout.write(`${formatSDKInfo(sdkinfo)}\n\n`);
 }
 
-function formatSDK(sdk: SDK) {
+function formatSDKInfo(sdk: SDKInfo): string {
   return `
-SDK Root:           ${sdk.root}
-SDK Tools:          ${sdk.tools.path} (${sdk.tools.version})
-SDK Platform Tools: ${sdk.platformTools.path} (${sdk.platformTools.version})
-Android Emulator:   ${sdk.emulator.path} (${sdk.emulator.version})
-AVDs Home:          ${sdk.avds.home}
+SDK: ${sdk.root}
+${sdk.packages.map(p => formatSDKPackage(p)).join('')}
   `.trim();
+}
+
+function formatSDKPackage(p: SDKPackage): string {
+  return `
+Name:     ${p.name}
+Path:     ${p.path}
+Version:  ${p.version}
+Location: ${p.location}
+`;
 }
