@@ -63,6 +63,7 @@ describe('android/utils/sdk', () => {
     it('should reject if no valid directories are found', async () => {
       mockIsDir.mockResolvedValueOnce(false);
       Object.defineProperty(process, 'env', { value: {} });
+      Object.defineProperty(process, 'platform', { value: 'darwin' });
       await expect(sdkUtils.resolveSDKRoot()).rejects.toThrowError('No valid Android SDK root found.');
       expect(mockIsDir).toHaveBeenCalledTimes(1);
       expect(mockIsDir).toHaveBeenCalledWith('/home/me/Library/Android/sdk');
