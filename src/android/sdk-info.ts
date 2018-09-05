@@ -1,15 +1,12 @@
-import { SDKPackage, findAllSDKPackages, getSDK } from './utils/sdk';
+import { SDK, SDKPackage, findAllSDKPackages, getSDK } from './utils/sdk';
 
-interface SDKInfo {
-  root: string;
-  packages: SDKPackage[];
-}
+type SDKInfo = Required<SDK>;
 
 export async function run(args: string[]) {
   const sdk = await getSDK();
   const packages = await findAllSDKPackages(sdk);
 
-  const sdkinfo = {
+  const sdkinfo: SDKInfo = {
     ...sdk,
     packages,
   };
@@ -33,7 +30,7 @@ function formatSDKPackage(p: SDKPackage): string {
   return `
 Name:     ${p.name}
 Path:     ${p.path}
-Version:  ${p.version}
+Version:  ${p.version}${p.apiLevel ? ` (API ${p.apiLevel})` : ''}
 Location: ${p.location}
 `;
 }

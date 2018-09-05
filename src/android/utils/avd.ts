@@ -2,10 +2,11 @@ import { mkdirp, readDir } from '@ionic/utils-fs';
 import * as Debug from 'debug';
 import * as path from 'path';
 
+import { AVDException, ERR_NO_FULL_API_INSTALLATION, ERR_NO_SUITABLE_API_INSTALLATION } from '../../errors';
 import { readINI, writeINI } from '../../utils/ini';
 import { sort } from '../../utils/object';
 
-import { SDK } from './sdk';
+import { SDK, findAllSDKPackages, getAPILevels } from './sdk';
 
 const modulePrefix = 'native-run:android:utils:avd';
 
@@ -144,11 +145,12 @@ export async function getAVDs(sdk: SDK): Promise<AVD[]> {
   return avds;
 }
 
-const DEFAULT_AVD_ID = 'Pixel_2_API_28';
-
-export async function getDefaultAVDSchematic(sdk: SDK): Promise<AVDSchematic> {
+export async function getAPI28AVDSchematic(sdk: SDK): Promise<AVDSchematic> {
   const { id, ini, configini } = await import('../data/avds/Pixel_2_API_28.json');
   const avdpath = path.join(sdk.avdHome, `${id}.avd`);
+  const skinpath = path.join(sdk.root, 'skins', 'pixel_2');
+
+  // TODO: check for skinpath
 
   return {
     id,
@@ -158,14 +160,63 @@ export async function getDefaultAVDSchematic(sdk: SDK): Promise<AVDSchematic> {
       ...ini,
     }),
     configini: sort({
-      'skin.path': path.join(sdk.root, 'skins', 'pixel_2'),
+      'skin.path': skinpath,
       ...configini,
     }),
   };
 }
 
+export async function getAPI27AVDSchematic(sdk: SDK): Promise<AVDSchematic> {
+  const { id, ini, configini } = await import('../data/avds/Pixel_2_API_27.json');
+  const avdpath = path.join(sdk.avdHome, `${id}.avd`);
+  const skinpath = path.join(sdk.root, 'skins', 'pixel_2');
+
+  // TODO: check for skinpath
+
+  return {
+    id,
+    ini: sort({
+      'path': avdpath,
+      'path.rel': `avd/${id}.avd`,
+      ...ini,
+    }),
+    configini: sort({
+      'skin.path': skinpath,
+      ...configini,
+    }),
+  };
+}
+
+export async function getDefaultAVDSchematic(sdk: SDK): Promise<AVDSchematic> {
+  const debug = Debug(`${modulePrefix}:${getDefaultAVDSchematic.name}`);
+  const packages = await findAllSDKPackages(sdk);
+  const apiLevels = await getAPILevels(packages);
+  const fullAPILevels = apiLevels.filter(apiLevel => apiLevel.full);
+
+  if (fullAPILevels.length === 0) {
+    throw new AVDException('No full API installation found. Install the platform and sources of an API level.', ERR_NO_FULL_API_INSTALLATION);
+  }
+
+  debug('Looking for full installation of API 28');
+  const api28 = fullAPILevels.find(apiLevel => apiLevel.level === '28');
+
+  if (api28) {
+    return getAPI28AVDSchematic(sdk);
+  }
+
+  debug('Looking for full installation of API 27');
+  const api27 = fullAPILevels.find(apiLevel => apiLevel.level === '27');
+
+  if (api27) {
+    return getAPI27AVDSchematic(sdk);
+  }
+
+  throw new AVDException('No supported API installation found.', ERR_NO_SUITABLE_API_INSTALLATION);
+}
+
 export async function getDefaultAVD(sdk: SDK, avds: ReadonlyArray<AVD>): Promise<AVD> {
-  const defaultAvd = avds.find(avd => avd.id === DEFAULT_AVD_ID);
+  const defaultAvdSchematic = await getDefaultAVDSchematic(sdk);
+  const defaultAvd = avds.find(avd => avd.id === defaultAvdSchematic.id);
 
   if (defaultAvd) {
     return defaultAvd;

@@ -17,6 +17,7 @@ const SDK_DIRECTORIES = new Map<NodeJS.Platform, string[] | undefined>([
 export interface SDK {
   readonly root: string;
   readonly avdHome: string;
+  packages?: SDKPackage[];
 }
 
 export async function getSDK(): Promise<SDK> {
@@ -30,12 +31,58 @@ export interface SDKPackage {
   readonly location: string;
   readonly version: string;
   readonly name: string;
+  readonly apiLevel?: string;
+}
+
+export interface APILevel {
+  readonly level: string;
+  readonly packages: SDKPackage[];
+
+  /**
+   * A full installation of an API Level means that the Android platform and
+   * sources are installed.
+   */
+  readonly full: boolean;
+}
+
+export async function getAPILevels(packages: SDKPackage[]): Promise<APILevel[]> {
+  const debug = Debug(`${modulePrefix}:${getAPILevels.name}`);
+  const levels = [
+    ...new Set(
+      packages
+        .map(pkg => pkg.apiLevel)
+        .filter((apiLevel): apiLevel is string => typeof apiLevel !== 'undefined')
+    ),
+  ].sort((a, b) => a <= b ? 1 : -1);
+
+  debug('Discovered installed API Levels: %O', levels);
+
+  return levels.map(level => {
+    const pkgs = packages.filter(pkg => pkg.apiLevel === level);
+    const full = Boolean(
+      pkgs.find(pkg => pkg.path === `platforms;android-${level}`) &&
+      pkgs.find(pkg => pkg.path === `sources;android-${level}`)
+    );
+
+    return {
+      level,
+      packages: pkgs,
+      full,
+    };
+  });
 }
 
 const pkgcache = new Map<string, SDKPackage | undefined>();
 
 export async function findAllSDKPackages(sdk: SDK): Promise<SDKPackage[]> {
-  const sourcesRe = /^sources\/android-\d+\/.+/;
+  const debug = Debug(`${modulePrefix}:${findAllSDKPackages.name}`);
+
+  if (sdk.packages) {
+    return sdk.packages;
+  }
+
+  const sourcesRe = /^sources\/android-\d+\/.+\/.+/;
+  debug('Walking %s to discover SDK packages', sdk.root);
   const contents = await readDirp(sdk.root, {
     filter: item => pathlib.basename(item.path) === 'package.xml',
     walkerOptions: {
@@ -67,15 +114,15 @@ export async function findAllSDKPackages(sdk: SDK): Promise<SDKPackage[]> {
     },
   });
 
-  const packages = await Promise.all(
+  sdk.packages = await Promise.all(
     contents
       .map(p => pathlib.dirname(p))
       .map(p => getSDKPackage(p))
   );
 
-  packages.sort((a, b) => a.name.localeCompare(b.name));
+  sdk.packages.sort((a, b) => a.name >= b.name ? 1 : -1);
 
-  return packages;
+  return sdk.packages;
 }
 
 export async function getSDKPackage(location: string): Promise<SDKPackage> {
@@ -91,15 +138,17 @@ export async function getSDKPackage(location: string): Promise<SDKPackage> {
       const name = getNameFromPackageXml(packageXml);
       const version = getVersionFromPackageXml(packageXml);
       const path = getPathFromPackageXml(packageXml);
+      const apiLevel = getAPILevelFromPackageXml(packageXml);
 
       pkg = {
         path,
         location,
         version,
         name,
+        apiLevel,
       };
     } catch (e) {
-      debug('Encountered error: %O', e);
+      debug('Encountered error with %s: %O', packageXmlPath, e);
 
       if (e.code === 'ENOENT') {
         throw new SDKException(`SDK package not found by location: ${location}.`, ERR_SDK_PACKAGE_NOT_FOUND);
@@ -136,6 +185,12 @@ export function getPathFromPackageXml(packageXml: import('elementtree').ElementT
   }
 
   return path.toString();
+}
+
+export function getAPILevelFromPackageXml(packageXml: import('elementtree').ElementTree): string | undefined {
+  const apiLevel = packageXml.find('./localPackage/type-details/api-level');
+
+  return apiLevel && apiLevel.text ? apiLevel.text.toString() : undefined;
 }
 
 export function getNameFromPackageXml(packageXml: import('elementtree').ElementTree): string {
