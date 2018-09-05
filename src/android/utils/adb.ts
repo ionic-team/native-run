@@ -219,7 +219,7 @@ export function parseAdbDevices(output: string): Device[] {
         const properties = description
           .split(/\s+/)
           .map(prop => prop.includes(':') ? prop.split(':') : undefined)
-          .filter((kv): kv is [string, string] => typeof kv !== 'undefined' && typeof kv[0] === 'string' && typeof kv[1] === 'string')
+          .filter((kv: any): kv is [string, string] => typeof kv !== 'undefined' && typeof kv[0] === 'string' && typeof kv[1] === 'string')
           .reduce((acc, [ k, v ]) => {
             if (k && v) {
               acc[k.trim()] = v.trim();

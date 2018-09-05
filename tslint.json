@@ -1,7 +1,8 @@
 {
   "extends": "tslint-ionic-rules/strict",
   "rules": {
-    "no-null-keyword": false
+    "no-null-keyword": false,
+    "strict-boolean-conditions": false
   },
   "linterOptions": {
     "exclude": [
