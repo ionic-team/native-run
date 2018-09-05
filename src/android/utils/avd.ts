@@ -1,9 +1,9 @@
+import { mkdirp, readDir } from '@ionic/utils-fs';
 import * as Debug from 'debug';
 import * as path from 'path';
 
-import { mkdirp, readdir } from '../../utils/fs';
-import { sort } from '../../utils/object';
 import { readINI, writeINI } from '../../utils/ini';
+import { sort } from '../../utils/object';
 
 import { SDK } from './sdk';
 
@@ -77,7 +77,7 @@ export const isAVDConfigINI = (o: any): o is AVDConfigINI => o
 
 export async function getAVDINIs(sdk: SDK): Promise<[string, AVDINI][]> {
   const debug = Debug(`${modulePrefix}:${getAVDINIs.name}`);
-  const contents = await readdir(sdk.avdHome);
+  const contents = await readDir(sdk.avdHome);
 
   const iniFilePaths = contents
     .filter(f => path.extname(f) === '.ini')

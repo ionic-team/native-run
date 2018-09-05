@@ -1,9 +1,9 @@
+import { isDir, readDirp, readFile } from '@ionic/utils-fs';
 import * as Debug from 'debug';
 import * as os from 'os';
 import * as pathlib from 'path';
 
 import { ERR_AVD_HOME_NOT_FOUND, ERR_INVALID_SDK_PACKAGE, ERR_SDK_NOT_FOUND, ERR_SDK_PACKAGE_NOT_FOUND, SDKException } from '../../errors';
-import { isDir, readFile, readdirr } from '../../utils/fs';
 
 const modulePrefix = 'native-run:android:utils:sdk';
 
@@ -36,7 +36,7 @@ const pkgcache = new Map<string, SDKPackage | undefined>();
 
 export async function findAllSDKPackages(sdk: SDK): Promise<SDKPackage[]> {
   const sourcesRe = /^sources\/android-\d+\/.+/;
-  const contents = await readdirr(sdk.root, {
+  const contents = await readDirp(sdk.root, {
     filter: item => pathlib.basename(item.path) === 'package.xml',
     walkerOptions: {
       pathFilter: p => {
@@ -116,7 +116,7 @@ export async function getSDKPackage(location: string): Promise<SDKPackage> {
 
 export async function readPackageXml(path: string): Promise<import('elementtree').ElementTree> {
   const et = await import('elementtree');
-  const contents = await readFile(path, 'utf8');
+  const contents = await readFile(path, { encoding: 'utf8' });
   const etree = et.parse(contents);
 
   return etree;

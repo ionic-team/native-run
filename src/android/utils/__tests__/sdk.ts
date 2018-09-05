@@ -16,7 +16,7 @@ describe('android/utils/sdk', () => {
 
       jest.resetModules();
       jest.mock('os', () => ({ homedir: mockHomedir }));
-      jest.mock('../../../utils/fs', () => ({ isDir: mockIsDir }));
+      jest.mock('@ionic/utils-fs', () => ({ isDir: mockIsDir }));
 
       sdkUtils = require('../sdk');
     });

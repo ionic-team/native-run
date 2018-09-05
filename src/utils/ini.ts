@@ -1,7 +1,6 @@
+import { readFile, writeFile } from '@ionic/utils-fs';
 import * as Debug from 'debug';
 import * as util from 'util';
-
-import { readFile, writeFile } from './fs';
 
 const debug = Debug('native-run:android:utils:ini');
 
@@ -11,7 +10,7 @@ export async function readINI<T extends object>(p: string, guard: INIGuard<T> = 
   const ini = await import('ini');
 
   try {
-    const contents = await readFile(p, 'utf8');
+    const contents = await readFile(p, { encoding: 'utf8' });
     const config = ini.decode(contents);
 
     if (!guard(config)) {
@@ -32,5 +31,5 @@ export async function writeINI<T extends object>(p: string, o: T): Promise<void>
   const ini = await import ('ini');
   const contents = ini.encode(o);
 
-  await writeFile(p, contents, 'utf8');
+  await writeFile(p, contents, { encoding: 'utf8' });
 }

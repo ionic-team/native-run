@@ -1,3 +1,4 @@
+import { readFile } from '@ionic/utils-fs';
 import { spawn } from 'child_process';
 import * as Debug from 'debug';
 import * as net from 'net';
@@ -8,7 +9,6 @@ import * as through2 from 'through2';
 
 import { ERR_ALREADY_RUNNING, ERR_AVD_HOME_NOT_FOUND, ERR_NON_ZERO_EXIT, ERR_UNKNOWN_AVD, EmulatorException } from '../../errors';
 import { once } from '../../utils/fn';
-import { readFile } from '../../utils/fs';
 
 import { Device, getDevices, waitForDevice } from './adb';
 import { AVD } from './avd';
@@ -142,7 +142,7 @@ export async function getAVDFromEmulator(emulator: Device, avds: ReadonlyArray<A
   const readAuthFile = new Promise<string>((resolve, reject) => {
     sock.on('connect', () => {
       debug('Connected to %s:%d', host, port);
-      readFile(path.resolve(os.homedir(), '.emulator_console_auth_token'), 'utf8')
+      readFile(path.resolve(os.homedir(), '.emulator_console_auth_token'), { encoding: 'utf8' })
         .then(contents => resolve(contents.trim()), err => reject(err));
     });
   });

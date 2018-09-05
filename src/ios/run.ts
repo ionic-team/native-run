@@ -1,7 +1,7 @@
+import { readDir, statSafe } from '@ionic/utils-fs';
 import { resolve } from 'path';
 
 import { getOptionValue } from '../utils/cli';
-import { readdir, safeStat } from '../utils/fs';
 import { execFile } from '../utils/process';
 
 import { getConnectedDevicesUDIDs } from './list';
@@ -21,7 +21,7 @@ export async function run(args: string[]) {
     const version = await getIOSVersion();
     const xCodePath = await getXCodePath();
     const developerDiskImagePath = await getDeveloperDiskImagePath(version, xCodePath);
-    if (!safeStat(developerDiskImagePath)) {
+    if (!statSafe(developerDiskImagePath)) {
       throw new Error(`No Developer Disk Image found for SDK ${version} at\n${developerDiskImagePath}.`);
     }
     await mountDeveloperDiskImage(developerDiskImagePath);
@@ -73,7 +73,7 @@ async function getXCodePath() {
 
 async function getDeveloperDiskImagePath(version: string, xCodePath: string) {
   try {
-    const versionDirs = await readdir(`${xCodePath}/Platforms/iPhoneOS.platform/DeviceSupport/`);
+    const versionDirs = await readDir(`${xCodePath}/Platforms/iPhoneOS.platform/DeviceSupport/`);
     // Can look like "11.2 (15C107)"
     for (const dir of versionDirs) {
       if (dir.indexOf(version) !== -1) {
