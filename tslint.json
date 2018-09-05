@@ -2,5 +2,10 @@
   "extends": "tslint-ionic-rules/strict",
   "rules": {
     "no-null-keyword": false
+  },
+  "linterOptions": {
+    "exclude": [
+      "**/*.json"
+    ]
   }
 }

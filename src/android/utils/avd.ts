@@ -19,6 +19,12 @@ export interface AVD {
   readonly screenHeight: number | null;
 }
 
+export interface AVDSchematic {
+  readonly id: string;
+  readonly ini: Required<AVDINI>;
+  readonly configini: Required<AVDConfigINI>;
+}
+
 export interface AVDINI {
   readonly 'avd.ini.encoding': string;
   readonly 'path': string;
@@ -38,7 +44,7 @@ export interface AVDConfigINI {
   readonly 'hw.camera.front'?: string;
   readonly 'hw.cpu.arch'?: string;
   readonly 'hw.cpu.ncore'?: string;
-  // readonly 'hw.device.hash2'?: string;
+  readonly 'hw.device.hash2'?: string;
   readonly 'hw.device.manufacturer'?: string;
   readonly 'hw.device.name'?: string;
   readonly 'hw.gps'?: string;
@@ -70,10 +76,11 @@ export const isAVDINI = (o: any): o is AVDINI => o
   && typeof o['target'] === 'string';
 
 export const isAVDConfigINI = (o: any): o is AVDConfigINI => o
-  && (typeof o.AvdId === 'undefined' || typeof o.AvdId === 'string')
   && (typeof o['avd.ini.displayname'] === 'undefined' || typeof o['avd.ini.displayname'] === 'string')
+  && (typeof o['hw.lcd.density'] === 'undefined' || typeof o['hw.lcd.density'] === 'string')
   && (typeof o['hw.lcd.height'] === 'undefined' || typeof o['hw.lcd.height'] === 'string')
-  && (typeof o['hw.lcd.width'] === 'undefined' || typeof o['hw.lcd.width'] === 'string');
+  && (typeof o['hw.lcd.width'] === 'undefined' || typeof o['hw.lcd.width'] === 'string')
+  && (typeof o['image.sysdir.1'] === 'undefined' || typeof o['image.sysdir.1'] === 'string');
 
 export async function getAVDINIs(sdk: SDK): Promise<[string, AVDINI][]> {
   const debug = Debug(`${modulePrefix}:${getAVDINIs.name}`);
@@ -139,74 +146,22 @@ export async function getAVDs(sdk: SDK): Promise<AVD[]> {
 
 const DEFAULT_AVD_ID = 'Pixel_2_API_28';
 
-const DEFAULT_AVD_INI = {
-  'avd.ini.encoding': 'UTF-8',
-  'target': 'android-28',
-  'path.rel': `avd/${DEFAULT_AVD_ID}.avd`,
-};
+export async function getDefaultAVDSchematic(sdk: SDK): Promise<AVDSchematic> {
+  const { id, ini, configini } = await import('../data/avds/Pixel_2_API_28.json');
+  const avdpath = path.join(sdk.avdHome, `${id}.avd`);
 
-const DEFAULT_AVD_CONFIG_INI = {
-  'AvdId': DEFAULT_AVD_ID,
-  'abi.type': 'x86',
-  'avd.ini.displayname': 'Pixel 2 API 28',
-  'avd.ini.encoding': 'UTF-8',
-  'hw.accelerometer': 'yes',
-  'hw.audioInput': 'yes',
-  'hw.battery': 'yes',
-  'hw.camera.back': 'virtualscene',
-  'hw.camera.front': 'emulated',
-  'hw.cpu.arch': 'x86',
-  'hw.cpu.ncore': '4',
-  // 'hw.device.hash2': 'MD5:bc5032b2a871da511332401af3ac6bb0',
-  'hw.device.manufacturer': 'Google',
-  'hw.device.name': 'pixel_2',
-  'hw.gps': 'yes',
-  'hw.gpu.enabled': 'yes',
-  'hw.gpu.mode': 'auto',
-  'hw.initialOrientation': 'Portrait',
-  'hw.keyboard': 'yes',
-  'hw.lcd.density': '420',
-  'hw.lcd.height': '1920',
-  'hw.lcd.width': '1080',
-  'hw.ramSize': '1536',
-  'hw.sdCard': 'yes',
-  'hw.sensors.orientation': 'yes',
-  'hw.sensors.proximity': 'yes',
-  'image.sysdir.1': 'system-images/android-28/google_apis/x86/',
-  'sdcard.size': '100M',
-  'showDeviceFrame': 'yes',
-  'skin.dynamic': 'yes',
-  'skin.name': 'pixel_2',
-  'tag.display': 'Google APIs',
-  'tag.id': 'google_apis',
-};
-
-export function getDefaultAVDPath(sdk: SDK): string {
-  return path.join(sdk.avdHome, `${DEFAULT_AVD_ID}.avd`);
-}
-
-export function getDefaultAVDINI(sdk: SDK): [string, Required<AVDINI>] {
-  const avdpath = getDefaultAVDPath(sdk);
-
-  return [
-    path.join(sdk.avdHome, `${DEFAULT_AVD_ID}.ini`),
-    {
+  return {
+    id,
+    ini: sort({
       'path': avdpath,
-      ...DEFAULT_AVD_INI,
-    },
-  ];
-}
-
-export function getDefaultAVDConfigINI(sdk: SDK): [string, Required<AVDConfigINI>] {
-  const avdpath = getDefaultAVDPath(sdk);
-
-  return [
-    path.join(avdpath, 'config.ini'),
-    {
+      'path.rel': `avd/${id}.avd`,
+      ...ini,
+    }),
+    configini: sort({
       'skin.path': path.join(sdk.root, 'skins', 'pixel_2'),
-      ...DEFAULT_AVD_CONFIG_INI,
-    },
-  ];
+      ...configini,
+    }),
+  };
 }
 
 export async function getDefaultAVD(sdk: SDK, avds: ReadonlyArray<AVD>): Promise<AVD> {
@@ -220,15 +175,14 @@ export async function getDefaultAVD(sdk: SDK, avds: ReadonlyArray<AVD>): Promise
 }
 
 export async function createDefaultAVD(sdk: SDK): Promise<AVD> {
-  const [inipath, ini] = getDefaultAVDINI(sdk);
-  const [configinipath, configini] = getDefaultAVDConfigINI(sdk);
+  const { id, ini, configini } = await getDefaultAVDSchematic(sdk);
 
-  await mkdirp(path.dirname(configinipath));
+  await mkdirp(path.join(sdk.avdHome, `${id}.avd`));
 
   await Promise.all([
-    writeINI(inipath, sort(ini)),
-    writeINI(configinipath, sort(configini)),
+    writeINI(path.join(sdk.avdHome, `${id}.ini`), ini),
+    writeINI(path.join(sdk.avdHome, `${id}.avd`, 'config.ini'), configini),
   ]);
 
-  return getAVDFromConfigINI(inipath, ini, configini);
+  return getAVDFromConfigINI(path.join(sdk.avdHome, `${id}.ini`), ini, configini);
 }

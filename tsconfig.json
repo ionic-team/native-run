@@ -4,6 +4,7 @@
     "importHelpers": true,
     "module": "commonjs",
     "moduleResolution": "node",
+    "resolveJsonModule": true,
     "noFallthroughCasesInSwitch": true,
     "noUnusedLocals": true,
     "outDir": "./dist",
@@ -15,7 +16,7 @@
     ]
   },
   "include": [
-    "src/**/*.ts",
+    "src/**/*",
     "types/**.ts"
   ],
   "exclude": [

@@ -1,4 +1,5 @@
 import * as Debug from 'debug';
+import * as path from 'path';
 
 import { Exception } from './errors';
 
@@ -8,7 +9,7 @@ export async function run() {
   const args = process.argv.slice(2);
 
   if (args.includes('--version')) {
-    const pkg = require('../package.json');
+    const pkg = await import(path.resolve(__dirname, '../package.json'));
     process.stdout.write(pkg.version + '\n');
     return;
   }
