@@ -2,6 +2,7 @@ import * as Debug from 'debug';
 import * as path from 'path';
 
 import { mkdirp, readdir } from '../../utils/fs';
+import { sort } from '../../utils/object';
 import { readINI, writeINI } from '../../utils/ini';
 
 import { SDK } from './sdk';
@@ -224,19 +225,9 @@ export async function createDefaultAVD(sdk: SDK): Promise<AVD> {
 
   await mkdirp(path.dirname(configinipath));
 
-  const writeConfigFile = async (p: string, f: { [key: string]: string; }) => {
-    const ini = Object.keys(f).sort().reduce((acc, k) => {
-      acc[k] = f[k];
-
-      return acc;
-    }, {} as { [key: string]: string; });
-
-    await writeINI(p, ini);
-  };
-
   await Promise.all([
-    writeConfigFile(inipath, ini),
-    writeConfigFile(configinipath, configini),
+    writeINI(inipath, sort(ini)),
+    writeINI(configinipath, sort(configini)),
   ]);
 
   return getAVDFromConfigINI(inipath, ini, configini);
