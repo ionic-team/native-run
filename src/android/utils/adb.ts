@@ -7,7 +7,7 @@ import * as through2 from 'through2';
 import { ADBException, ERR_INCOMPATIBLE_UPDATE } from '../../errors';
 import { execFile } from '../../utils/process';
 
-import { SDK, getSDKPackage } from './sdk';
+import { SDK, getSDKPackage, supplementProcessEnv } from './sdk';
 
 const modulePrefix = 'native-run:android:utils:adb';
 
@@ -40,7 +40,7 @@ export async function getDevices(sdk: SDK): Promise<Device[]> {
   const args = ['devices', '-l'];
   debug('Invoking adb: %O %O', adbBin, args);
 
-  const { stdout } = await execFile(adbBin, args);
+  const { stdout } = await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });
 
   const devices = parseAdbDevices(stdout);
 
@@ -66,7 +66,7 @@ export async function getDeviceProperty(sdk: SDK, device: Device, property: stri
   const args = ['-s', device.serial, 'shell', 'getprop', property];
   debug('Invoking adb: %O %O', adbBin, args);
 
-  const { stdout } = await execFile(adbBin, args);
+  const { stdout } = await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });
 
   return stdout.trim();
 }
@@ -80,7 +80,7 @@ export async function getDeviceProperties(sdk: SDK, device: Device): Promise<Dev
   debug('Invoking adb: %O %O', adbBin, args);
   const propAllowList = [...ADB_GETPROP_MAP.keys()];
 
-  const { stdout } = await execFile(adbBin, args);
+  const { stdout } = await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });
   const properties: DeviceProperties = {};
 
   for (const line of stdout.split('\n')) {
@@ -105,7 +105,7 @@ export async function waitForDevice(sdk: SDK, serial: string): Promise<void> {
   const args = ['-s', serial, 'wait-for-any-device'];
   debug('Invoking adb: %O %O', adbBin, args);
 
-  await execFile(adbBin, args);
+  await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });
 
   debug('Device %s is connected to ADB!', serial);
 }
@@ -133,7 +133,7 @@ export async function installApk(sdk: SDK, device: Device, apk: string): Promise
   const args = ['-s', device.serial, 'install', '-r', '-t', apk];
   debug('Invoking adb: %O %O', adbBin, args);
 
-  const p = spawn(adbBin, args, { stdio: 'pipe' });
+  const p = spawn(adbBin, args, { stdio: 'pipe', env: supplementProcessEnv(sdk) });
 
   return new Promise<void>((resolve, reject) => {
     p.on('close', code => {
@@ -171,7 +171,7 @@ export async function uninstallApp(sdk: SDK, device: Device, app: string): Promi
   const args = ['-s', device.serial, 'uninstall', app];
   debug('Invoking adb: %O %O', adbBin, args);
 
-  await execFile(adbBin, args);
+  await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });
 }
 
 export enum ADBEvent {
@@ -200,7 +200,7 @@ export async function startActivity(sdk: SDK, device: Device, packageName: strin
   const args = ['-s', device.serial, 'shell', 'am', 'start', '-W', '-n', `${packageName}/${activityName}`];
   debug('Invoking adb: %O %O', adbBin, args);
 
-  await execFile(adbBin, args);
+  await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });
 }
 
 export function parseAdbDevices(output: string): Device[] {

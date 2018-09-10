@@ -12,7 +12,7 @@ import { once } from '../../utils/fn';
 
 import { Device, getDevices, waitForDevice } from './adb';
 import { AVD } from './avd';
-import { SDK, getSDKPackage } from './sdk';
+import { SDK, getSDKPackage, supplementProcessEnv } from './sdk';
 
 const modulePrefix = 'native-run:android:utils:emulator';
 
@@ -46,7 +46,7 @@ export async function spawnEmulator(sdk: SDK, avd: AVD, port: number): Promise<v
   const args = ['-avd', avd.id, '-port', port.toString(), '-verbose'];
   debug('Invoking emulator: %O %O', emulatorBin, args);
 
-  const p = spawn(emulatorBin, args, { detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
+  const p = spawn(emulatorBin, args, { detached: true, stdio: ['ignore', 'pipe', 'pipe'], env: supplementProcessEnv(sdk) });
   p.unref();
 
   return new Promise<void>((_resolve, _reject) => {

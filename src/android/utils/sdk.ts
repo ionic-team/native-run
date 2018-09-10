@@ -3,7 +3,7 @@ import * as Debug from 'debug';
 import * as os from 'os';
 import * as pathlib from 'path';
 
-import { ERR_AVD_HOME_NOT_FOUND, ERR_INVALID_SDK_PACKAGE, ERR_SDK_NOT_FOUND, ERR_SDK_PACKAGE_NOT_FOUND, SDKException } from '../../errors';
+import { ERR_AVD_HOME_NOT_FOUND, ERR_EMULATOR_HOME_NOT_FOUND, ERR_INVALID_SDK_PACKAGE, ERR_SDK_NOT_FOUND, ERR_SDK_PACKAGE_NOT_FOUND, SDKException } from '../../errors';
 
 const modulePrefix = 'native-run:android:utils:sdk';
 
@@ -16,14 +16,17 @@ const SDK_DIRECTORIES = new Map<NodeJS.Platform, string[] | undefined>([
 
 export interface SDK {
   readonly root: string;
+  readonly emulatorHome: string;
   readonly avdHome: string;
   packages?: SDKPackage[];
 }
 
 export async function getSDK(): Promise<SDK> {
-  const [ root, avdHome ] = await Promise.all([resolveSDKRoot(), resolveAVDHome()]);
+  const root = await resolveSDKRoot();
+  const emulatorHome = await resolveEmulatorHome();
+  const avdHome = await resolveAVDHome();
 
-  return { root, avdHome };
+  return { root, emulatorHome, avdHome };
 }
 
 export interface SDKPackage {
@@ -265,6 +268,27 @@ export async function resolveSDKRoot(): Promise<string> {
   throw new SDKException(`No valid Android SDK root found.`, ERR_SDK_NOT_FOUND);
 }
 
+export async function resolveEmulatorHome(): Promise<string> {
+  const debug = Debug(`${modulePrefix}:${resolveEmulatorHome.name}`);
+  debug('Looking for $ANDROID_EMULATOR_HOME');
+
+  // Try $ANDROID_EMULATOR_HOME
+  if (process.env.ANDROID_EMULATOR_HOME && await isDir(process.env.ANDROID_EMULATOR_HOME)) {
+    debug('Using $ANDROID_EMULATOR_HOME at %s', process.env.$ANDROID_EMULATOR_HOME);
+    return process.env.ANDROID_EMULATOR_HOME;
+  }
+
+  // Try $HOME/.android/
+  const homeEmulatorHome = pathlib.join(homedir, '.android');
+
+  if (await isDir(homeEmulatorHome)) {
+    debug('Using $HOME/.android/ at %s', homeEmulatorHome);
+    return homeEmulatorHome;
+  }
+
+  throw new SDKException(`No valid Android Emulator home found.`, ERR_EMULATOR_HOME_NOT_FOUND);
+}
+
 export async function resolveAVDHome(): Promise<string> {
   const debug = Debug(`${modulePrefix}:${resolveAVDHome.name}`);
   debug('Looking for $ANDROID_AVD_HOME');
@@ -273,16 +297,6 @@ export async function resolveAVDHome(): Promise<string> {
   if (process.env.ANDROID_AVD_HOME && await isDir(process.env.ANDROID_AVD_HOME)) {
     debug('Using $ANDROID_AVD_HOME at %s', process.env.$ANDROID_AVD_HOME);
     return process.env.ANDROID_AVD_HOME;
-  }
-
-  // Try $ANDROID_SDK_HOME/.android/avd/
-  if (process.env.ANDROID_SDK_HOME) {
-    const sdkHomeAvdHome = pathlib.join(process.env.ANDROID_SDK_HOME, '.android', 'avd');
-
-    if (await isDir(sdkHomeAvdHome)) {
-      debug('Using $ANDROID_SDK_HOME/.android/avd/ at %s', sdkHomeAvdHome);
-      return sdkHomeAvdHome;
-    }
   }
 
   // Try $HOME/.android/avd/
@@ -294,4 +308,13 @@ export async function resolveAVDHome(): Promise<string> {
   }
 
   throw new SDKException(`No valid Android AVD home found.`, ERR_AVD_HOME_NOT_FOUND);
+}
+
+export function supplementProcessEnv(sdk: SDK): NodeJS.ProcessEnv {
+  return {
+    ...process.env,
+    ANDROID_SDK_ROOT: sdk.root,
+    ANDROID_EMULATOR_HOME: sdk.emulatorHome,
+    ANDROID_AVD_HOME: sdk.avdHome,
+  };
 }
