@@ -6,4 +6,6 @@ AVD                 | Source                                  | Hardware Profile
 --------------------|-----------------------------------------|------------------|-------------
 `Pixel_2_API_28`    | Android Studio 3.1.4                    | Pixel 2          |
 `Pixel_2_XL_API_28` | Android Studio 3.1.4                    | Pixel 2 XL       |
+`Pixel_API_25`      | `native-run`                            | Pixel            |
+`Nexus_5X_API_24`   | `native-run`                            | Nexus 5X         |
 `avdmanager_1`      | `avdmanager` (Android SDK Tools 26.1.1) | n/a              | <ul><li>no hardware profile used</li><li>`--package system-images;android-28;google_apis;x86`</li></ul>
