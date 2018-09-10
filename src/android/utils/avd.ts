@@ -198,6 +198,7 @@ export type PartialAVDSchematic = (
   typeof import('../data/avds/Pixel_2_API_28.json') |
   typeof import('../data/avds/Pixel_2_API_27.json') |
   typeof import('../data/avds/Pixel_2_API_26.json') |
+  typeof import('../data/avds/Nexus_5X_API_24.json') |
   typeof import('../data/avds/Pixel_API_25.json')
 );
 
@@ -210,6 +211,8 @@ export async function loadPartialSchematic(api: APILevel): Promise<PartialAVDSch
     return import('../data/avds/Pixel_2_API_26.json');
   } else if (api.level === '25') {
     return import('../data/avds/Pixel_API_25.json');
+  } else if (api.level === '24') {
+    return import('../data/avds/Nexus_5X_API_24.json');
   }
 
   throw new AVDException(`Unsupported API level: ${api.level}`, ERR_UNSUPPORTED_API_LEVEL);
