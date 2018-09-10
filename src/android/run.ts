@@ -1,8 +1,9 @@
-import { RunException } from '../errors';
+import { ERR_TARGET_NOT_FOUND, RunException } from '../errors';
 import { getOptionValue } from '../utils/cli';
+import { log } from '../utils/log';
 
 import { Device, getDevices, startActivity, waitForBoot } from './utils/adb';
-import { getAVDs } from './utils/avd';
+import { getInstalledAVDs } from './utils/avd';
 import { installApkToDevice, selectDeviceByTarget, selectHardwareDevice, selectVirtualDevice } from './utils/run';
 import { SDK, getSDK } from './utils/sdk';
 
@@ -23,20 +24,20 @@ export async function run(args: string[]) {
 
   const device = await selectDevice(sdk, args);
 
-  process.stdout.write(`Selected ${device.type === 'hardware' ? 'hardware device' : 'emulator'} ${device.serial}\n`);
+  log(`Selected ${device.type === 'hardware' ? 'hardware device' : 'emulator'} ${device.serial}\n`);
 
   await waitForBoot(sdk, device);
   await installApkToDevice(sdk, device, apk, app);
 
-  process.stdout.write(`Starting application activity ${app}/${activity}...\n`);
+  log(`Starting application activity ${app}/${activity}...\n`);
   await startActivity(sdk, device, app, activity);
 
-  process.stdout.write(`Run Successful\n`);
+  log(`Run Successful\n`);
 }
 
 export async function selectDevice(sdk: SDK, args: string[]): Promise<Device> {
   const devices = await getDevices(sdk);
-  const avds = await getAVDs(sdk);
+  const avds = await getInstalledAVDs(sdk);
 
   const target = getOptionValue(args, '--target');
   const preferEmulator = args.includes('--emulator');
@@ -47,10 +48,7 @@ export async function selectDevice(sdk: SDK, args: string[]): Promise<Device> {
     if (targetDevice) {
       return targetDevice;
     } else {
-      throw new RunException(
-        `Target not found: ${target}\n` +
-        `Use --list to select a valid target`
-      );
+      throw new RunException(`Target not found: ${target}`, ERR_TARGET_NOT_FOUND);
     }
   }
 

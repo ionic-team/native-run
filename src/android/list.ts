@@ -1,5 +1,5 @@
 import { Device, getDevices } from './utils/adb';
-import { AVD, getAVDs } from './utils/avd';
+import { AVD, getDefaultAVD, getInstalledAVDs } from './utils/avd';
 import { getSDK } from './utils/sdk';
 
 export async function run(args: string[]) {
@@ -9,8 +9,14 @@ export async function run(args: string[]) {
     .filter(device => device.type === 'hardware')
     .map(device => deviceToTarget(device));
 
-  const virtualDevices = (await getAVDs(sdk))
-    .map(avd => avdToTarget(avd));
+  const avds = await getInstalledAVDs(sdk);
+  const defaultAvd = await getDefaultAVD(sdk, avds);
+
+  if (!avds.includes(defaultAvd)) {
+    avds.push(defaultAvd);
+  }
+
+  const virtualDevices = avds.map(avd => avdToTarget(avd));
 
   if (args.includes('--json')) {
     process.stdout.write(JSON.stringify({ devices, virtualDevices }));
@@ -29,8 +35,12 @@ export async function run(args: string[]) {
 
   process.stdout.write('\nVirtual Devices:\n\n');
 
-  for (const avd of virtualDevices) {
-    process.stdout.write(`  ${formatTarget(avd)}\n`);
+  if (virtualDevices.length === 0) {
+    process.stdout.write('  No virtual devices found\n');
+  } else {
+    for (const avd of virtualDevices) {
+      process.stdout.write(`  ${formatTarget(avd)}\n`);
+    }
   }
 }
 

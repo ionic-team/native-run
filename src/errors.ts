@@ -10,13 +10,16 @@ export const ERR_INCOMPATIBLE_UPDATE = 'ERR_INCOMPATIBLE_UPDATE';
 export const ERR_INVALID_SDK_PACKAGE = 'ERR_INVALID_SDK_PACKAGE';
 export const ERR_INVALID_SERIAL = 'ERR_INVALID_SERIAL';
 export const ERR_INVALID_SKIN = 'ERR_INVALID_SKIN';
+export const ERR_INVALID_SYSTEM_IMAGE = 'ERR_INVALID_SYSTEM_IMAGE';
 export const ERR_NON_ZERO_EXIT = 'ERR_NON_ZERO_EXIT';
 export const ERR_NO_AVDS_FOUND = 'ERR_NO_AVDS_FOUND';
 export const ERR_NO_FULL_API_INSTALLATION = 'ERR_NO_FULL_API_INSTALLATION';
 export const ERR_NO_SUITABLE_API_INSTALLATION = 'ERR_NO_SUITABLE_API_INSTALLATION';
 export const ERR_SDK_NOT_FOUND = 'ERR_SDK_NOT_FOUND';
 export const ERR_SDK_PACKAGE_NOT_FOUND = 'ERR_SDK_PACKAGE_NOT_FOUND';
+export const ERR_TARGET_NOT_FOUND = 'ERR_TARGET_NOT_FOUND';
 export const ERR_UNKNOWN_AVD = 'ERR_UNKNOWN_AVD';
+export const ERR_UNSUPPORTED_API_LEVEL = 'ERR_UNSUPPORTED_API_LEVEL';
 
 export type ADBExceptionCode = (
   typeof ERR_NON_ZERO_EXIT |
@@ -26,9 +29,11 @@ export type ADBExceptionCode = (
 export class ADBException extends Exception<ADBExceptionCode> {}
 
 export type AVDExceptionCode = (
+  typeof ERR_INVALID_SKIN |
+  typeof ERR_INVALID_SYSTEM_IMAGE |
   typeof ERR_NO_FULL_API_INSTALLATION |
   typeof ERR_NO_SUITABLE_API_INSTALLATION |
-  typeof ERR_INVALID_SKIN
+  typeof ERR_UNSUPPORTED_API_LEVEL
 );
 
 export class AVDException extends Exception<AVDExceptionCode> {}
@@ -44,7 +49,8 @@ export type EmulatorExceptionCode = (
 export class EmulatorException extends Exception<EmulatorExceptionCode> {}
 
 export type RunExceptionCode = (
-  typeof ERR_NO_AVDS_FOUND
+  typeof ERR_NO_AVDS_FOUND |
+  typeof ERR_TARGET_NOT_FOUND
 );
 
 export class RunException extends Exception<RunExceptionCode> {}

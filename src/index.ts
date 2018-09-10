@@ -32,13 +32,26 @@ export async function run() {
       throw new Exception(`Unsupported platform: "${platform}"`);
     }
   } catch (e) {
-    if (e instanceof Exception) {
-      process.stderr.write(`${e.message}\n`);
-      process.exitCode = e.exitCode;
-    } else {
-      debug('Caught fatal error: %O', e);
-      process.stderr.write(String(e.stack ? e.stack : e));
-      process.exitCode = 1;
-    }
+    debug('Caught fatal error: %O', e);
+    process.exitCode = e instanceof Exception ? e.exitCode : 1;
+    process.stdout.write(serializeError(e));
   }
+}
+
+function serializeError(e: Error): string {
+  let error: string;
+  let code: string | undefined;
+
+  if (e instanceof Exception) {
+    error = e.message;
+    code = e.code;
+  } else {
+    error = String(e.stack ? e.stack : e);
+  }
+
+  if (process.argv.includes('--json')) {
+    return JSON.stringify({ error, code });
+  }
+
+  return `${code ? code : 'ERR_UNKNOWN'}: ${error}\n`;
 }

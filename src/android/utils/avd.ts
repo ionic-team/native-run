@@ -2,7 +2,7 @@ import { mkdirp, readDir, statSafe } from '@ionic/utils-fs';
 import * as Debug from 'debug';
 import * as pathlib from 'path';
 
-import { AVDException, ERR_INVALID_SKIN, ERR_NO_FULL_API_INSTALLATION, ERR_NO_SUITABLE_API_INSTALLATION } from '../../errors';
+import { AVDException, ERR_INVALID_SKIN, ERR_INVALID_SYSTEM_IMAGE, ERR_NO_FULL_API_INSTALLATION, ERR_NO_SUITABLE_API_INSTALLATION, ERR_UNSUPPORTED_API_LEVEL } from '../../errors';
 import { readINI, writeINI } from '../../utils/ini';
 import { sort } from '../../utils/object';
 
@@ -132,15 +132,10 @@ export async function getAVDFromINI(inipath: string, ini: AVDINI): Promise<AVD |
   }
 }
 
-export async function getAVDs(sdk: SDK): Promise<AVD[]> {
+export async function getInstalledAVDs(sdk: SDK): Promise<AVD[]> {
   const avdInis = await getAVDINIs(sdk);
   const possibleAvds = await Promise.all(avdInis.map(([inipath, ini]) => getAVDFromINI(inipath, ini)));
   const avds = possibleAvds.filter((avd): avd is AVD => typeof avd !== 'undefined');
-  const defaultAvd = await getDefaultAVD(sdk, avds);
-
-  if (!avds.includes(defaultAvd)) {
-    avds.push(defaultAvd);
-  }
 
   return avds;
 }
@@ -156,15 +151,23 @@ export async function getDefaultAVDSchematic(sdk: SDK): Promise<AVDSchematic> {
   }
 
   for (const api of fullAPILevels) {
-    const schematic = await createAVDSchematic(sdk, api);
+    try {
+      const schematic = await createAVDSchematic(sdk, api);
 
-    if (schematic) {
-      debug('Using schematic %s for default AVD', schematic.id);
-      return schematic;
+      if (schematic) {
+        debug('Using schematic %s for default AVD', schematic.id);
+        return schematic;
+      }
+    } catch (e) {
+      if (!(e instanceof AVDException)) {
+        throw e;
+      }
+
+      debug('Issue with API %s: %s', api.level, e.message);
     }
   }
 
-  throw new AVDException('No supported API installation found.', ERR_NO_SUITABLE_API_INSTALLATION);
+  throw new AVDException('No suitable API installation found.', ERR_NO_SUITABLE_API_INSTALLATION);
 }
 
 export async function getDefaultAVD(sdk: SDK, avds: ReadonlyArray<AVD>): Promise<AVD> {
@@ -191,52 +194,72 @@ export async function createAVD(sdk: SDK, schematic: AVDSchematic): Promise<AVD>
   return getAVDFromConfigINI(pathlib.join(sdk.avdHome, `${id}.ini`), ini, configini);
 }
 
-export async function createAVDSchematic(sdk: SDK, api: APILevel): Promise<AVDSchematic | undefined> {
-  const debug = Debug(`${modulePrefix}:${createAVDSchematic.name}`);
+export type PartialAVDSchematic = (
+  typeof import('../data/avds/Pixel_2_API_28.json') |
+  typeof import('../data/avds/Pixel_2_API_27.json') |
+  typeof import('../data/avds/Pixel_2_API_26.json') |
+  typeof import('../data/avds/Pixel_API_25.json')
+);
 
-  let schematic:
-    | typeof import('../data/avds/Pixel_2_API_26.json')
-    | typeof import('../data/avds/Pixel_2_API_27.json')
-    | typeof import('../data/avds/Pixel_2_API_28.json');
+export async function loadPartialSchematic(api: APILevel): Promise<PartialAVDSchematic> {
+  if (api.level === '28') {
+    return import('../data/avds/Pixel_2_API_28.json');
+  } else if (api.level === '27') {
+    return import('../data/avds/Pixel_2_API_27.json');
+  } else if (api.level === '26') {
+    return import('../data/avds/Pixel_2_API_26.json');
+  } else if (api.level === '25') {
+    return import('../data/avds/Pixel_API_25.json');
+  }
+
+  throw new AVDException(`Unsupported API level: ${api.level}`, ERR_UNSUPPORTED_API_LEVEL);
+}
+
+export async function createAVDSchematic(sdk: SDK, api: APILevel): Promise<AVDSchematic> {
+  const debug = Debug(`${modulePrefix}:${createAVDSchematic.name}`);
 
   debug('Attempting to build AVD schematic for API %s', api.level);
 
-  if (api.level === '28') {
-    schematic = await import('../data/avds/Pixel_2_API_28.json');
-  } else if (api.level === '27') {
-    schematic = await import('../data/avds/Pixel_2_API_27.json');
-  } else if (api.level === '26') {
-    schematic = await import('../data/avds/Pixel_2_API_26.json');
-  } else {
-    return undefined;
-  }
+  const partialSchematic = await loadPartialSchematic(api);
 
-  debug('Schematic %s matches', schematic.id);
+  debug('Schematic %s matches', partialSchematic.id);
 
-  const avdpath = pathlib.join(sdk.avdHome, `${schematic.id}.avd`);
-  const skinpath = getSkinPathByName(sdk, schematic.configini['skin.name']);
+  const avdpath = pathlib.join(sdk.avdHome, `${partialSchematic.id}.avd`);
+  const skinpath = getSkinPathByName(sdk, partialSchematic.configini['skin.name']);
 
-  return {
-    id: schematic.id,
+  const schematic: AVDSchematic = {
+    id: partialSchematic.id,
     ini: sort({
-      ...schematic.ini,
+      ...partialSchematic.ini,
       'path': avdpath,
-      'path.rel': `avd/${schematic.id}.avd`,
+      'path.rel': `avd/${partialSchematic.id}.avd`,
     }),
     configini: sort({
-      ...schematic.configini,
+      ...partialSchematic.configini,
       'skin.path': skinpath,
     }),
   };
+
+  await validateAVDSchematic(sdk, schematic);
+
+  return schematic;
 }
 
-export async function validateAVDSchematic(schematic: AVDSchematic): Promise<void> {
+export async function validateAVDSchematic(sdk: SDK, schematic: AVDSchematic): Promise<void> {
   const { configini } = schematic;
   const skinpath = configini['skin.path'];
+  const sysdir = configini['image.sysdir.1'];
 
-  if (skinpath) {
-    await validateSkinPath(skinpath);
+  if (!skinpath) {
+    throw new AVDException(`${schematic.id} does not have a skin defined.`, ERR_INVALID_SKIN);
   }
+
+  if (!sysdir) {
+    throw new AVDException(`${schematic.id} does not have a system image defined.`, ERR_INVALID_SYSTEM_IMAGE);
+  }
+
+  await validateSkinPath(skinpath);
+  await validateSystemImagePath(sdk, sysdir);
 }
 
 export async function validateSkinPath(skinpath: string): Promise<void> {
@@ -244,6 +267,15 @@ export async function validateSkinPath(skinpath: string): Promise<void> {
 
   if (!stat || !stat.isFile()) {
     throw new AVDException(`${skinpath} is an invalid skin.`, ERR_INVALID_SKIN);
+  }
+}
+
+export async function validateSystemImagePath(sdk: SDK, sysdir: string): Promise<void> {
+  const p = pathlib.join(sdk.root, sysdir, 'package.xml');
+  const stat = await statSafe(p);
+
+  if (!stat || !stat.isFile()) {
+    throw new AVDException(`${p} is an invalid system image package.`, ERR_INVALID_SYSTEM_IMAGE);
   }
 }
 
