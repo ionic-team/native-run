@@ -1,12 +1,12 @@
-import { mkdirp, readDir } from '@ionic/utils-fs';
+import { mkdirp, readDir, statSafe } from '@ionic/utils-fs';
 import * as Debug from 'debug';
-import * as path from 'path';
+import * as pathlib from 'path';
 
-import { AVDException, ERR_NO_FULL_API_INSTALLATION, ERR_NO_SUITABLE_API_INSTALLATION } from '../../errors';
+import { AVDException, ERR_INVALID_SKIN, ERR_NO_FULL_API_INSTALLATION, ERR_NO_SUITABLE_API_INSTALLATION } from '../../errors';
 import { readINI, writeINI } from '../../utils/ini';
 import { sort } from '../../utils/object';
 
-import { SDK, findAllSDKPackages, getAPILevels } from './sdk';
+import { APILevel, SDK, findAllSDKPackages, getAPILevels } from './sdk';
 
 const modulePrefix = 'native-run:android:utils:avd';
 
@@ -60,7 +60,7 @@ export interface AVDConfigINI {
   readonly 'hw.sdCard'?: string;
   readonly 'hw.sensors.orientation'?: string;
   readonly 'hw.sensors.proximity'?: string;
-  readonly 'image.sysdir.1': string;
+  readonly 'image.sysdir.1'?: string;
   readonly 'sdcard.size'?: string;
   readonly 'showDeviceFrame'?: string;
   readonly 'skin.dynamic'?: string;
@@ -88,8 +88,8 @@ export async function getAVDINIs(sdk: SDK): Promise<[string, AVDINI][]> {
   const contents = await readDir(sdk.avdHome);
 
   const iniFilePaths = contents
-    .filter(f => path.extname(f) === '.ini')
-    .map(f => path.resolve(sdk.avdHome, f));
+    .filter(f => pathlib.extname(f) === '.ini')
+    .map(f => pathlib.resolve(sdk.avdHome, f));
 
   debug('Discovered AVD ini files: %O', iniFilePaths);
 
@@ -104,8 +104,8 @@ export async function getAVDINIs(sdk: SDK): Promise<[string, AVDINI][]> {
 }
 
 export function getAVDFromConfigINI(inipath: string, ini: AVDINI, configini: AVDConfigINI): AVD {
-  const inibasename = path.basename(inipath);
-  const id = inibasename.substring(0, inibasename.length - path.extname(inibasename).length);
+  const inibasename = pathlib.basename(inipath);
+  const id = inibasename.substring(0, inibasename.length - pathlib.extname(inibasename).length);
   const name = configini['avd.ini.displayname']
     ? String(configini['avd.ini.displayname'])
     : id.replace(/_/g, ' ');
@@ -125,7 +125,7 @@ export function getAVDFromConfigINI(inipath: string, ini: AVDINI, configini: AVD
 }
 
 export async function getAVDFromINI(inipath: string, ini: AVDINI): Promise<AVD | undefined> {
-  const configini = await readINI(path.resolve(ini.path, 'config.ini'), isAVDConfigINI);
+  const configini = await readINI(pathlib.resolve(ini.path, 'config.ini'), isAVDConfigINI);
 
   if (configini) {
     return getAVDFromConfigINI(inipath, ini, configini);
@@ -145,70 +145,23 @@ export async function getAVDs(sdk: SDK): Promise<AVD[]> {
   return avds;
 }
 
-export async function getAPI28AVDSchematic(sdk: SDK): Promise<AVDSchematic> {
-  const { id, ini, configini } = await import('../data/avds/Pixel_2_API_28.json');
-  const avdpath = path.join(sdk.avdHome, `${id}.avd`);
-  const skinpath = path.join(sdk.root, 'skins', 'pixel_2');
-
-  // TODO: check for skinpath
-
-  return {
-    id,
-    ini: sort({
-      'path': avdpath,
-      'path.rel': `avd/${id}.avd`,
-      ...ini,
-    }),
-    configini: sort({
-      'skin.path': skinpath,
-      ...configini,
-    }),
-  };
-}
-
-export async function getAPI27AVDSchematic(sdk: SDK): Promise<AVDSchematic> {
-  const { id, ini, configini } = await import('../data/avds/Pixel_2_API_27.json');
-  const avdpath = path.join(sdk.avdHome, `${id}.avd`);
-  const skinpath = path.join(sdk.root, 'skins', 'pixel_2');
-
-  // TODO: check for skinpath
-
-  return {
-    id,
-    ini: sort({
-      'path': avdpath,
-      'path.rel': `avd/${id}.avd`,
-      ...ini,
-    }),
-    configini: sort({
-      'skin.path': skinpath,
-      ...configini,
-    }),
-  };
-}
-
 export async function getDefaultAVDSchematic(sdk: SDK): Promise<AVDSchematic> {
   const debug = Debug(`${modulePrefix}:${getDefaultAVDSchematic.name}`);
   const packages = await findAllSDKPackages(sdk);
-  const apiLevels = await getAPILevels(packages);
-  const fullAPILevels = apiLevels.filter(apiLevel => apiLevel.full);
+  const apis = await getAPILevels(packages);
+  const fullAPILevels = apis.filter(api => api.full);
 
   if (fullAPILevels.length === 0) {
     throw new AVDException('No full API installation found. Install the platform and sources of an API level.', ERR_NO_FULL_API_INSTALLATION);
   }
 
-  debug('Looking for full installation of API 28');
-  const api28 = fullAPILevels.find(apiLevel => apiLevel.level === '28');
+  for (const api of fullAPILevels) {
+    const schematic = await createAVDSchematic(sdk, api);
 
-  if (api28) {
-    return getAPI28AVDSchematic(sdk);
-  }
-
-  debug('Looking for full installation of API 27');
-  const api27 = fullAPILevels.find(apiLevel => apiLevel.level === '27');
-
-  if (api27) {
-    return getAPI27AVDSchematic(sdk);
+    if (schematic) {
+      debug('Using schematic %s for default AVD', schematic.id);
+      return schematic;
+    }
   }
 
   throw new AVDException('No supported API installation found.', ERR_NO_SUITABLE_API_INSTALLATION);
@@ -222,18 +175,80 @@ export async function getDefaultAVD(sdk: SDK, avds: ReadonlyArray<AVD>): Promise
     return defaultAvd;
   }
 
-  return createDefaultAVD(sdk);
+  return createAVD(sdk, defaultAvdSchematic);
 }
 
-export async function createDefaultAVD(sdk: SDK): Promise<AVD> {
-  const { id, ini, configini } = await getDefaultAVDSchematic(sdk);
+export async function createAVD(sdk: SDK, schematic: AVDSchematic): Promise<AVD> {
+  const { id, ini, configini } = schematic;
 
-  await mkdirp(path.join(sdk.avdHome, `${id}.avd`));
+  await mkdirp(pathlib.join(sdk.avdHome, `${id}.avd`));
 
   await Promise.all([
-    writeINI(path.join(sdk.avdHome, `${id}.ini`), ini),
-    writeINI(path.join(sdk.avdHome, `${id}.avd`, 'config.ini'), configini),
+    writeINI(pathlib.join(sdk.avdHome, `${id}.ini`), ini),
+    writeINI(pathlib.join(sdk.avdHome, `${id}.avd`, 'config.ini'), configini),
   ]);
 
-  return getAVDFromConfigINI(path.join(sdk.avdHome, `${id}.ini`), ini, configini);
+  return getAVDFromConfigINI(pathlib.join(sdk.avdHome, `${id}.ini`), ini, configini);
+}
+
+export async function createAVDSchematic(sdk: SDK, api: APILevel): Promise<AVDSchematic | undefined> {
+  const debug = Debug(`${modulePrefix}:${createAVDSchematic.name}`);
+
+  let schematic:
+    | typeof import('../data/avds/Pixel_2_API_26.json')
+    | typeof import('../data/avds/Pixel_2_API_27.json')
+    | typeof import('../data/avds/Pixel_2_API_28.json');
+
+  debug('Attempting to build AVD schematic for API %s', api.level);
+
+  if (api.level === '28') {
+    schematic = await import('../data/avds/Pixel_2_API_28.json');
+  } else if (api.level === '27') {
+    schematic = await import('../data/avds/Pixel_2_API_27.json');
+  } else if (api.level === '26') {
+    schematic = await import('../data/avds/Pixel_2_API_26.json');
+  } else {
+    return undefined;
+  }
+
+  debug('Schematic %s matches', schematic.id);
+
+  const avdpath = pathlib.join(sdk.avdHome, `${schematic.id}.avd`);
+  const skinpath = getSkinPathByName(sdk, schematic.configini['skin.name']);
+
+  return {
+    id: schematic.id,
+    ini: sort({
+      ...schematic.ini,
+      'path': avdpath,
+      'path.rel': `avd/${schematic.id}.avd`,
+    }),
+    configini: sort({
+      ...schematic.configini,
+      'skin.path': skinpath,
+    }),
+  };
+}
+
+export async function validateAVDSchematic(schematic: AVDSchematic): Promise<void> {
+  const { configini } = schematic;
+  const skinpath = configini['skin.path'];
+
+  if (skinpath) {
+    await validateSkinPath(skinpath);
+  }
+}
+
+export async function validateSkinPath(skinpath: string): Promise<void> {
+  const stat = await statSafe(pathlib.join(skinpath, 'layout'));
+
+  if (!stat || !stat.isFile()) {
+    throw new AVDException(`${skinpath} is an invalid skin.`, ERR_INVALID_SKIN);
+  }
+}
+
+export function getSkinPathByName(sdk: SDK, name: string): string {
+  const path = pathlib.join(sdk.root, 'skins', name);
+
+  return path;
 }
