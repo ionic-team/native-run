@@ -126,6 +126,28 @@ export async function waitForBoot(sdk: SDK, device: Device): Promise<void> {
   });
 }
 
+export async function waitForClose(sdk: SDK, device: Device, app: string): Promise<void> {
+  const debug = Debug(`${modulePrefix}:${waitForClose.name}`);
+  const platformTools = await getSDKPackage(path.join(sdk.root, 'platform-tools'));
+  const adbBin = `${platformTools.location}/adb`;
+  const args = ['-s', device.serial, 'shell', `ps | grep ${app}`];
+
+  return new Promise<void>(resolve => {
+    const interval = setInterval(async () => {
+      debug('Invoking adb: %O %O', adbBin, args);
+
+      try {
+        await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });
+      } catch (e) {
+        debug('Error received from adb: %O', e);
+        debug('App %s no longer found in process list for %s', app, device.serial);
+        clearInterval(interval);
+        resolve();
+      }
+    }, 500);
+  });
+}
+
 export async function installApk(sdk: SDK, device: Device, apk: string): Promise<void> {
   const debug = Debug(`${modulePrefix}:${installApk.name}`);
   const platformTools = await getSDKPackage(path.join(sdk.root, 'platform-tools'));

@@ -22,6 +22,7 @@ const help = `
     --device ............. Use a device if available
     --emulator ........... Prefer an emulator
     --target <id> ........ Use a specific target
+    --connect ............ Tie process to app process
 `;
 
 export async function run() {

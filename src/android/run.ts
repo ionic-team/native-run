@@ -2,7 +2,7 @@ import { ERR_TARGET_NOT_FOUND, RunException } from '../errors';
 import { getOptionValue } from '../utils/cli';
 import { log } from '../utils/log';
 
-import { Device, getDevices, startActivity, waitForBoot } from './utils/adb';
+import { Device, getDevices, startActivity, waitForBoot, waitForClose } from './utils/adb';
 import { getInstalledAVDs } from './utils/avd';
 import { installApkToDevice, selectDeviceByTarget, selectHardwareDevice, selectVirtualDevice } from './utils/run';
 import { SDK, getSDK } from './utils/sdk';
@@ -33,6 +33,11 @@ export async function run(args: string[]) {
   await startActivity(sdk, device, app, activity);
 
   log(`Run Successful\n`);
+
+  if (args.includes('--connect')) {
+    log(`Waiting for app to close...\n`);
+    await waitForClose(sdk, device, app);
+  }
 }
 
 export async function selectDevice(sdk: SDK, args: string[]): Promise<Device> {
