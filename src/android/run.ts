@@ -1,8 +1,9 @@
 import { ERR_TARGET_NOT_FOUND, RunException } from '../errors';
 import { getOptionValue } from '../utils/cli';
 import { log } from '../utils/log';
+import { onBeforeExit } from '../utils/process';
 
-import { Device, getDevices, startActivity, waitForBoot, waitForClose } from './utils/adb';
+import { Device, closeApp, getDevices, startActivity, waitForBoot, waitForClose } from './utils/adb';
 import { getInstalledAVDs } from './utils/avd';
 import { installApkToDevice, selectDeviceByTarget, selectHardwareDevice, selectVirtualDevice } from './utils/run';
 import { SDK, getSDK } from './utils/sdk';
@@ -35,6 +36,10 @@ export async function run(args: string[]) {
   log(`Run Successful\n`);
 
   if (args.includes('--connect')) {
+    onBeforeExit(async () => {
+      await closeApp(sdk, device, app);
+    });
+
     log(`Waiting for app to close...\n`);
     await waitForClose(sdk, device, app);
   }

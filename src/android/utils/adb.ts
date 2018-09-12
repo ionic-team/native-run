@@ -186,6 +186,16 @@ export async function installApk(sdk: SDK, device: Device, apk: string): Promise
   });
 }
 
+export async function closeApp(sdk: SDK, device: Device, app: string): Promise<void> {
+  const debug = Debug(`${modulePrefix}:${closeApp.name}`);
+  const platformTools = await getSDKPackage(path.join(sdk.root, 'platform-tools'));
+  const adbBin = `${platformTools.location}/adb`;
+  const args = ['-s', device.serial, 'shell', 'am', 'force-stop', app];
+  debug('Invoking adb: %O %O', adbBin, args);
+
+  await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });
+}
+
 export async function uninstallApp(sdk: SDK, device: Device, app: string): Promise<void> {
   const debug = Debug(`${modulePrefix}:${uninstallApp.name}`);
   const platformTools = await getSDKPackage(path.join(sdk.root, 'platform-tools'));
