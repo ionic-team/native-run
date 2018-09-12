@@ -2,7 +2,7 @@ import { mkdirp, readDir, statSafe } from '@ionic/utils-fs';
 import * as Debug from 'debug';
 import * as pathlib from 'path';
 
-import { AVDException, ERR_INVALID_SKIN, ERR_INVALID_SYSTEM_IMAGE, ERR_NO_FULL_API_INSTALLATION, ERR_NO_SUITABLE_API_INSTALLATION, ERR_UNSUPPORTED_API_LEVEL } from '../../errors';
+import { AVDException, ERR_INVALID_SKIN, ERR_INVALID_SYSTEM_IMAGE, ERR_UNSUITABLE_API_INSTALLATION, ERR_UNSUPPORTED_API_LEVEL } from '../../errors';
 import { readINI, writeINI } from '../../utils/ini';
 import { sort } from '../../utils/object';
 
@@ -144,13 +144,13 @@ export async function getDefaultAVDSchematic(sdk: SDK): Promise<AVDSchematic> {
   const debug = Debug(`${modulePrefix}:${getDefaultAVDSchematic.name}`);
   const packages = await findAllSDKPackages(sdk);
   const apis = await getAPILevels(packages);
-  const fullAPILevels = apis.filter(api => api.full);
+  const apisWithPlatform = apis.filter(api => api.packages.find(pkg => pkg.path === `platforms;android-${api.level}`));
 
-  if (fullAPILevels.length === 0) {
-    throw new AVDException('No full API installation found. Install the platform and sources of an API level.', ERR_NO_FULL_API_INSTALLATION);
+  if (apisWithPlatform.length === 0) {
+    throw new AVDException('No suitable API installation found. Install the platform and sources of an API level.', ERR_UNSUITABLE_API_INSTALLATION);
   }
 
-  for (const api of fullAPILevels) {
+  for (const api of apisWithPlatform) {
     try {
       const schematic = await createAVDSchematic(sdk, api);
 
@@ -167,7 +167,7 @@ export async function getDefaultAVDSchematic(sdk: SDK): Promise<AVDSchematic> {
     }
   }
 
-  throw new AVDException('No suitable API installation found.', ERR_NO_SUITABLE_API_INSTALLATION);
+  throw new AVDException('No suitable API installation found.', ERR_UNSUITABLE_API_INSTALLATION);
 }
 
 export async function getDefaultAVD(sdk: SDK, avds: ReadonlyArray<AVD>): Promise<AVD> {

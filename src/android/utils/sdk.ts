@@ -40,12 +40,6 @@ export interface SDKPackage {
 export interface APILevel {
   readonly level: string;
   readonly packages: SDKPackage[];
-
-  /**
-   * A full installation of an API Level means that the Android platform and
-   * sources are installed.
-   */
-  readonly full: boolean;
 }
 
 export async function getAPILevels(packages: SDKPackage[]): Promise<APILevel[]> {
@@ -60,19 +54,10 @@ export async function getAPILevels(packages: SDKPackage[]): Promise<APILevel[]> 
 
   debug('Discovered installed API Levels: %O', levels);
 
-  return levels.map(level => {
-    const pkgs = packages.filter(pkg => pkg.apiLevel === level);
-    const full = Boolean(
-      pkgs.find(pkg => pkg.path === `platforms;android-${level}`) &&
-      pkgs.find(pkg => pkg.path === `sources;android-${level}`)
-    );
-
-    return {
-      level,
-      packages: pkgs,
-      full,
-    };
-  });
+  return levels.map(level => ({
+    level,
+    packages: packages.filter(pkg => pkg.apiLevel === level),
+  }));
 }
 
 const pkgcache = new Map<string, SDKPackage | undefined>();
