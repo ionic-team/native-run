@@ -44,7 +44,7 @@
     "sdcard.size": "100M",
     "showDeviceFrame": "yes",
     "skin.dynamic": "yes",
-    "skin.name": "pixel_silver",
+    "skin.name": "pixel",
     "tag.display": "Google APIs",
     "tag.id": "google_apis",
     "vm.heapSize": "256"
