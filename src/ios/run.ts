@@ -84,7 +84,7 @@ export async function run(args: string[]) {
   await wait(200);
   const client = await tryLaunch();
   // don't await because it won't return
-  client.continueApp();
+  client.continueApp(); // tslint:disable-line
   clientManager.end();
 }
 
