@@ -25,7 +25,7 @@ export async function run(args: string[]) {
   if (!(await imageMounter.lookupImage()).ImageSignature) {
     // verify DeveloperDiskImage exists (TODO: how does this work on Windows/Linux?)
     // TODO: if windows/linux, download?
-    const version = await (await clientManager.getLockdownClient()).getLockdownValue('ProductVersion');
+    const version = await (await clientManager.getLockdowndClient()).getValue('ProductVersion');
     const xCodePath = await getXCodePath();
     const developerDiskImagePath = await getDeveloperDiskImagePath(version, xCodePath);
     const developerDiskImageSig = fs.readFileSync(`${developerDiskImagePath}.signature`);
