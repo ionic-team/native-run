@@ -1,62 +1,106 @@
 import { readDir, statSafe } from '@ionic/utils-fs';
-import { resolve } from 'path';
+import * as Debug from 'debug';
+import * as fs from 'fs';
+import { AFCError, AFC_STATUS, ClientManager } from 'node-ioslib';
+import * as path from 'path';
 
+import { RunException } from '../errors';
 import { getOptionValue } from '../utils/cli';
 import { execFile } from '../utils/process';
+import { wait } from '../utils/wait';
 
-import { getConnectedDevicesUDIDs } from './list';
+const debug = Debug('native-run:ios:run');
 
-// TODO: add debug for more verbose info
-// TODO: add udid to commands to specify a device
-// TODO: check libimobiledevice tools for errors that return 0 but have "Error:" or "ERROR:"
-// TODO: use errors.ts
 // TODO: handle .ipa as well as .app paths
 
 export async function run(args: string[]) {
-  const { app /*id*/ } = await validateArgs(args);
+  const { app, udid } = await validateArgs(args);
 
-  // Check if already mounted. If not, mount.
-  if (!isDeveloperDiskImageMounted()) {
-    // verify DeveloperDiskImage exists (TODO: how does this work on Windows/Linux?)
-    const version = await getIOSVersion();
-    const xCodePath = await getXCodePath();
-    const developerDiskImagePath = await getDeveloperDiskImagePath(version, xCodePath);
-    if (!statSafe(developerDiskImagePath)) {
-      throw new Error(`No Developer Disk Image found for SDK ${version} at\n${developerDiskImagePath}.`);
-    }
-    await mountDeveloperDiskImage(developerDiskImagePath);
+  const clientManager = await ClientManager.create(udid);
+  try {
+    await mountDeveloperDiskImage(clientManager);
+
+    const bundleId = await getBundleId(app);
+    const packageName = path.basename(app);
+    const destPackagePath = path.join('PublicStaging', packageName);
+
+    await uploadApp(clientManager, app, destPackagePath);
+
+    const installer = await clientManager.getInstallationProxyClient();
+    await installer.installApp(destPackagePath, bundleId);
+
+    const { [bundleId]: appInfo } = await installer.lookupApp([bundleId]);
+    await wait(200); // launch fails with EBusy or ENotFound if you try to launch immediately after install
+    await launchApp(clientManager, appInfo);
+  } finally {
+    clientManager.end();
   }
-  await installAppOnDevice(app);
-  const bundleId = await getBundleIdFromApp(app);
-  await runAppOnDevice(bundleId);
-  // Needed to connect to lldb to issue debug commands/stop app
-  await startDebugServerProxy();
+
+  async function mountDeveloperDiskImage(clientManager: ClientManager) {
+    const imageMounter = await clientManager.getMobileImageMounterClient();
+    // Check if already mounted. If not, mount.
+    if (!(await imageMounter.lookupImage()).ImageSignature) {
+      // verify DeveloperDiskImage exists (TODO: how does this work on Windows/Linux?)
+      // TODO: if windows/linux, download?
+      const version = await (await clientManager.getLockdowndClient()).getValue('ProductVersion');
+      const xCodePath = await getXCodePath();
+      const developerDiskImagePath = await getDeveloperDiskImagePath(version, xCodePath);
+      const developerDiskImageSig = fs.readFileSync(`${developerDiskImagePath}.signature`);
+      if (!statSafe(developerDiskImagePath)) {
+        throw new Error(`No Developer Disk Image found for SDK ${version} at\n${developerDiskImagePath}.`);
+      }
+      await imageMounter.uploadImage(developerDiskImagePath, developerDiskImageSig);
+      await imageMounter.mountImage(developerDiskImagePath, developerDiskImageSig);
+    }
+  }
+
+  async function uploadApp(clientManager: ClientManager, srcPath: string, destinationPath: string) {
+    const afcClient = await clientManager.getAFCClient();
+    try {
+      await afcClient.getFileInfo('PublicStaging');
+    } catch (err) {
+      if (err instanceof AFCError && err.status === AFC_STATUS.OBJECT_NOT_FOUND) {
+        await afcClient.makeDirectory('PublicStaging');
+      } else {
+        throw err;
+      }
+    }
+    // TODO: support .ipa and .app, for now just .app
+    // if (filename is a directory) -> .app
+    await afcClient.uploadDirectory(srcPath, destinationPath);
+  }
+
+  async function launchApp(clientManager: ClientManager, appInfo: any) {
+    let tries = 0;
+    while (tries < 3) {
+      const debugServerClient = await clientManager.getDebugserverClient();
+      await debugServerClient.setMaxPacketSize(1024);
+      await debugServerClient.setWorkingDir(appInfo.Container);
+      await debugServerClient.launchApp(appInfo.Path, appInfo.CFBundleExecutable);
+
+      const result = await debugServerClient.checkLaunchSuccess();
+      if (result === 'OK') {
+        return debugServerClient;
+      } else if (result === 'EBusy' || result === 'ENotFound') {
+        debug('Device busy or app not found, trying to launch again in .5s...');
+        tries++;
+        debugServerClient.socket.end();
+        await wait(500);
+      } else {
+        throw new RunException(`There was an error launching app: ${result}`);
+      }
+    }
+    throw new RunException('Unable to launch app, number of tries exceeded');
+  }
 }
 
 async function validateArgs(args: string[]) {
   const app = getOptionValue(args, '--app');
   if (!app) {
-    throw new Error('--app argument is required.');
+    throw new RunException('--app argument is required.');
   }
-  let id = getOptionValue(args, '--target'); // TODO: rename to target-id?
-  if (!id) {
-    const devices = await getConnectedDevicesUDIDs();
-    if (!devices.length) {
-      // TODO: should we just run on a simulator in this case?
-      throw new Error('--target argument not provided and no connected devices found');
-    }
-    id = devices[0];
-  }
-  return { app, id };
-}
-
-async function isDeveloperDiskImageMounted() {
-  try {
-    const { stdout } = await execFile('ideviceimagemounter', ['-l'], { encoding: 'utf8' });
-    return stdout && stdout.includes('ImageSignature');
-  } catch (err) {
-    throw new Error('Unable to check if Developer Disk Image is mounted on device.');
-  }
+  const udid = getOptionValue(args, '--target'); // TODO: rename to target-id?
+  return { app, udid };
 }
 
 async function getXCodePath() {
@@ -74,9 +118,13 @@ async function getXCodePath() {
 async function getDeveloperDiskImagePath(version: string, xCodePath: string) {
   try {
     const versionDirs = await readDir(`${xCodePath}/Platforms/iPhoneOS.platform/DeviceSupport/`);
+    const versionPrefix = version.match(/\d+\.\d+/);
+    if (versionPrefix === null) {
+      throw new Error(`Invalid iOS version: ${version}`);
+    }
     // Can look like "11.2 (15C107)"
     for (const dir of versionDirs) {
-      if (dir.indexOf(version) !== -1) {
+      if (dir.indexOf(versionPrefix[0]) !== -1) {
         return `${xCodePath}/Platforms/iPhoneOS.platform/DeviceSupport/${dir}/DeveloperDiskImage.dmg`;
       }
     }
@@ -86,29 +134,10 @@ async function getDeveloperDiskImagePath(version: string, xCodePath: string) {
   }
 }
 
-async function mountDeveloperDiskImage(developerDiskImagePath: string) {
-  try {
-    await execFile('ideviceimagemounter', [developerDiskImagePath], { encoding: 'utf8' });
-  } catch (err) {
-    throw new Error('Unable to mount Developer Disk Image on device.');
-  }
-}
-
-async function getIOSVersion() {
-  const { stdout } = await execFile('ideviceinfo', ['-k', 'ProductVersion'], { encoding: 'utf8' });
-  if (!stdout) {
-    throw new Error(`Unable to get SDK version of device.`);
-  }
-  const version = stdout.match(/\d+\.\d+/);
-  if (!version) {
-    throw new Error(`Unable to get SDK version of device.`);
-  }
-  return version[0];
-}
-
-// TODO: cross platform?
-async function getBundleIdFromApp(appPath: string) {
-  const plistPath = resolve(appPath, 'Info.plist');
+// TODO: cross platform? Use plist/bplist
+// TODO: .ipa support
+async function getBundleId(packagePath: string) {
+  const plistPath = path.resolve(packagePath, 'Info.plist');
   try {
     const { stdout } = await execFile('/usr/libexec/PlistBuddy',
                                       ['-c', 'Print :CFBundleIdentifier', plistPath],
@@ -119,30 +148,5 @@ async function getBundleIdFromApp(appPath: string) {
     return stdout.trim();
   } catch (err) {
     throw new Error('Unable to get app bundle identifier');
-  }
-}
-
-async function installAppOnDevice(appPath: string) {
-  try {
-    await execFile('ideviceinstaller', ['-i', appPath], { encoding: 'utf8' });
-  } catch (err) {
-    throw new Error('Unable to install app on device.');
-  }
-}
-
-async function runAppOnDevice(bundleId: string) {
-  try {
-    await execFile('idevicedebug', ['run', bundleId], { encoding: 'utf8' });
-  } catch (err) {
-    throw new Error('Unable to run app on device.');
-  }
-}
-
-// TODO: find free port
-async function startDebugServerProxy() {
-  try {
-    await execFile('idevicedebugserverproxy', ['9000'], { encoding: 'utf8' });
-  } catch (err) {
-    throw new Error('Unable to start debug server proxy.');
   }
 }

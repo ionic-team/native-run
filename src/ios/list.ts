@@ -1,4 +1,5 @@
 import { spawnSync } from 'child_process'; // TODO: need cross-spawn for windows?
+import { LockdowndClient, UsbmuxdClient } from 'node-ioslib';
 
 export type UDID = string;
 export interface IOSDevice {
@@ -60,46 +61,29 @@ export async function getSimulators(): Promise<Simulator[]> {
       .sort((a, b) => a.name < b.name ? -1 : 1);
 }
 
-export async function getConnectedDevicesUDIDs(): Promise<UDID[]> {
-  const { stdout } = spawnSync('idevice_id', ['--list'], { encoding: 'utf8' });
-  // TODO: don't use spawnSync
-  // split results on \n
-  return stdout.match(/.+/g) || [];
-}
-
-export async function getConnectedDevicesInfo(udids: UDID[]): Promise<IOSDevice[]> {
-  return Promise.all(
-    udids.map(udid => getConnectedDeviceInfo(udid))
-  );
-}
-
-export async function getConnectedDeviceInfo(udid: UDID): Promise<IOSDevice> {
-  const iDeviceInfo = spawnSync('ideviceinfo', ['--simple', '--udid', udid], { encoding: 'utf8' });
-  return parseDeviceInfo(iDeviceInfo.stdout);
-}
-
-function parseDeviceInfo(deviceInfo: string): IOSDevice {
-  return {
-    name: matchDeviceProperty(deviceInfo, 'DeviceName'),
-    model: matchDeviceProperty(deviceInfo, 'ProductType'),
-    sdkVersion: matchDeviceProperty(deviceInfo, 'ProductVersion'),
-    id: matchDeviceProperty(deviceInfo, 'UniqueDeviceID'),
-  };
-}
-
-function matchDeviceProperty(deviceInfo: string, prop: string) {
-  const result = deviceInfo.match(new RegExp(`${prop}:\\s+(.+)`));
-  if (!result || result.length !== 2) {
-    return '';
+export async function getConnectedDevicesInfo(): Promise<IOSDevice[]> {
+  const usbmuxClient = new UsbmuxdClient(UsbmuxdClient.connectUsbmuxdSocket());
+  const devices = await usbmuxClient.getDevices();
+  const lockdownSockets = await Promise.all(devices.map(device => usbmuxClient.connect(device, 62078)));
+  const deviceInfos = await Promise.all(lockdownSockets.map(socket => new LockdowndClient(socket).getAllValues()));
+  // close sockets
+  for (const s of lockdownSockets) {
+    try {
+      s.end();
+    } catch (err) { } // tslint:disable-line
   }
-  return result[1];
+  return deviceInfos.map(deviceInfo => ({
+    name: deviceInfo.DeviceName,
+    model: deviceInfo.ProductType,
+    sdkVersion: deviceInfo.ProductVersion,
+    id: deviceInfo.UniqueDeviceID,
+  }));
 }
 
 export async function run(args: string[]) {
   // TODO check for darwin?
   const simulators = await getSimulators();
-  const udids = await getConnectedDevicesUDIDs();
-  const devices: any = await getConnectedDevicesInfo(udids);
+  const devices = await getConnectedDevicesInfo();
 
   if (args.includes('--json')) {
     const result = { devices, simulators };
