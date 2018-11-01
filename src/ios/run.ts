@@ -1,7 +1,7 @@
 import { readDir, statSafe } from '@ionic/utils-fs';
 import * as Debug from 'debug';
 import * as fs from 'fs';
-import { AFCError, AFC_STATUS, ClientManager } from 'node-libimobiledevice';
+import { AFCError, AFC_STATUS, ClientManager } from 'node-ioslib';
 import * as path from 'path';
 
 import { RunException } from '../errors';

@@ -1,5 +1,5 @@
 import { spawnSync } from 'child_process'; // TODO: need cross-spawn for windows?
-import { LockdowndClient, UsbmuxdClient } from 'node-libimobiledevice';
+import { LockdowndClient, UsbmuxdClient } from 'node-ioslib';
 
 export type UDID = string;
 export interface IOSDevice {
