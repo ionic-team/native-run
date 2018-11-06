@@ -48,61 +48,61 @@ export async function run(args: string[]) {
     }
     clientManager.end();
   }
+}
 
-  async function mountDeveloperDiskImage(clientManager: ClientManager) {
-    const imageMounter = await clientManager.getMobileImageMounterClient();
-    // Check if already mounted. If not, mount.
-    if (!(await imageMounter.lookupImage()).ImageSignature) {
-      // verify DeveloperDiskImage exists (TODO: how does this work on Windows/Linux?)
-      // TODO: if windows/linux, download?
-      const version = await (await clientManager.getLockdowndClient()).getValue('ProductVersion');
-      const xCodePath = await getXCodePath();
-      const developerDiskImagePath = await getDeveloperDiskImagePath(version, xCodePath);
-      const developerDiskImageSig = fs.readFileSync(`${developerDiskImagePath}.signature`);
-      if (!statSafe(developerDiskImagePath)) {
-        throw new Error(`No Developer Disk Image found for SDK ${version} at\n${developerDiskImagePath}.`);
-      }
-      await imageMounter.uploadImage(developerDiskImagePath, developerDiskImageSig);
-      await imageMounter.mountImage(developerDiskImagePath, developerDiskImageSig);
+async function mountDeveloperDiskImage(clientManager: ClientManager) {
+  const imageMounter = await clientManager.getMobileImageMounterClient();
+  // Check if already mounted. If not, mount.
+  if (!(await imageMounter.lookupImage()).ImageSignature) {
+    // verify DeveloperDiskImage exists (TODO: how does this work on Windows/Linux?)
+    // TODO: if windows/linux, download?
+    const version = await (await clientManager.getLockdowndClient()).getValue('ProductVersion');
+    const xCodePath = await getXCodePath();
+    const developerDiskImagePath = await getDeveloperDiskImagePath(version, xCodePath);
+    const developerDiskImageSig = fs.readFileSync(`${developerDiskImagePath}.signature`);
+    if (!statSafe(developerDiskImagePath)) {
+      throw new Error(`No Developer Disk Image found for SDK ${version} at\n${developerDiskImagePath}.`);
+    }
+    await imageMounter.uploadImage(developerDiskImagePath, developerDiskImageSig);
+    await imageMounter.mountImage(developerDiskImagePath, developerDiskImageSig);
+  }
+}
+
+async function uploadApp(clientManager: ClientManager, srcPath: string, destinationPath: string) {
+  const afcClient = await clientManager.getAFCClient();
+  try {
+    await afcClient.getFileInfo('PublicStaging');
+  } catch (err) {
+    if (err instanceof AFCError && err.status === AFC_STATUS.OBJECT_NOT_FOUND) {
+      await afcClient.makeDirectory('PublicStaging');
+    } else {
+      throw err;
     }
   }
+  await afcClient.uploadDirectory(srcPath, destinationPath);
+}
 
-  async function uploadApp(clientManager: ClientManager, srcPath: string, destinationPath: string) {
-    const afcClient = await clientManager.getAFCClient();
-    try {
-      await afcClient.getFileInfo('PublicStaging');
-    } catch (err) {
-      if (err instanceof AFCError && err.status === AFC_STATUS.OBJECT_NOT_FOUND) {
-        await afcClient.makeDirectory('PublicStaging');
-      } else {
-        throw err;
-      }
+async function launchApp(clientManager: ClientManager, appInfo: any) {
+  let tries = 0;
+  while (tries < 3) {
+    const debugServerClient = await clientManager.getDebugserverClient();
+    await debugServerClient.setMaxPacketSize(1024);
+    await debugServerClient.setWorkingDir(appInfo.Container);
+    await debugServerClient.launchApp(appInfo.Path, appInfo.CFBundleExecutable);
+
+    const result = await debugServerClient.checkLaunchSuccess();
+    if (result === 'OK') {
+      return debugServerClient;
+    } else if (result === 'EBusy' || result === 'ENotFound') {
+      debug('Device busy or app not found, trying to launch again in .5s...');
+      tries++;
+      debugServerClient.socket.end();
+      await wait(500);
+    } else {
+      throw new RunException(`There was an error launching app: ${result}`);
     }
-    await afcClient.uploadDirectory(srcPath, destinationPath);
   }
-
-  async function launchApp(clientManager: ClientManager, appInfo: any) {
-    let tries = 0;
-    while (tries < 3) {
-      const debugServerClient = await clientManager.getDebugserverClient();
-      await debugServerClient.setMaxPacketSize(1024);
-      await debugServerClient.setWorkingDir(appInfo.Container);
-      await debugServerClient.launchApp(appInfo.Path, appInfo.CFBundleExecutable);
-
-      const result = await debugServerClient.checkLaunchSuccess();
-      if (result === 'OK') {
-        return debugServerClient;
-      } else if (result === 'EBusy' || result === 'ENotFound') {
-        debug('Device busy or app not found, trying to launch again in .5s...');
-        tries++;
-        debugServerClient.socket.end();
-        await wait(500);
-      } else {
-        throw new RunException(`There was an error launching app: ${result}`);
-      }
-    }
-    throw new RunException('Unable to launch app, number of tries exceeded');
-  }
+  throw new RunException('Unable to launch app, number of tries exceeded');
 }
 
 async function validateArgs(args: string[]) {
