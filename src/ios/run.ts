@@ -3,28 +3,36 @@ import * as Debug from 'debug';
 import * as fs from 'fs';
 import { AFCError, AFC_STATUS, ClientManager } from 'node-ioslib';
 import * as path from 'path';
+import { Entry } from 'yauzl';
 
 import { RunException } from '../errors';
 import { getOptionValue } from '../utils/cli';
 import { execFile } from '../utils/process';
-import { wait } from '../utils/wait';
 
 const debug = Debug('native-run:ios:run');
 
-// TODO: handle .ipa as well as .app paths
-
 export async function run(args: string[]) {
   const { app, udid } = await validateArgs(args);
-
   const clientManager = await ClientManager.create(udid);
+  const isIPA = app.endsWith('.ipa');
+  let appPath = app;
+
   try {
     await mountDeveloperDiskImage(clientManager);
 
-    const bundleId = await getBundleId(app);
-    const packageName = path.basename(app);
+    if (isIPA) {
+      const { tmpdir } = await import('os');
+      const tempDir = fs.mkdtempSync(`${tmpdir()}${path.sep}`);
+      debug(`Unzipping .ipa to ${tempDir}`);
+      const appDir = await unzipApp(appPath, tempDir);
+      appPath = path.join(tempDir, appDir);
+    }
+
+    const bundleId = await getBundleId(appPath);
+    const packageName = path.basename(appPath);
     const destPackagePath = path.join('PublicStaging', packageName);
 
-    await uploadApp(clientManager, app, destPackagePath);
+    await uploadApp(clientManager, appPath, destPackagePath);
 
     const installer = await clientManager.getInstallationProxyClient();
     await installer.installApp(destPackagePath, bundleId);
@@ -33,6 +41,11 @@ export async function run(args: string[]) {
     await wait(200); // launch fails with EBusy or ENotFound if you try to launch immediately after install
     await launchApp(clientManager, appInfo);
   } finally {
+    if (isIPA) {
+      try {
+        (await import('rimraf')).sync(appPath);
+      } catch (err) {} // tslint:disable-line
+    }
     clientManager.end();
   }
 
@@ -65,8 +78,6 @@ export async function run(args: string[]) {
         throw err;
       }
     }
-    // TODO: support .ipa and .app, for now just .app
-    // if (filename is a directory) -> .app
     await afcClient.uploadDirectory(srcPath, destinationPath);
   }
 
@@ -99,7 +110,7 @@ async function validateArgs(args: string[]) {
   if (!app) {
     throw new RunException('--app argument is required.');
   }
-  const udid = getOptionValue(args, '--target'); // TODO: rename to target-id?
+  const udid = getOptionValue(args, '--target');
   return { app, udid };
 }
 
@@ -135,7 +146,6 @@ async function getDeveloperDiskImagePath(version: string, xCodePath: string) {
 }
 
 // TODO: cross platform? Use plist/bplist
-// TODO: .ipa support
 async function getBundleId(packagePath: string) {
   const plistPath = path.resolve(packagePath, 'Info.plist');
   try {
@@ -149,4 +159,61 @@ async function getBundleId(packagePath: string) {
   } catch (err) {
     throw new Error('Unable to get app bundle identifier');
   }
+}
+
+async function wait(milliseconds: number) {
+  return new Promise(r => setTimeout(r, milliseconds));
+}
+
+async function unzipApp(srcPath: string, destPath: string) {
+  const [yauzl, mkdirp] = await Promise.all([
+    await import('yauzl'),
+    await import ('mkdirp'),
+  ]);
+  let appDir = '';
+  return new Promise<string>((resolve, reject) => {
+    yauzl.open(srcPath, { lazyEntries: true }, (err, zipfile) => {
+      if (err) { reject(err); }
+      if (zipfile) {
+        zipfile.on('error', err => reject(err));
+        zipfile.on('end', () => {
+          if (appDir) {
+            resolve(appDir);
+          } else {
+            reject('Unable to determine .app directory from .ipa');
+          }
+        });
+        zipfile.readEntry();
+        zipfile.on('entry', (entry: Entry) => {
+          debug(`Unzip: ${entry.fileName}`);
+          const dest = path.join(destPath, entry.fileName);
+          if (/\/$/.test(entry.fileName)) {
+            mkdirp(dest, err => {
+              if (err) {
+                reject(err);
+              } else {
+                if (entry.fileName.endsWith('.app/')) {
+                  appDir = entry.fileName;
+                }
+                zipfile.readEntry();
+              }
+            });
+          } else {
+            mkdirp(path.dirname(dest), err => {
+              if (err) { reject(err); }
+              // file entry
+              zipfile.openReadStream(entry, (err, readStream) => {
+                if (err) { reject(err); }
+                if (readStream) {
+                  readStream.on('end', () => { zipfile.readEntry(); });
+                  const writeStream = fs.createWriteStream(path.join(destPath, entry.fileName));
+                  readStream.pipe(writeStream);
+                }
+              });
+            });
+          }
+        });
+      }
+    });
+  });
 }
