@@ -1,4 +1,5 @@
 import { mkdirp, readDir } from '@ionic/utils-fs';
+import { spawnSync } from 'child_process';
 import * as Debug from 'debug';
 import { createWriteStream, mkdtempSync, readFileSync } from 'fs';
 import { AFCError, AFC_STATUS, ClientManager, IPLookupResult } from 'node-ioslib';
@@ -11,6 +12,8 @@ import { RunException } from '../errors';
 import { getOptionValue } from '../utils/cli';
 import { execFile } from '../utils/process';
 
+import { getConnectedDevicesInfo, getSimulators } from './utils/device';
+
 const debug = Debug('native-run:ios:run');
 const wait = promisify(setTimeout);
 
@@ -20,12 +23,10 @@ export async function run(args: string[]) {
     throw new RunException('--app argument is required.');
   }
   const udid = getOptionValue(args, '--target');
-  const clientManager = await ClientManager.create(udid);
+  const preferSimulator = args.includes('--simulator');
+
   const isIPA = appPath.endsWith('.ipa');
-
   try {
-    await mountDeveloperDiskImage(clientManager);
-
     if (isIPA) {
       const { tmpdir } = await import('os');
       const tempDir = mkdtempSync(`${tmpdir()}${path.sep}`);
@@ -35,6 +36,74 @@ export async function run(args: string[]) {
     }
 
     const bundleId = await getBundleId(appPath);
+
+    if (udid) {
+      for (const device of await getConnectedDevicesInfo()) {
+        if (device.id === udid) {
+          return runOnDevice(udid, appPath, bundleId);
+        }
+      }
+      for (const simulator of await getSimulators()) {
+        if (simulator.id === udid) {
+          return runOnSimulator(udid, appPath, bundleId);
+        }
+      }
+      throw new Error(`No device or simulator with udid ${udid} found`);
+
+    } else if (preferSimulator) {
+      // use default sim
+      const simulators = await getSimulators();
+      return runOnSimulator(simulators[simulators.length - 1].id, appPath, bundleId);
+
+    } else {
+      // are there connected devices? use first one
+      const devices = await getConnectedDevicesInfo();
+      if (devices.length) {
+        return runOnDevice(devices[0].id, appPath, bundleId);
+      }
+      // otherwise use default sim
+      const simulators = await getSimulators();
+      return runOnSimulator(simulators[simulators.length - 1].id, appPath, bundleId);
+    }
+  } finally {
+    if (isIPA) {
+      try { (await import('rimraf')).sync(appPath); } catch { } // tslint:disable-line
+    }
+  }
+
+}
+
+async function runOnSimulator(udid: string, appPath: string, bundleId: string) {
+  debug(`Booting simulator ${udid}`);
+  const bootResult = spawnSync('xcrun', ['simctl', 'boot', udid], { encoding: 'utf8' });
+  // is there a better way to check this?
+  if (bootResult.status && !bootResult.stderr.includes('Unable to boot device in current state: Booted')) {
+    throw new Error(`There was an error booting simulator: ${bootResult.stderr}`);
+  }
+  debug(`Installing ${appPath} on ${udid}`);
+  const installResult = spawnSync('xcrun', ['simctl', 'install', udid, appPath], { encoding: 'utf8' });
+  if (installResult.status) {
+    throw new Error(`There was an error installing app on simulator: ${installResult.stderr}`);
+  }
+  const xCodePath = await getXCodePath();
+  debug(`Running simulator ${udid}`);
+  const openResult = spawnSync('open', [`${xCodePath}/Applications/Simulator.app`, '--args', '-CurrentDeviceUDID', udid], { encoding: 'utf8' });
+  if (openResult.status) {
+    throw new Error(`There was an error opening simulator: ${openResult.stderr}`);
+  }
+  debug(`Launching ${appPath} on ${udid}`);
+  const launchResult = spawnSync('xcrun', ['simctl', 'launch', udid, bundleId], { encoding: 'utf8' });
+  if (launchResult.status) {
+    throw new Error(`There was an error launching app on simulator: ${launchResult.stderr}`);
+  }
+}
+
+async function runOnDevice(udid: string, appPath: string, bundleId: string) {
+  const clientManager = await ClientManager.create(udid);
+
+  try {
+    await mountDeveloperDiskImage(clientManager);
+
     const packageName = path.basename(appPath);
     const destPackagePath = path.join('PublicStaging', packageName);
 
@@ -49,9 +118,6 @@ export async function run(args: string[]) {
     await launchApp(clientManager, appInfo);
 
   } finally {
-    if (isIPA) {
-      try { (await import('rimraf')).sync(appPath); } catch { } // tslint:disable-line
-    }
     clientManager.end();
   }
 }
@@ -63,8 +129,7 @@ async function mountDeveloperDiskImage(clientManager: ClientManager) {
     // verify DeveloperDiskImage exists (TODO: how does this work on Windows/Linux?)
     // TODO: if windows/linux, download?
     const version = await (await clientManager.getLockdowndClient()).getValue('ProductVersion');
-    const xCodePath = await getXCodePath();
-    const developerDiskImagePath = await getDeveloperDiskImagePath(version, xCodePath);
+    const developerDiskImagePath = await getDeveloperDiskImagePath(version);
     const developerDiskImageSig = readFileSync(`${developerDiskImagePath}.signature`);
     await imageMounter.uploadImage(developerDiskImagePath, developerDiskImageSig);
     await imageMounter.mountImage(developerDiskImagePath, developerDiskImageSig);
@@ -118,7 +183,8 @@ async function getXCodePath() {
   throw new Error('Unable to get Xcode location. Is Xcode installed?');
 }
 
-async function getDeveloperDiskImagePath(version: string, xCodePath: string) {
+async function getDeveloperDiskImagePath(version: string) {
+  const xCodePath = await getXCodePath();
   const versionDirs = await readDir(`${xCodePath}/Platforms/iPhoneOS.platform/DeviceSupport/`);
   const versionPrefix = version.match(/\d+\.\d+/);
   if (versionPrefix === null) {
