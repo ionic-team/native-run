@@ -40,12 +40,14 @@ export async function run(args: string[]) {
     if (udid) {
       for (const device of await getConnectedDevicesInfo()) {
         if (device.id === udid) {
-          return runOnDevice(udid, appPath, bundleId);
+          await runOnDevice(udid, appPath, bundleId);
+          return;
         }
       }
       for (const simulator of await getSimulators()) {
         if (simulator.id === udid) {
-          return runOnSimulator(udid, appPath, bundleId);
+          await runOnSimulator(udid, appPath, bundleId);
+          return;
         }
       }
       throw new Error(`No device or simulator with udid ${udid} found`);
@@ -53,17 +55,20 @@ export async function run(args: string[]) {
     } else if (preferSimulator) {
       // use default sim
       const simulators = await getSimulators();
-      return runOnSimulator(simulators[simulators.length - 1].id, appPath, bundleId);
+      await runOnSimulator(simulators[simulators.length - 1].id, appPath, bundleId);
+      return;
 
     } else {
       // are there connected devices? use first one
       const devices = await getConnectedDevicesInfo();
       if (devices.length) {
-        return runOnDevice(devices[0].id, appPath, bundleId);
+        await runOnDevice(devices[0].id, appPath, bundleId);
+        return;
       }
       // otherwise use default sim
       const simulators = await getSimulators();
-      return runOnSimulator(simulators[simulators.length - 1].id, appPath, bundleId);
+      await runOnSimulator(simulators[simulators.length - 1].id, appPath, bundleId);
+      return;
     }
   } finally {
     if (isIPA) {
