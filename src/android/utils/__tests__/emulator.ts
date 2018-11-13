@@ -1,4 +1,4 @@
-import { AndroidConsoleEvent, parseAndroidConsoleResponse } from '../emulator';
+import { parseAndroidConsoleResponse } from '../emulator';
 
 const authRequiredOutput = `Android Console: Authentication required
 Android Console: type 'auth <auth_token>' to authenticate

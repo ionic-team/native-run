@@ -14,7 +14,7 @@ describe('utils/object', () => {
     it('should sort the keys', () => {
       const obj = { c: 3, b: 2, a: 1 };
       expect(Object.keys(obj)).toEqual(['c', 'b', 'a']);
-      const result = sort(obj);
+      sort(obj);
       expect(Object.keys(obj)).toEqual(['a', 'b', 'c']);
     });
 

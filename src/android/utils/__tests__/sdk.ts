@@ -2,11 +2,11 @@ describe('android/utils/sdk', () => {
 
   describe('resolveSDKRoot', () => {
 
-    let sdkUtils;
-    let mockIsDir;
-    let mockHomedir;
-    let originalPlatform;
-    let originalProcessEnv;
+    let sdkUtils: typeof import('../sdk');
+    let mockIsDir: jest.Mock;
+    let mockHomedir: jest.Mock;
+    let originalPlatform: string;
+    let originalProcessEnv: NodeJS.ProcessEnv;
 
     beforeEach(() => {
       mockIsDir = jest.fn();

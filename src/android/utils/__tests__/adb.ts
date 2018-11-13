@@ -1,5 +1,3 @@
-import * as path from 'path';
-
 import * as adbUtils from '../adb';
 
 describe('android/utils/adb', () => {
