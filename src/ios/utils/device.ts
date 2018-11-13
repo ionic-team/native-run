@@ -64,14 +64,14 @@ export async function getSimulators(): Promise<Simulator[]> {
 export async function getConnectedDevicesInfo(): Promise<IOSDevice[]> {
   const usbmuxClient = new UsbmuxdClient(UsbmuxdClient.connectUsbmuxdSocket());
   const devices = await usbmuxClient.getDevices();
-  const lockdownSockets = await Promise.all(devices.map(device => usbmuxClient.connect(device, 62078)));
-  const deviceInfos = await Promise.all(lockdownSockets.map(socket => new LockdowndClient(socket).getAllValues()));
-  // close sockets
-  for (const s of lockdownSockets) {
-    try {
-      s.end();
-    } catch (err) { } // tslint:disable-line
-  }
+  usbmuxClient.socket.end();
+  const deviceInfos = await Promise.all(devices.map(async device => {
+    const socket = await new UsbmuxdClient(UsbmuxdClient.connectUsbmuxdSocket()).connect(device, 62078);
+    const deviceInfo = await new LockdowndClient(socket).getAllValues();
+    socket.end();
+    return deviceInfo;
+  }));
+
   return deviceInfos.map(deviceInfo => ({
     name: deviceInfo.DeviceName,
     model: deviceInfo.ProductType,
