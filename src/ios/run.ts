@@ -10,7 +10,7 @@ import { Entry, Options, ZipFile } from 'yauzl';
 
 import { RunException } from '../errors';
 import { getOptionValue } from '../utils/cli';
-import { execFile } from '../utils/process';
+import { execFile, onBeforeExit } from '../utils/process';
 
 import { getConnectedDevicesInfo, getSimulators } from './utils/device';
 
@@ -24,7 +24,7 @@ export async function run(args: string[]) {
   }
   const udid = getOptionValue(args, '--target');
   const preferSimulator = args.includes('--simulator');
-
+  const waitForApp = args.includes('--connect');
   const isIPA = appPath.endsWith('.ipa');
   try {
     if (isIPA) {
@@ -37,73 +37,95 @@ export async function run(args: string[]) {
 
     const bundleId = await getBundleId(appPath);
 
+    const [devices, simulators] = await Promise.all([
+      getConnectedDevicesInfo(),
+      getSimulators(),
+    ]);
+    // try to run on device or simulator with udid
     if (udid) {
-      for (const device of await getConnectedDevicesInfo()) {
-        if (device.id === udid) {
-          await runOnDevice(udid, appPath, bundleId);
-          return;
-        }
+      if (devices.find(d => d.id === udid)) {
+        await runOnDevice(udid, appPath, bundleId, waitForApp);
+      } else if (simulators.find(s => s.id === udid)) {
+        await runOnSimulator(udid, appPath, bundleId, waitForApp);
+      } else {
+        throw new Error(`No device or simulator with udid ${udid} found`);
       }
-      for (const simulator of await getSimulators()) {
-        if (simulator.id === udid) {
-          await runOnSimulator(udid, appPath, bundleId);
-          return;
-        }
-      }
-      throw new Error(`No device or simulator with udid ${udid} found`);
-
-    } else if (preferSimulator) {
-      // use default sim
-      const simulators = await getSimulators();
-      await runOnSimulator(simulators[simulators.length - 1].id, appPath, bundleId);
-      return;
-
+    } else if (devices.length && !preferSimulator) {
+      // no udid, use first connected device
+      await runOnDevice(devices[0].id, appPath, bundleId, waitForApp);
     } else {
-      // are there connected devices? use first one
-      const devices = await getConnectedDevicesInfo();
-      if (devices.length) {
-        await runOnDevice(devices[0].id, appPath, bundleId);
-        return;
-      }
-      // otherwise use default sim
-      const simulators = await getSimulators();
-      await runOnSimulator(simulators[simulators.length - 1].id, appPath, bundleId);
-      return;
+      // use default sim
+      await runOnSimulator(simulators[simulators.length - 1].id, appPath, bundleId, waitForApp);
     }
   } finally {
     if (isIPA) {
       try { (await import('rimraf')).sync(appPath); } catch { } // tslint:disable-line
     }
   }
-
 }
 
-async function runOnSimulator(udid: string, appPath: string, bundleId: string) {
+async function runOnSimulator(udid: string, appPath: string, bundleId: string, waitForApp: boolean) {
   debug(`Booting simulator ${udid}`);
   const bootResult = spawnSync('xcrun', ['simctl', 'boot', udid], { encoding: 'utf8' });
-  // is there a better way to check this?
+  // TODO: is there a better way to check this?
   if (bootResult.status && !bootResult.stderr.includes('Unable to boot device in current state: Booted')) {
     throw new Error(`There was an error booting simulator: ${bootResult.stderr}`);
   }
+
   debug(`Installing ${appPath} on ${udid}`);
   const installResult = spawnSync('xcrun', ['simctl', 'install', udid, appPath], { encoding: 'utf8' });
   if (installResult.status) {
     throw new Error(`There was an error installing app on simulator: ${installResult.stderr}`);
   }
+
   const xCodePath = await getXCodePath();
   debug(`Running simulator ${udid}`);
   const openResult = spawnSync('open', [`${xCodePath}/Applications/Simulator.app`, '--args', '-CurrentDeviceUDID', udid], { encoding: 'utf8' });
   if (openResult.status) {
     throw new Error(`There was an error opening simulator: ${openResult.stderr}`);
   }
+
   debug(`Launching ${appPath} on ${udid}`);
   const launchResult = spawnSync('xcrun', ['simctl', 'launch', udid, bundleId], { encoding: 'utf8' });
   if (launchResult.status) {
     throw new Error(`There was an error launching app on simulator: ${launchResult.stderr}`);
   }
+
+  if (waitForApp) {
+    onBeforeExit(async () => {
+      const terminateResult = spawnSync('xcrun', ['simctl', 'terminate', udid, bundleId], { encoding: 'utf8' });
+      if (terminateResult.status) {
+        debug('Unable to terminate app on simulator');
+      }
+    });
+
+    process.stdout.write(`Waiting for app to close...\n`);
+    await waitForSimulatorClose(udid, bundleId);
+  }
 }
 
-async function runOnDevice(udid: string, appPath: string, bundleId: string) {
+async function waitForSimulatorClose(udid: string, bundleId: string) {
+  return new Promise<void>(resolve => {
+    // poll service list for bundle id
+    const interval = setInterval(async () => {
+      try {
+        const data = spawnSync('xcrun', ['simctl', 'spawn', udid, 'launchctl', 'list'], { encoding: 'utf8' });
+        // if bundle id isn't in list, app isn't running
+        if (data.stdout.indexOf(bundleId) === -1) {
+          clearInterval(interval);
+          resolve();
+        }
+      } catch (e) {
+        debug('Error received from launchctl: %O', e);
+        debug('App %s no longer found in process list for %s', bundleId, udid);
+        clearInterval(interval);
+        resolve();
+      }
+    }, 500);
+  });
+}
+
+async function runOnDevice(udid: string, appPath: string, bundleId: string, waitForApp: boolean) {
   const clientManager = await ClientManager.create(udid);
 
   try {
