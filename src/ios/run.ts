@@ -142,8 +142,23 @@ async function runOnDevice(udid: string, appPath: string, bundleId: string, wait
     const { [bundleId]: appInfo } = await installer.lookupApp([bundleId]);
     // launch fails with EBusy or ENotFound if you try to launch immediately after install
     await wait(200);
-    await launchApp(clientManager, appInfo);
+    const debugServerClient = await launchApp(clientManager, appInfo);
+    if (waitForApp) {
+      onBeforeExit(async () => {
+        // causes continue() to return
+        debugServerClient.halt();
+        // give continue() time to return response
+        await wait(64);
+      });
 
+      debug(`Waiting for app to close...\n`);
+      const result = await debugServerClient.continue();
+      // TODO: I have no idea what this packet means yet (successful close?)
+      // if not a close (ie, most likely due to halt from onBeforeExit), then kill the app
+      if (result !== 'W00') {
+        await debugServerClient.kill();
+      }
+    }
   } finally {
     clientManager.end();
   }
