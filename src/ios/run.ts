@@ -4,13 +4,12 @@ import * as Debug from 'debug';
 import { createWriteStream, mkdtempSync, readFileSync } from 'fs';
 import { AFCError, AFC_STATUS, ClientManager, IPLookupResult } from 'node-ioslib';
 import * as path from 'path';
-import { Readable } from 'stream';
 import { promisify } from 'util';
-import { Entry, Options, ZipFile } from 'yauzl';
 
 import { RunException } from '../errors';
 import { getOptionValue } from '../utils/cli';
 import { execFile, onBeforeExit } from '../utils/process';
+import { unzip } from '../utils/unzip';
 
 import { getConnectedDevicesInfo, getSimulators } from './utils/device';
 
@@ -23,7 +22,7 @@ export async function run(args: string[]) {
     throw new RunException('--app argument is required.');
   }
   const udid = getOptionValue(args, '--target');
-  const preferSimulator = args.includes('--simulator');
+  const preferSimulator = args.includes('--simulator') || args.includes('--emulator');
   const waitForApp = args.includes('--connect');
   const isIPA = appPath.endsWith('.ipa');
   try {
@@ -255,38 +254,34 @@ async function getBundleId(packagePath: string) {
   throw new Error('Unable to get app bundle identifier');
 }
 
-// Override so promisify typing correctly infers params
-type YauzlOpen = (path: string, options: Options, callback?: (err: Error, zipfile: ZipFile) => void) => void;
-type YauzlOpenReadStream = (entry: Entry, callback?: (err: Error, stream: Readable) => void) => void;
-
 async function unzipApp(srcPath: string, destPath: string) {
-  const yauzl = await import('yauzl');
-  const open = promisify(yauzl.open.bind(yauzl) as YauzlOpen);
+  let error: Error | undefined;
   let appDir = '';
-  return new Promise<string>(async (resolve, reject) => {
-    const zipfile = await open(srcPath, { lazyEntries: true });
-    const openReadStream = promisify(zipfile.openReadStream.bind(zipfile) as YauzlOpenReadStream);
 
-    zipfile.once('error', reject);
-    zipfile.once('end', () => { appDir ? resolve(appDir) : reject('Unable to determine .app directory from .ipa'); });
-
-    zipfile.readEntry();
-    zipfile.on('entry', async (entry: Entry) => {
-      debug(`Unzip: ${entry.fileName}`);
-      const dest = path.join(destPath, entry.fileName);
-      if (entry.fileName.endsWith('/')) {
-        await mkdirp(dest);
-        if (entry.fileName.endsWith('.app/')) {
-          appDir = entry.fileName;
-        }
-        zipfile.readEntry();
-      } else {
-        await mkdirp(path.dirname(dest));
-        const readStream = await openReadStream(entry);
-        readStream.on('end', () => { zipfile.readEntry(); });
-        const writeStream = createWriteStream(path.join(destPath, entry.fileName));
-        readStream.pipe(writeStream);
+  await unzip(srcPath, async (entry, zipfile, openReadStream) => {
+    debug(`Unzip: ${entry.fileName}`);
+    const dest = path.join(destPath, entry.fileName);
+    if (entry.fileName.endsWith('/')) {
+      await mkdirp(dest);
+      if (entry.fileName.endsWith('.app/')) {
+        appDir = entry.fileName;
       }
-    });
+      zipfile.readEntry();
+    } else {
+      await mkdirp(path.dirname(dest));
+      const readStream = await openReadStream(entry);
+      readStream.on('error', (err: Error) => error = err);
+      readStream.on('end', () => { zipfile.readEntry(); });
+      readStream.pipe(createWriteStream(dest));
+    }
   });
+
+  if (error) {
+    throw error;
+  }
+
+  if (!appDir) {
+    throw new Error('Unable to determine .app directory from .ipa');
+  }
+  return appDir;
 }

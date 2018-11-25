@@ -87,7 +87,7 @@ export async function selectVirtualDevice(sdk: SDK, devices: ReadonlyArray<Devic
   return device;
 }
 
-export async function installApkToDevice(sdk: SDK, device: Device, apk: string, app: string): Promise<void> {
+export async function installApkToDevice(sdk: SDK, device: Device, apk: string, appId: string): Promise<void> {
   process.stdout.write(`Installing ${apk}...\n`);
 
   try {
@@ -96,7 +96,7 @@ export async function installApkToDevice(sdk: SDK, device: Device, apk: string, 
     if (e instanceof ADBException) {
       if (e.code === ERR_INCOMPATIBLE_UPDATE) {
         process.stdout.write(`${e.message} Uninstalling and trying again...\n`);
-        await uninstallApp(sdk, device, app);
+        await uninstallApp(sdk, device, appId);
         await installApk(sdk, device, apk);
         return;
       }

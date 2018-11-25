@@ -19,6 +19,7 @@ const help = `
     --sdk-info ........... Print SDK information, then quit
     --json ............... Output JSON
 
+
     --app <path> ......... Deploy specified .apk file
     --device ............. Use a device if available
                            With --list prints connected devices

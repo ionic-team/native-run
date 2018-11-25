@@ -18,6 +18,7 @@ const help = `
     --list ............... Print available targets, then quit
     --json ............... Output JSON
 
+
     --app <path> ......... Deploy specified .app or .ipa file
     --device ............. Use a device if available
                            With --list prints connected devices
