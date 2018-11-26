@@ -1,3 +1,4 @@
+import { Exception } from '../errors';
 
 export interface Target {
   readonly model?: string;
@@ -12,7 +13,7 @@ export function list(args: string[], devices: Target[], virtualDevices: Target[]
   const devicesOnly = args.includes('--device');
 
   if (virtualOnly && devicesOnly) {
-    throw new Error('Only one of --device or --virtual may be specified');
+    throw new Exception('Only one of --device or --virtual may be specified');
   }
 
   if (args.includes('--json')) {

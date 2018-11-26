@@ -1,5 +1,6 @@
 import { readDir } from '@ionic/utils-fs';
 
+import { Exception } from '../../errors';
 import { execFile } from '../../utils/process';
 
 export async function getXCodePath() {
@@ -9,7 +10,7 @@ export async function getXCodePath() {
       return stdout.trim();
     }
   } catch { } // tslint:disable-line
-  throw new Error('Unable to get Xcode location. Is Xcode installed?');
+  throw new Exception('Unable to get Xcode location. Is Xcode installed?');
 }
 
 export async function getDeveloperDiskImagePath(version: string) {
@@ -17,7 +18,7 @@ export async function getDeveloperDiskImagePath(version: string) {
   const versionDirs = await readDir(`${xCodePath}/Platforms/iPhoneOS.platform/DeviceSupport/`);
   const versionPrefix = version.match(/\d+\.\d+/);
   if (versionPrefix === null) {
-    throw new Error(`Invalid iOS version: ${version}`);
+    throw new Exception(`Invalid iOS version: ${version}`);
   }
   // Can look like "11.2 (15C107)"
   for (const dir of versionDirs) {
@@ -25,5 +26,5 @@ export async function getDeveloperDiskImagePath(version: string) {
       return `${xCodePath}/Platforms/iPhoneOS.platform/DeviceSupport/${dir}/DeveloperDiskImage.dmg`;
     }
   }
-  throw new Error(`Unable to find Developer Disk Image path for SDK ${version}. Do you have the right version of Xcode?`);
+  throw new Exception(`Unable to find Developer Disk Image path for SDK ${version}. Do you have the right version of Xcode?`);
 }

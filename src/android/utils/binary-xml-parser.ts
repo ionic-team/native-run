@@ -18,7 +18,9 @@
   https://github.com/openstf/adbkit-apkreader/blob/368f6b207c57e82fa7373c1608920ca7f4a8904c/lib/apkreader/parser/binaryxml.js
 */
 import * as assert from 'assert';
+
 // import * as Debug from 'debug';
+import { Exception } from '../../errors';
 // const debug = Debug('native-run:android:util:binary-xml-parser');
 
 const NodeType = {
@@ -368,7 +370,7 @@ export class BinaryXmlParser {
       assert.equal(this.readU16(), 0, 'String must end with trailing zero');
       return value;
     default:
-      throw new Error(`Unsupported encoding '${encoding}'`);
+      throw new Exception(`Unsupported encoding '${encoding}'`);
     }
   }
 
@@ -402,7 +404,7 @@ export class BinaryXmlParser {
     // debug('stylesStart:', header.stylesStart);
 
     if (header.chunkType !== ChunkType.STRING_POOL) {
-      throw new Error('Invalid string pool header');
+      throw new Exception('Invalid string pool header');
     }
 
     const offsets = [];
@@ -626,7 +628,7 @@ export class BinaryXmlParser {
 
     const xmlHeader = this.readChunkHeader();
     if (xmlHeader.chunkType !== ChunkType.XML) {
-      throw new Error('Invalid XML header');
+      throw new Exception('Invalid XML header');
     }
 
     while (this.cursor < this.buffer.length) {
@@ -659,7 +661,7 @@ export class BinaryXmlParser {
         this.readNull(header);
         break;
       default:
-        throw new Error(`Unsupported chunk type '${header.chunkType}'`);
+        throw new Exception(`Unsupported chunk type '${header.chunkType}'`);
       }
 
       // Ensure we consume the whole chunk

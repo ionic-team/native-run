@@ -42,7 +42,7 @@ export async function run(args: string[]) {
       } else if (simulators.find(s => s.udid === udid)) {
         await runOnSimulator(udid, appPath, bundleId, waitForApp);
       } else {
-        throw new Error(`No device or simulator with udid ${udid} found`);
+        throw new Exception(`No device or simulator with udid ${udid} found`);
       }
     } else if (devices.length && !preferSimulator) {
       // no udid, use first connected device

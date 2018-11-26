@@ -1,6 +1,7 @@
 import { spawnSync } from 'child_process'; // TODO: need cross-spawn for windows?
 import * as Debug from 'debug';
 
+import { Exception } from '../../errors';
 import { onBeforeExit } from '../../utils/process';
 
 import { getXCodePath } from './path';
@@ -54,26 +55,26 @@ export async function runOnSimulator(udid: string, appPath: string, bundleId: st
   const bootResult = spawnSync('xcrun', ['simctl', 'boot', udid], { encoding: 'utf8' });
   // TODO: is there a better way to check this?
   if (bootResult.status && !bootResult.stderr.includes('Unable to boot device in current state: Booted')) {
-    throw new Error(`There was an error booting simulator: ${bootResult.stderr}`);
+    throw new Exception(`There was an error booting simulator: ${bootResult.stderr}`);
   }
 
   debug(`Installing ${appPath} on ${udid}`);
   const installResult = spawnSync('xcrun', ['simctl', 'install', udid, appPath], { encoding: 'utf8' });
   if (installResult.status) {
-    throw new Error(`There was an error installing app on simulator: ${installResult.stderr}`);
+    throw new Exception(`There was an error installing app on simulator: ${installResult.stderr}`);
   }
 
   const xCodePath = await getXCodePath();
   debug(`Running simulator ${udid}`);
   const openResult = spawnSync('open', [`${xCodePath}/Applications/Simulator.app`, '--args', '-CurrentDeviceUDID', udid], { encoding: 'utf8' });
   if (openResult.status) {
-    throw new Error(`There was an error opening simulator: ${openResult.stderr}`);
+    throw new Exception(`There was an error opening simulator: ${openResult.stderr}`);
   }
 
   debug(`Launching ${appPath} on ${udid}`);
   const launchResult = spawnSync('xcrun', ['simctl', 'launch', udid, bundleId], { encoding: 'utf8' });
   if (launchResult.status) {
-    throw new Error(`There was an error launching app on simulator: ${launchResult.stderr}`);
+    throw new Exception(`There was an error launching app on simulator: ${launchResult.stderr}`);
   }
 
   if (waitForApp) {

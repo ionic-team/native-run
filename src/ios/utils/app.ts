@@ -3,6 +3,7 @@ import * as Debug from 'debug';
 import { createWriteStream } from 'fs';
 import * as path from 'path';
 
+import { Exception } from '../../errors';
 import { execFile } from '../../utils/process';
 import { unzip } from '../../utils/unzip';
 
@@ -19,7 +20,7 @@ export async function getBundleId(appPath: string) {
       return stdout.trim();
     }
   } catch { } // tslint:disable-line
-  throw new Error('Unable to get app bundle identifier');
+  throw new Exception('Unable to get app bundle identifier');
 }
 
 export async function unzipIPA(ipaPath: string, destPath: string) {
@@ -49,7 +50,7 @@ export async function unzipIPA(ipaPath: string, destPath: string) {
   }
 
   if (!appPath) {
-    throw new Error('Unable to determine .app directory from .ipa');
+    throw new Exception('Unable to determine .app directory from .ipa');
   }
   return appPath;
 }
