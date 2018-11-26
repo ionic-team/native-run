@@ -22,7 +22,7 @@ const help = `
     --app <path> ......... Deploy specified .app or .ipa file
     --device ............. Use a device if available
                            With --list prints connected devices
-    --virtual ..........   Prefer a simulator
+    --virtual ............ Prefer a simulator
                            With --list prints available simulators
     --target <id> ........ Use a specific target
     --connect ............ Tie process to app process

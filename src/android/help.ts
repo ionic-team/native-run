@@ -23,7 +23,7 @@ const help = `
     --app <path> ......... Deploy specified .apk file
     --device ............. Use a device if available
                            With --list prints connected devices
-    --virtual ...........  Prefer an emulator
+    --virtual ............ Prefer an emulator
                            With --list prints available emulators
     --target <id> ........ Use a specific target
     --connect ............ Tie process to app process
