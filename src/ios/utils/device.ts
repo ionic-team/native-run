@@ -1,81 +1,120 @@
-import { spawnSync } from 'child_process'; // TODO: need cross-spawn for windows?
-import { LockdowndClient, UsbmuxdClient } from 'node-ioslib';
+import * as Debug from 'debug';
+import { readFileSync } from 'fs';
+import { AFCError, AFC_STATUS, ClientManager, IPLookupResult, LockdowndClient, UsbmuxdClient } from 'node-ioslib';
+import * as path from 'path';
+import { promisify } from 'util';
 
-export interface Simulator {
-  readonly name: string;
-  readonly sdkVersion: string;
-  readonly id: string;
-}
+import { Exception } from '../../errors';
+import { onBeforeExit } from '../../utils/process';
 
-export interface IOSDevice {
-  readonly name: string;
-  readonly model: string; // TODO: map to actual model (ie. iPhone8,4 -> iPhone SE)
-  readonly sdkVersion: string;
-  readonly id: string;
-}
+import { getDeveloperDiskImagePath } from './path';
 
-interface SimCtlDeviceType {
-  name: string;  // "iPhone 7"
-  identifier: string; // "com.apple.CoreSimulator.SimDeviceType.iPhone-7"
-}
+const debug = Debug('native-run:ios:utils:device');
+const wait = promisify(setTimeout);
 
-interface SimCtlDevice {
-  availability: '(available)' | '(unavailable)';
-  name: string; // "iPhone 5";
-  state: string; // "Shutdown"
-  udid: string;
-}
+// TODO: remove when ioslib is updated
+type PromiseType<T> = T extends Promise<(infer U)[]> ? U : T;
+export type Device = PromiseType<ReturnType<typeof getConnectedDevicesInfo>>;
 
-interface SimCtlDeviceDict {
-  readonly [key: string]: SimCtlDevice[];
-}
-
-interface SimCtlRuntime {
-  readonly buildversion: string; // "14B72"
-  readonly availability: '(available)' | '(unavailable)';
-  readonly name: string; // "iOS 10.1"
-  readonly identifier: string; // "com.apple.CoreSimulator.SimRuntime.iOS-10-1"
-  readonly version: string; // "10.1"
-}
-
-interface SimCtlOutput {
-  devices: SimCtlDeviceDict;
-  runtimes: SimCtlRuntime[];
-  devicetypes: SimCtlDeviceType[];
-}
-
-export async function getSimulators(): Promise<Simulator[]> {
-    const simctl = spawnSync('xcrun', ['simctl', 'list', '--json'], { encoding: 'utf8' });
-    const output: SimCtlOutput = JSON.parse(simctl.stdout);
-    return output.runtimes
-      .filter(runtime => runtime.name.indexOf('watch') === -1 && runtime.name.indexOf('tv') === -1)
-      .map(runtime => output.devices[runtime.name]
-        .filter(device => !device.availability.includes('unavailable'))
-        .map(device => ({
-          name: device.name,
-          sdkVersion: runtime.version,
-          id: device.udid,
-        }))
-      )
-      .reduce((prev, next) => prev.concat(next)) // flatten array of runtime devices arrays
-      .sort((a, b) => a.name < b.name ? -1 : 1);
-}
-
-export async function getConnectedDevicesInfo(): Promise<IOSDevice[]> {
+export async function getConnectedDevicesInfo() {
   const usbmuxClient = new UsbmuxdClient(UsbmuxdClient.connectUsbmuxdSocket());
   const devices = await usbmuxClient.getDevices();
   usbmuxClient.socket.end();
-  const deviceInfos = await Promise.all(devices.map(async device => {
+
+  return Promise.all(devices.map(async device => {
     const socket = await new UsbmuxdClient(UsbmuxdClient.connectUsbmuxdSocket()).connect(device, 62078);
     const deviceInfo = await new LockdowndClient(socket).getAllValues();
     socket.end();
     return deviceInfo;
   }));
+}
 
-  return deviceInfos.map(deviceInfo => ({
-    name: deviceInfo.DeviceName,
-    model: deviceInfo.ProductType,
-    sdkVersion: deviceInfo.ProductVersion,
-    id: deviceInfo.UniqueDeviceID,
-  }));
+export async function runOnDevice(udid: string, appPath: string, bundleId: string, waitForApp: boolean) {
+  const clientManager = await ClientManager.create(udid);
+
+  try {
+    await mountDeveloperDiskImage(clientManager);
+
+    const packageName = path.basename(appPath);
+    const destPackagePath = path.join('PublicStaging', packageName);
+
+    await uploadApp(clientManager, appPath, destPackagePath);
+
+    const installer = await clientManager.getInstallationProxyClient();
+    await installer.installApp(destPackagePath, bundleId);
+
+    const { [bundleId]: appInfo } = await installer.lookupApp([bundleId]);
+    // launch fails with EBusy or ENotFound if you try to launch immediately after install
+    await wait(200);
+    const debugServerClient = await launchApp(clientManager, appInfo);
+    if (waitForApp) {
+      onBeforeExit(async () => {
+        // causes continue() to return
+        debugServerClient.halt();
+        // give continue() time to return response
+        await wait(64);
+      });
+
+      debug(`Waiting for app to close...\n`);
+      const result = await debugServerClient.continue();
+      // TODO: I have no idea what this packet means yet (successful close?)
+      // if not a close (ie, most likely due to halt from onBeforeExit), then kill the app
+      if (result !== 'W00') {
+        await debugServerClient.kill();
+      }
+    }
+  } finally {
+    clientManager.end();
+  }
+}
+
+async function mountDeveloperDiskImage(clientManager: ClientManager) {
+  const imageMounter = await clientManager.getMobileImageMounterClient();
+  // Check if already mounted. If not, mount.
+  if (!(await imageMounter.lookupImage()).ImageSignature) {
+    // verify DeveloperDiskImage exists (TODO: how does this work on Windows/Linux?)
+    // TODO: if windows/linux, download?
+    const version = await (await clientManager.getLockdowndClient()).getValue('ProductVersion');
+    const developerDiskImagePath = await getDeveloperDiskImagePath(version);
+    const developerDiskImageSig = readFileSync(`${developerDiskImagePath}.signature`);
+    await imageMounter.uploadImage(developerDiskImagePath, developerDiskImageSig);
+    await imageMounter.mountImage(developerDiskImagePath, developerDiskImageSig);
+  }
+}
+
+async function uploadApp(clientManager: ClientManager, srcPath: string, destinationPath: string) {
+  const afcClient = await clientManager.getAFCClient();
+  try {
+    await afcClient.getFileInfo('PublicStaging');
+  } catch (err) {
+    if (err instanceof AFCError && err.status === AFC_STATUS.OBJECT_NOT_FOUND) {
+      await afcClient.makeDirectory('PublicStaging');
+    } else {
+      throw err;
+    }
+  }
+  await afcClient.uploadDirectory(srcPath, destinationPath);
+}
+
+async function launchApp(clientManager: ClientManager, appInfo: IPLookupResult[string]) {
+  let tries = 0;
+  while (tries < 3) {
+    const debugServerClient = await clientManager.getDebugserverClient();
+    await debugServerClient.setMaxPacketSize(1024);
+    await debugServerClient.setWorkingDir(appInfo.Container);
+    await debugServerClient.launchApp(appInfo.Path, appInfo.CFBundleExecutable);
+
+    const result = await debugServerClient.checkLaunchSuccess();
+    if (result === 'OK') {
+      return debugServerClient;
+    } else if (result === 'EBusy' || result === 'ENotFound') {
+      debug('Device busy or app not found, trying to launch again in .5s...');
+      tries++;
+      debugServerClient.socket.end();
+      await wait(500);
+    } else {
+      throw new Exception(`There was an error launching app: ${result}`);
+    }
+  }
+  throw new Exception('Unable to launch app, number of tries exceeded');
 }
