@@ -37,7 +37,7 @@ export async function run(args: string[]) {
     ]);
     // try to run on device or simulator with udid
     if (udid) {
-      if (devices.find(d => d.id === udid)) {
+      if (devices.find(d => d.UniqueDeviceID === udid)) {
         await runOnDevice(udid, appPath, bundleId, waitForApp);
       } else if (simulators.find(s => s.udid === udid)) {
         await runOnSimulator(udid, appPath, bundleId, waitForApp);
@@ -46,7 +46,7 @@ export async function run(args: string[]) {
       }
     } else if (devices.length && !preferSimulator) {
       // no udid, use first connected device
-      await runOnDevice(devices[0].id, appPath, bundleId, waitForApp);
+      await runOnDevice(devices[0].UniqueDeviceID, appPath, bundleId, waitForApp);
     } else {
       // use default sim
       await runOnSimulator(simulators[simulators.length - 1].udid, appPath, bundleId, waitForApp);
