@@ -1,14 +1,26 @@
+import { Target, list } from '../utils/list';
+
 import { Device, getDevices } from './utils/adb';
 import { AVD, getDefaultAVD, getInstalledAVDs } from './utils/avd';
-import { getSDK } from './utils/sdk';
+import { SDK, getSDK } from './utils/sdk';
 
 export async function run(args: string[]) {
   const sdk = await getSDK();
+  const [ devices, virtualDevices ] = await Promise.all([
+    getDeviceTargets(sdk),
+    getVirtualTargets(sdk),
+  ]);
 
-  const devices = (await getDevices(sdk))
+  return list(args, devices, virtualDevices);
+}
+
+export async function getDeviceTargets(sdk: SDK) {
+  return (await getDevices(sdk))
     .filter(device => device.type === 'hardware')
-    .map(device => deviceToTarget(device));
+    .map(deviceToTarget);
+}
 
+export async function getVirtualTargets(sdk: SDK) {
   const avds = await getInstalledAVDs(sdk);
   const defaultAvd = await getDefaultAVD(sdk, avds);
 
@@ -16,39 +28,7 @@ export async function run(args: string[]) {
     avds.push(defaultAvd);
   }
 
-  const virtualDevices = avds.map(avd => avdToTarget(avd));
-
-  if (args.includes('--json')) {
-    process.stdout.write(JSON.stringify({ devices, virtualDevices }));
-    return;
-  }
-
-  process.stdout.write('Devices:\n\n');
-
-  if (devices.length === 0) {
-    process.stdout.write('  No connected devices found\n');
-  } else {
-    for (const device of devices) {
-      process.stdout.write(`  ${formatTarget(device)}\n`);
-    }
-  }
-
-  process.stdout.write('\nVirtual Devices:\n\n');
-
-  if (virtualDevices.length === 0) {
-    process.stdout.write('  No virtual devices found\n');
-  } else {
-    for (const avd of virtualDevices) {
-      process.stdout.write(`  ${formatTarget(avd)}\n`);
-    }
-  }
-}
-
-interface Target {
-  readonly model?: string;
-  readonly name?: string;
-  readonly sdkVersion: string;
-  readonly id: string;
+  return avds.map(avdToTarget);
 }
 
 function deviceToTarget(device: Device): Target {
@@ -56,6 +36,9 @@ function deviceToTarget(device: Device): Target {
     model: `${device.manufacturer} ${device.model}`,
     sdkVersion: device.sdkVersion,
     id: device.serial,
+    format() {
+      return `${this.model} (API ${this.sdkVersion}) ${this.id}`;
+    },
   };
 }
 
@@ -64,11 +47,8 @@ function avdToTarget(avd: AVD): Target {
     name: avd.name,
     sdkVersion: avd.sdkVersion,
     id: avd.id,
+    format() {
+      return `${this.name} (API ${this.sdkVersion}) ${this.id}`;
+    },
   };
-}
-
-function formatTarget(target: Target): string {
-  return `
-  ${target.name ? `${target.name} ` : ''}${target.model ? `${target.model} ` : ''}(API ${target.sdkVersion}) ${target.id}
-  `.trim();
 }

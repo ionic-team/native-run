@@ -5,8 +5,9 @@ export async function run(args: string[]) {
   }
 
   if (args.includes('--list')) {
-    const cmd = await import ('./list');
-    return cmd.run(args);
+    const list = await import ('./list');
+    process.stdout.write(await list.run(args));
+    return;
   }
 
   if (args.includes('--sdk-info')) {

@@ -6,6 +6,7 @@ const help = `
     -h, --help ........... Print help for the platform, then quit
     --version ............ Print version, then quit
     --verbose ............ Print verbose output to stderr
+    --list ............... Print connected devices and virtual devices
 
 `;
 

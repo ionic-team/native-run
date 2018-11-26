@@ -5,7 +5,7 @@ const help = `
 
     Targets are selected as follows:
       1) --target using device/emulator serial number or AVD ID
-      2) A connected device, unless --emulator is used
+      2) A connected device, unless --virtual is used
       3) A running emulator
 
     If the above criteria are not met, an emulator is started from a default
@@ -23,9 +23,8 @@ const help = `
     --app <path> ......... Deploy specified .apk file
     --device ............. Use a device if available
                            With --list prints connected devices
-    --emulator ........... Prefer an emulator
+    --virtual ...........  Prefer an emulator
                            With --list prints available emulators
-    --simulator .......... Alias for --emulator
     --target <id> ........ Use a specific target
     --connect ............ Tie process to app process
 `;

@@ -1,40 +1,37 @@
-import { IOSDevice, Simulator, getConnectedDevicesInfo, getSimulators } from './utils/device';
+import { Target, list } from '../utils/list';
+
+import { Device, getConnectedDevices } from './utils/device';
+import { Simulator, getSimulators } from './utils/simulator';
 
 export async function run(args: string[]) {
   // TODO check for darwin?
-  const simulators = await getSimulators();
-  const devices = await getConnectedDevicesInfo();
+  const [ devices, simulators ] = await Promise.all([
+    (await getConnectedDevices()).map(deviceToTarget),
+    (await getSimulators()).map(simulatorToTarget),
+  ]);
 
-  if (args.includes('--json')) {
-    const result = { devices, simulators };
-    process.stdout.write(JSON.stringify(result, undefined, 2) + '\n');
-    return;
-  }
-
-  process.stdout.write('Devices:\n\n');
-  if (devices.length === 0) {
-    process.stdout.write('  No connected devices found\n');
-  } else {
-    for (const device of devices) {
-      process.stdout.write(`  ${formatDevice(device)}\n`);
-    }
-  }
-
-  process.stdout.write('\nSimulators:\n\n');
-
-  for (const sim of simulators) {
-    process.stdout.write(`  ${formatSimulator(sim)}\n`);
-  }
+  return list(args, devices, simulators);
 }
 
-function formatDevice(device: IOSDevice): string {
-  return `
-${device.name} ${device.model} (${device.sdkVersion}) ${device.id}
-`.trim();
+function deviceToTarget(device: Device): Target {
+  return {
+    name: device.DeviceName,
+    model: device.ProductType,
+    sdkVersion: device.ProductVersion,
+    id: device.UniqueDeviceID,
+    format() {
+      return `${this.name} ${this.model} ${this.sdkVersion} ${this.id}`;
+    },
+  };
 }
 
-function formatSimulator(sim: Simulator): string {
-  return `
-${sim.name} (${sim.sdkVersion}) ${sim.id}
-`.trim();
+function simulatorToTarget(simulator: Simulator): Target {
+  return {
+    name: simulator.name,
+    sdkVersion: simulator.runtime.version,
+    id: simulator.udid,
+    format() {
+      return `${this.name} ${this.sdkVersion} ${this.id}`;
+    },
+  };
 }

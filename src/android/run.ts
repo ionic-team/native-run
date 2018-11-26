@@ -45,7 +45,7 @@ export async function selectDevice(sdk: SDK, args: string[]): Promise<Device> {
   const avds = await getInstalledAVDs(sdk);
 
   const target = getOptionValue(args, '--target');
-  const preferEmulator = args.includes('--emulator') || args.includes('--simulator');
+  const preferEmulator = args.includes('--virtual');
 
   if (target) {
     const targetDevice = await selectDeviceByTarget(sdk, devices, avds, target);

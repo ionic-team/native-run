@@ -6,7 +6,8 @@ export async function run(args: string[]) {
 
   if (args.includes('--list') || args.includes('-l')) {
     const list = await import('./list');
-    return list.run(args);
+    process.stdout.write(await list.run(args));
+    return;
   }
 
   const runCmd = await import('./run');

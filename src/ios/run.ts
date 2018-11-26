@@ -17,7 +17,7 @@ export async function run(args: string[]) {
     throw new Exception('--app argument is required.');
   }
   const udid = getOptionValue(args, '--target');
-  const preferSimulator = args.includes('--simulator') || args.includes('--emulator');
+  const preferSimulator = args.includes('--virtual');
   const waitForApp = args.includes('--connect');
   const isIPA = appPath.endsWith('.ipa');
   try {
@@ -39,7 +39,7 @@ export async function run(args: string[]) {
     if (udid) {
       if (devices.find(d => d.id === udid)) {
         await runOnDevice(udid, appPath, bundleId, waitForApp);
-      } else if (simulators.find(s => s.id === udid)) {
+      } else if (simulators.find(s => s.udid === udid)) {
         await runOnSimulator(udid, appPath, bundleId, waitForApp);
       } else {
         throw new Error(`No device or simulator with udid ${udid} found`);
@@ -49,7 +49,7 @@ export async function run(args: string[]) {
       await runOnDevice(devices[0].id, appPath, bundleId, waitForApp);
     } else {
       // use default sim
-      await runOnSimulator(simulators[simulators.length - 1].id, appPath, bundleId, waitForApp);
+      await runOnSimulator(simulators[simulators.length - 1].udid, appPath, bundleId, waitForApp);
     }
   } finally {
     if (isIPA) {
