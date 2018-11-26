@@ -13,19 +13,19 @@ const debug = Debug('native-run:ios:utils:device');
 const wait = promisify(setTimeout);
 
 // TODO: remove when ioslib is updated
-type PromiseType<T> = T extends Promise<(infer U)[]> ? U : T;
-export type Device = PromiseType<ReturnType<typeof getConnectedDevicesInfo>>;
+type PromiseType<T> = T extends Promise<(infer U)> ? U : T;
+export type Device = PromiseType<ReturnType<LockdowndClient['getAllValues']>>;
 
-export async function getConnectedDevicesInfo() {
+export async function getConnectedDevices(): Promise<Device[]> {
   const usbmuxClient = new UsbmuxdClient(UsbmuxdClient.connectUsbmuxdSocket());
-  const devices = await usbmuxClient.getDevices();
+  const usbmuxDevices = await usbmuxClient.getDevices();
   usbmuxClient.socket.end();
 
-  return Promise.all(devices.map(async device => {
-    const socket = await new UsbmuxdClient(UsbmuxdClient.connectUsbmuxdSocket()).connect(device, 62078);
-    const deviceInfo = await new LockdowndClient(socket).getAllValues();
+  return Promise.all(usbmuxDevices.map(async d => {
+    const socket = await new UsbmuxdClient(UsbmuxdClient.connectUsbmuxdSocket()).connect(d, 62078);
+    const device = await new LockdowndClient(socket).getAllValues();
     socket.end();
-    return deviceInfo;
+    return device;
   }));
 }
 

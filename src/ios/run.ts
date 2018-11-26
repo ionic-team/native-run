@@ -6,7 +6,7 @@ import { Exception } from '../errors';
 import { getOptionValue } from '../utils/cli';
 
 import { getBundleId, unzipIPA } from './utils/app';
-import { getConnectedDevicesInfo, runOnDevice } from './utils/device';
+import { getConnectedDevices, runOnDevice } from './utils/device';
 import { getSimulators, runOnSimulator } from './utils/simulator';
 
 const debug = Debug('native-run:ios:run');
@@ -32,7 +32,7 @@ export async function run(args: string[]) {
     const bundleId = await getBundleId(appPath);
 
     const [devices, simulators] = await Promise.all([
-      getConnectedDevicesInfo(),
+      getConnectedDevices(),
       getSimulators(),
     ]);
     // try to run on device or simulator with udid
