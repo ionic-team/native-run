@@ -4,6 +4,7 @@ export class Exception<T extends string> extends Error implements NodeJS.ErrnoEx
   }
 }
 
+export const ERR_BAD_INPUT = 'ERR_BAD_INPUT';
 export const ERR_ALREADY_RUNNING = 'ERR_ALREADY_RUNNING ';
 export const ERR_AVD_HOME_NOT_FOUND = 'ERR_AVD_HOME_NOT_FOUND';
 export const ERR_EMULATOR_HOME_NOT_FOUND = 'ERR_EMULATOR_HOME_NOT_FOUND';
@@ -20,6 +21,12 @@ export const ERR_SDK_PACKAGE_NOT_FOUND = 'ERR_SDK_PACKAGE_NOT_FOUND';
 export const ERR_TARGET_NOT_FOUND = 'ERR_TARGET_NOT_FOUND';
 export const ERR_UNKNOWN_AVD = 'ERR_UNKNOWN_AVD';
 export const ERR_UNSUPPORTED_API_LEVEL = 'ERR_UNSUPPORTED_API_LEVEL';
+
+export type CLIExceptionCode = (
+  typeof ERR_BAD_INPUT
+);
+
+export class CLIException extends Exception<CLIExceptionCode> {}
 
 export type ADBExceptionCode = (
   typeof ERR_INCOMPATIBLE_UPDATE |

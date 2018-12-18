@@ -1,4 +1,4 @@
-import { Exception } from '../errors';
+import { CLIException, ERR_BAD_INPUT } from '../errors';
 
 export interface Target {
   readonly model?: string;
@@ -13,7 +13,7 @@ export function list(args: string[], devices: Target[], virtualDevices: Target[]
   const devicesOnly = args.includes('--device');
 
   if (virtualOnly && devicesOnly) {
-    throw new Exception('Only one of --device or --virtual may be specified');
+    throw new CLIException('Only one of --device or --virtual may be specified', ERR_BAD_INPUT);
   }
 
   if (args.includes('--json')) {

@@ -1,7 +1,7 @@
 import * as Debug from 'debug';
 import * as path from 'path';
 
-import { Exception } from './errors';
+import { CLIException, ERR_BAD_INPUT, Exception } from './errors';
 
 const debug = Debug('native-run');
 
@@ -31,7 +31,7 @@ export async function run() {
         return help.run();
       }
 
-      throw new Exception(`Unsupported platform: "${platform}"`);
+      throw new CLIException(`Unsupported platform: "${platform}"`, ERR_BAD_INPUT);
     }
   } catch (e) {
     debug('Caught fatal error: %O', e);
