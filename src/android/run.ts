@@ -1,4 +1,4 @@
-import { ERR_TARGET_NOT_FOUND, RunException } from '../errors';
+import { CLIException, ERR_BAD_INPUT, ERR_TARGET_NOT_FOUND, RunException } from '../errors';
 import { getOptionValue } from '../utils/cli';
 import { log } from '../utils/log';
 import { onBeforeExit } from '../utils/process';
@@ -14,7 +14,7 @@ export async function run(args: string[]) {
   const apkPath = getOptionValue(args, '--app');
 
   if (!apkPath) {
-    throw new RunException('--app is required');
+    throw new CLIException('--app is required', ERR_BAD_INPUT);
   }
 
   const device = await selectDevice(sdk, args);

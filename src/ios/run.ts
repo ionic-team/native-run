@@ -2,7 +2,7 @@ import * as Debug from 'debug';
 import { mkdtempSync } from 'fs';
 import * as path from 'path';
 
-import { Exception } from '../errors';
+import { CLIException, ERR_BAD_INPUT, ERR_TARGET_NOT_FOUND, RunException } from '../errors';
 import { getOptionValue } from '../utils/cli';
 
 import { getBundleId, unzipIPA } from './utils/app';
@@ -14,7 +14,7 @@ const debug = Debug('native-run:ios:run');
 export async function run(args: string[]) {
   let appPath = getOptionValue(args, '--app');
   if (!appPath) {
-    throw new Exception('--app argument is required.');
+    throw new CLIException('--app is required', ERR_BAD_INPUT);
   }
   const udid = getOptionValue(args, '--target');
   const preferSimulator = args.includes('--virtual');
@@ -42,7 +42,7 @@ export async function run(args: string[]) {
       } else if (simulators.find(s => s.udid === udid)) {
         await runOnSimulator(udid, appPath, bundleId, waitForApp);
       } else {
-        throw new Exception(`No device or simulator with udid ${udid} found`);
+        throw new RunException(`No device or simulator with UDID "${udid}" found`, ERR_TARGET_NOT_FOUND);
       }
     } else if (devices.length && !preferSimulator) {
       // no udid, use first connected device
