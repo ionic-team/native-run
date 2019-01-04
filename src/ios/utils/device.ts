@@ -1,6 +1,6 @@
 import * as Debug from 'debug';
 import { readFileSync } from 'fs';
-import { AFCError, AFC_STATUS, ClientManager, IPLookupResult, LockdowndClient, UsbmuxdClient } from 'node-ioslib';
+import { AFCError, AFC_STATUS, ClientManager, DeviceValues, IPLookupResult, LockdowndClient, UsbmuxdClient } from 'node-ioslib';
 import * as path from 'path';
 import { promisify } from 'util';
 
@@ -12,16 +12,12 @@ import { getDeveloperDiskImagePath } from './path';
 const debug = Debug('native-run:ios:utils:device');
 const wait = promisify(setTimeout);
 
-// TODO: remove when ioslib is updated
-type PromiseType<T> = T extends Promise<(infer U)> ? U : T;
-export type Device = PromiseType<ReturnType<LockdowndClient['getAllValues']>>;
-
-export async function getConnectedDevices(): Promise<Device[]> {
+export async function getConnectedDevices() {
   const usbmuxClient = new UsbmuxdClient(UsbmuxdClient.connectUsbmuxdSocket());
   const usbmuxDevices = await usbmuxClient.getDevices();
   usbmuxClient.socket.end();
 
-  return Promise.all(usbmuxDevices.map(async d => {
+  return Promise.all(usbmuxDevices.map(async (d): Promise<DeviceValues> => {
     const socket = await new UsbmuxdClient(UsbmuxdClient.connectUsbmuxdSocket()).connect(d, 62078);
     const device = await new LockdowndClient(socket).getAllValues();
     socket.end();

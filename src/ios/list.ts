@@ -1,6 +1,8 @@
+import { DeviceValues } from 'node-ioslib';
+
 import { Target, list } from '../utils/list';
 
-import { Device, getConnectedDevices } from './utils/device';
+import { getConnectedDevices } from './utils/device';
 import { Simulator, getSimulators } from './utils/simulator';
 
 export async function run(args: string[]) {
@@ -13,7 +15,7 @@ export async function run(args: string[]) {
   return list(args, devices, simulators);
 }
 
-function deviceToTarget(device: Device): Target {
+function deviceToTarget(device: DeviceValues): Target {
   return {
     name: device.DeviceName,
     model: device.ProductType,
