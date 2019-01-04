@@ -11,6 +11,11 @@ import { SDK, getSDKPackage, supplementProcessEnv } from './sdk';
 
 const modulePrefix = 'native-run:android:utils:adb';
 
+export interface Ports {
+  readonly device: string;
+  readonly host: string;
+}
+
 export interface DeviceProperties {
   [key: string]: string | undefined;
 }
@@ -278,4 +283,14 @@ export function parseAdbDevices(output: string): Device[] {
   }
 
   return devices;
+}
+
+export async function forwardPorts(sdk: SDK, device: Device, ports: Ports): Promise<void> {
+  const debug = Debug(`${modulePrefix}:${forwardPorts.name}`);
+  const platformTools = await getSDKPackage(path.join(sdk.root, 'platform-tools'));
+  const adbBin = `${platformTools.location}/adb`;
+  const args = ['-s', device.serial, 'reverse', `tcp:${ports.device}`, `tcp:${ports.host}`];
+  debug('Invoking adb: %O %O', adbBin, args);
+
+  await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });
 }

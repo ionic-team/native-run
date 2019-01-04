@@ -15,18 +15,19 @@ const help = `
 
   Options:
 
-    --list ............... Print available targets, then quit
-    --sdk-info ........... Print SDK information, then quit
-    --json ............... Output JSON
+    --list .................. Print available targets, then quit
+    --sdk-info .............. Print SDK information, then quit
+    --json .................. Output JSON
 
 
-    --app <path> ......... Deploy specified .apk file
-    --device ............. Use a device if available
-                           With --list prints connected devices
-    --virtual ............ Prefer an emulator
-                           With --list prints available emulators
-    --target <id> ........ Use a specific target
-    --connect ............ Tie process to app process
+    --app <path> ............ Deploy specified .apk file
+    --device ................ Use a device if available
+                              With --list prints connected devices
+    --virtual ............... Prefer an emulator
+                              With --list prints available emulators
+    --target <id> ........... Use a specific target
+    --connect ............... Tie process to app process
+    --forward <port:port> ... Forward a port from device to host
 `;
 
 export async function run() {
