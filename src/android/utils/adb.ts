@@ -294,3 +294,13 @@ export async function forwardPorts(sdk: SDK, device: Device, ports: Ports): Prom
 
   await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });
 }
+
+export async function unforwardPorts(sdk: SDK, device: Device, ports: Ports): Promise<void> {
+  const debug = Debug(`${modulePrefix}:${forwardPorts.name}`);
+  const platformTools = await getSDKPackage(path.join(sdk.root, 'platform-tools'));
+  const adbBin = `${platformTools.location}/adb`;
+  const args = ['-s', device.serial, 'reverse', '--remove', `tcp:${ports.device}`];
+  debug('Invoking adb: %O %O', adbBin, args);
+
+  await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });
+}

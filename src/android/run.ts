@@ -3,7 +3,7 @@ import { getOptionValue } from '../utils/cli';
 import { log } from '../utils/log';
 import { onBeforeExit } from '../utils/process';
 
-import { Device, Ports, closeApp, forwardPorts, getDevices, startActivity, waitForBoot, waitForClose } from './utils/adb';
+import { Device, Ports, closeApp, forwardPorts, getDevices, startActivity, unforwardPorts, waitForBoot, waitForClose } from './utils/adb';
 import { getApkInfo } from './utils/apk';
 import { getInstalledAVDs } from './utils/avd';
 import { installApkToDevice, selectDeviceByTarget, selectHardwareDevice, selectVirtualDevice } from './utils/run';
@@ -47,6 +47,12 @@ export async function run(args: string[]) {
   await startActivity(sdk, device, appId, activityName);
 
   log(`Run Successful\n`);
+
+  onBeforeExit(async () => {
+    if (ports) {
+      await unforwardPorts(sdk, device, ports);
+    }
+  });
 
   if (args.includes('--connect')) {
     onBeforeExit(async () => {
