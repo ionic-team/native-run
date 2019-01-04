@@ -38,6 +38,7 @@ export async function run(args: string[]) {
 
   if (ports) {
     await forwardPorts(sdk, device, ports);
+    log(`Forwarded device port ${ports.device} to host port ${ports.host}\n`);
   }
 
   await installApkToDevice(sdk, device, apkPath, appId);
