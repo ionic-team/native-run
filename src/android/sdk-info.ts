@@ -12,7 +12,7 @@ export async function run(args: string[]) {
   };
 
   if (args.includes('--json')) {
-    process.stdout.write(JSON.stringify(sdkinfo));
+    process.stdout.write(JSON.stringify(sdkinfo, undefined, 2));
     return;
   }
 
