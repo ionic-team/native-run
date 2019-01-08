@@ -38,6 +38,7 @@ describe('android/utils/sdk/api', () => {
     const schema: APISchema = {
       level: '99999',
       packages: [FooPackageSchema, BarPackageSchema],
+      loadPartialAVDSchematic: (() => {}) as any,
     };
 
     it('should return all package schemas for empty packages', () => {
