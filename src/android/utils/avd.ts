@@ -2,12 +2,12 @@ import { mkdirp, readdir, statSafe } from '@ionic/utils-fs';
 import * as Debug from 'debug';
 import * as pathlib from 'path';
 
-import { AVDException, ERR_INVALID_SKIN, ERR_INVALID_SYSTEM_IMAGE, ERR_UNSUITABLE_API_INSTALLATION, ERR_UNSUPPORTED_API_LEVEL } from '../../errors';
+import { AVDException, ERR_INVALID_SKIN, ERR_INVALID_SYSTEM_IMAGE, ERR_SDK_UNSATISFIED_PACKAGES, ERR_UNSUITABLE_API_INSTALLATION, ERR_UNSUPPORTED_API_LEVEL } from '../../errors';
 import { readINI, writeINI } from '../../utils/ini';
 import { sort } from '../../utils/object';
 
 import { SDK, findAllSDKPackages } from './sdk';
-import { APILevel, getAPILevels } from './sdk/api';
+import { API_LEVEL_SCHEMAS, PartialAVDSchematic, findUnsatisfiedPackages, getAPILevels } from './sdk/api';
 
 const modulePrefix = 'native-run:android:utils:avd';
 
@@ -145,15 +145,22 @@ export async function getDefaultAVDSchematic(sdk: SDK): Promise<AVDSchematic> {
   const debug = Debug(`${modulePrefix}:${getDefaultAVDSchematic.name}`);
   const packages = await findAllSDKPackages(sdk);
   const apis = await getAPILevels(packages);
-  const apisWithPlatform = apis.filter(api => api.packages.find(pkg => pkg.path === `platforms;android-${api.level}`));
 
-  if (apisWithPlatform.length === 0) {
-    throw new AVDException('No suitable API installation found. Install the platform and sources of an API level.', ERR_UNSUITABLE_API_INSTALLATION);
-  }
-
-  for (const api of apisWithPlatform) {
+  for (const api of apis) {
     try {
-      const schematic = await createAVDSchematic(sdk, api);
+      const schema = API_LEVEL_SCHEMAS.find(s => s.level === api.level);
+
+      if (!schema) {
+        throw new AVDException(`Unsupported API level: ${api.level}`, ERR_UNSUPPORTED_API_LEVEL);
+      }
+
+      const unsatisfiedPackages = findUnsatisfiedPackages(packages, schema);
+
+      if (unsatisfiedPackages.length > 0) {
+        throw new AVDException(`Unsatisfied packages within API ${api.level}: ${unsatisfiedPackages.map(pkg => pkg.path).join(', ')}`, ERR_SDK_UNSATISFIED_PACKAGES);
+      }
+
+      const schematic = await createAVDSchematic(sdk, await schema.loadPartialAVDSchematic());
 
       if (schematic) {
         debug('Using schematic %s for default AVD', schematic.id);
@@ -167,6 +174,8 @@ export async function getDefaultAVDSchematic(sdk: SDK): Promise<AVDSchematic> {
       debug('Issue with API %s: %s', api.level, e.message);
     }
   }
+
+  // TODO: Error with more helpful message about which packages need installation
 
   throw new AVDException('No suitable API installation found.', ERR_UNSUITABLE_API_INSTALLATION);
 }
@@ -195,39 +204,7 @@ export async function createAVD(sdk: SDK, schematic: AVDSchematic): Promise<AVD>
   return getAVDFromConfigINI(pathlib.join(sdk.avdHome, `${id}.ini`), ini, configini);
 }
 
-export type PartialAVDSchematic = (
-  typeof import('../data/avds/Pixel_2_API_28.json') |
-  typeof import('../data/avds/Pixel_2_API_27.json') |
-  typeof import('../data/avds/Pixel_2_API_26.json') |
-  typeof import('../data/avds/Nexus_5X_API_24.json') |
-  typeof import('../data/avds/Pixel_API_25.json')
-);
-
-export async function loadPartialSchematic(api: APILevel): Promise<PartialAVDSchematic> {
-  if (api.level === '28') {
-    return import('../data/avds/Pixel_2_API_28.json');
-  } else if (api.level === '27') {
-    return import('../data/avds/Pixel_2_API_27.json');
-  } else if (api.level === '26') {
-    return import('../data/avds/Pixel_2_API_26.json');
-  } else if (api.level === '25') {
-    return import('../data/avds/Pixel_API_25.json');
-  } else if (api.level === '24') {
-    return import('../data/avds/Nexus_5X_API_24.json');
-  }
-
-  throw new AVDException(`Unsupported API level: ${api.level}`, ERR_UNSUPPORTED_API_LEVEL);
-}
-
-export async function createAVDSchematic(sdk: SDK, api: APILevel): Promise<AVDSchematic> {
-  const debug = Debug(`${modulePrefix}:${createAVDSchematic.name}`);
-
-  debug('Attempting to build AVD schematic for API %s', api.level);
-
-  const partialSchematic = await loadPartialSchematic(api);
-
-  debug('Schematic %s matches', partialSchematic.id);
-
+export async function createAVDSchematic(sdk: SDK, partialSchematic: PartialAVDSchematic): Promise<AVDSchematic> {
   const avdpath = pathlib.join(sdk.avdHome, `${partialSchematic.id}.avd`);
   const skinpath = getSkinPathByName(sdk, partialSchematic.configini['skin.name']);
 
