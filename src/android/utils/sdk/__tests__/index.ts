@@ -2,7 +2,7 @@ describe('android/utils/sdk', () => {
 
   describe('resolveSDKRoot', () => {
 
-    let sdkUtils: typeof import('../sdk');
+    let sdkUtils: typeof import('../');
     let mockIsDir: jest.Mock;
     let mockHomedir: jest.Mock;
     let originalPlatform: string;
@@ -16,9 +16,9 @@ describe('android/utils/sdk', () => {
 
       jest.resetModules();
       jest.mock('os', () => ({ homedir: mockHomedir }));
-      jest.mock('../../../utils/fs', () => ({ isDir: mockIsDir }));
+      jest.mock('../../../../utils/fs', () => ({ isDir: mockIsDir }));
 
-      sdkUtils = require('../sdk');
+      sdkUtils = require('../');
     });
 
     afterEach(() => {

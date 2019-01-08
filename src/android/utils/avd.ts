@@ -6,7 +6,8 @@ import { AVDException, ERR_INVALID_SKIN, ERR_INVALID_SYSTEM_IMAGE, ERR_UNSUITABL
 import { readINI, writeINI } from '../../utils/ini';
 import { sort } from '../../utils/object';
 
-import { APILevel, SDK, findAllSDKPackages, getAPILevels } from './sdk';
+import { SDK, findAllSDKPackages } from './sdk';
+import { APILevel, getAPILevels } from './sdk/api';
 
 const modulePrefix = 'native-run:android:utils:avd';
 

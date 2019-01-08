@@ -1,10 +1,12 @@
-import { readFile, readdirp } from '@ionic/utils-fs';
+import { readdirp } from '@ionic/utils-fs';
 import * as Debug from 'debug';
 import * as os from 'os';
 import * as pathlib from 'path';
 
-import { ERR_AVD_HOME_NOT_FOUND, ERR_EMULATOR_HOME_NOT_FOUND, ERR_INVALID_SDK_PACKAGE, ERR_SDK_NOT_FOUND, ERR_SDK_PACKAGE_NOT_FOUND, SDKException } from '../../errors';
-import { isDir } from '../../utils/fs';
+import { ERR_AVD_HOME_NOT_FOUND, ERR_EMULATOR_HOME_NOT_FOUND, ERR_SDK_NOT_FOUND, ERR_SDK_PACKAGE_NOT_FOUND, SDKException } from '../../../errors';
+import { isDir } from '../../../utils/fs';
+
+import { getAPILevelFromPackageXml, getNameFromPackageXml, getPathFromPackageXml, getVersionFromPackageXml, readPackageXml } from './xml';
 
 const modulePrefix = 'native-run:android:utils:sdk';
 
@@ -36,29 +38,6 @@ export interface SDKPackage {
   readonly version: string;
   readonly name: string;
   readonly apiLevel?: string;
-}
-
-export interface APILevel {
-  readonly level: string;
-  readonly packages: SDKPackage[];
-}
-
-export async function getAPILevels(packages: SDKPackage[]): Promise<APILevel[]> {
-  const debug = Debug(`${modulePrefix}:${getAPILevels.name}`);
-  const levels = [
-    ...new Set(
-      packages
-        .map(pkg => pkg.apiLevel)
-        .filter((apiLevel): apiLevel is string => typeof apiLevel !== 'undefined')
-    ),
-  ].sort((a, b) => a <= b ? 1 : -1);
-
-  debug('Discovered installed API Levels: %O', levels);
-
-  return levels.map(level => ({
-    level,
-    packages: packages.filter(pkg => pkg.apiLevel === level),
-  }));
 }
 
 const pkgcache = new Map<string, SDKPackage | undefined>();
@@ -150,71 +129,6 @@ export async function getSDKPackage(location: string): Promise<SDKPackage> {
   }
 
   return pkg;
-}
-
-export async function readPackageXml(path: string): Promise<import('elementtree').ElementTree> {
-  const et = await import('elementtree');
-  const contents = await readFile(path, { encoding: 'utf8' });
-  const etree = et.parse(contents);
-
-  return etree;
-}
-
-export function getPathFromPackageXml(packageXml: import('elementtree').ElementTree): string {
-  const localPackage = packageXml.find('./localPackage');
-
-  if (!localPackage) {
-    throw new SDKException(`Invalid SDK package.`, ERR_INVALID_SDK_PACKAGE);
-  }
-
-  const path = localPackage.get('path');
-
-  if (!path) {
-    throw new SDKException(`Invalid SDK package path.`, ERR_INVALID_SDK_PACKAGE);
-  }
-
-  return path.toString();
-}
-
-export function getAPILevelFromPackageXml(packageXml: import('elementtree').ElementTree): string | undefined {
-  const apiLevel = packageXml.find('./localPackage/type-details/api-level');
-
-  return apiLevel && apiLevel.text ? apiLevel.text.toString() : undefined;
-}
-
-export function getNameFromPackageXml(packageXml: import('elementtree').ElementTree): string {
-  const name = packageXml.find('./localPackage/display-name');
-
-  if (!name || !name.text) {
-    throw new SDKException(`Invalid SDK package name.`, ERR_INVALID_SDK_PACKAGE);
-  }
-
-  return name.text.toString();
-}
-
-export function getVersionFromPackageXml(packageXml: import('elementtree').ElementTree): string {
-  const versionElements = [
-    packageXml.find('./localPackage/revision/major'),
-    packageXml.find('./localPackage/revision/minor'),
-    packageXml.find('./localPackage/revision/micro'),
-  ];
-
-  const textFromElement = (e: import('elementtree').Element | null): string => e && e.text ? e.text.toString() : '';
-  const versions: string[] = [];
-
-  for (const version of versionElements.map(textFromElement)) {
-    if (!version) {
-      break;
-    }
-
-    versions.push(version);
-  }
-
-  if (versions.length === 0) {
-    throw new SDKException(`Invalid SDK package version.`, ERR_INVALID_SDK_PACKAGE);
-  }
-
-  return versions.join('.');
 }
 
 export async function resolveSDKRoot(): Promise<string> {
