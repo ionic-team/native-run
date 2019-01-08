@@ -1,9 +1,10 @@
-import { isDir, readDirp, readFile } from '@ionic/utils-fs';
+import { readFile, readdirp } from '@ionic/utils-fs';
 import * as Debug from 'debug';
 import * as os from 'os';
 import * as pathlib from 'path';
 
 import { ERR_AVD_HOME_NOT_FOUND, ERR_EMULATOR_HOME_NOT_FOUND, ERR_INVALID_SDK_PACKAGE, ERR_SDK_NOT_FOUND, ERR_SDK_PACKAGE_NOT_FOUND, SDKException } from '../../errors';
+import { isDir } from '../../utils/fs';
 
 const modulePrefix = 'native-run:android:utils:sdk';
 
@@ -71,7 +72,7 @@ export async function findAllSDKPackages(sdk: SDK): Promise<SDKPackage[]> {
 
   const sourcesRe = /^sources\/android-\d+\/.+\/.+/;
   debug('Walking %s to discover SDK packages', sdk.root);
-  const contents = await readDirp(sdk.root, {
+  const contents = await readdirp(sdk.root, {
     filter: item => pathlib.basename(item.path) === 'package.xml',
     walkerOptions: {
       pathFilter: p => {

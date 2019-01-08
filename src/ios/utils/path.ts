@@ -1,4 +1,4 @@
-import { readDir } from '@ionic/utils-fs';
+import { readdir } from '@ionic/utils-fs';
 
 import { Exception } from '../../errors';
 import { execFile } from '../../utils/process';
@@ -15,7 +15,7 @@ export async function getXCodePath() {
 
 export async function getDeveloperDiskImagePath(version: string) {
   const xCodePath = await getXCodePath();
-  const versionDirs = await readDir(`${xCodePath}/Platforms/iPhoneOS.platform/DeviceSupport/`);
+  const versionDirs = await readdir(`${xCodePath}/Platforms/iPhoneOS.platform/DeviceSupport/`);
   const versionPrefix = version.match(/\d+\.\d+/);
   if (versionPrefix === null) {
     throw new Exception(`Invalid iOS version: ${version}`);

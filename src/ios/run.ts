@@ -1,3 +1,4 @@
+import { remove } from '@ionic/utils-fs';
 import * as Debug from 'debug';
 import { mkdtempSync } from 'fs';
 import * as path from 'path';
@@ -53,7 +54,11 @@ export async function run(args: string[]) {
     }
   } finally {
     if (isIPA) {
-      try { (await import('rimraf')).sync(appPath); } catch { } // tslint:disable-line
+      try {
+        await remove(appPath);
+      } catch {
+        // ignore
+      }
     }
   }
 }

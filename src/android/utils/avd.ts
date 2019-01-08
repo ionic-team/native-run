@@ -1,4 +1,4 @@
-import { mkdirp, readDir, statSafe } from '@ionic/utils-fs';
+import { mkdirp, readdir, statSafe } from '@ionic/utils-fs';
 import * as Debug from 'debug';
 import * as pathlib from 'path';
 
@@ -85,7 +85,7 @@ export const isAVDConfigINI = (o: any): o is AVDConfigINI => o
 
 export async function getAVDINIs(sdk: SDK): Promise<[string, AVDINI][]> {
   const debug = Debug(`${modulePrefix}:${getAVDINIs.name}`);
-  const contents = await readDir(sdk.avdHome);
+  const contents = await readdir(sdk.avdHome);
 
   const iniFilePaths = contents
     .filter(f => pathlib.extname(f) === '.ini')
