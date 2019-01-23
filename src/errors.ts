@@ -1,6 +1,18 @@
-export class Exception<T extends string> extends Error implements NodeJS.ErrnoException {
-  constructor(readonly message: string, readonly code?: T, readonly exitCode = 1) {
+export class Exception<T extends string, D = object> extends Error implements NodeJS.ErrnoException {
+  constructor(readonly message: string, readonly code?: T, readonly exitCode = 1, readonly data?: D) {
     super(message);
+  }
+
+  serialize() {
+    return `${this.code ? this.code : 'ERR_UNKNOWN'}: ${this.message}`;
+  }
+
+  toJSON() {
+    return {
+      error: this.message,
+      code: this.code,
+      ...this.data,
+    };
   }
 }
 

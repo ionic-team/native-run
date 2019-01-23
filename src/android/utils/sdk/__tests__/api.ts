@@ -12,28 +12,21 @@ describe('android/utils/sdk/api', () => {
     };
 
     const BarPackage = {
-      path: 'bar;1.0.0',
-      location: '/Users/me/Android/sdk/bar',
-      name: 'Bar',
-      version: '1.0.0',
-    };
-
-    const BarPackageInvalidPath = {
-      path: 'bar;2.0.0',
+      path: 'bar',
       location: '/Users/me/Android/sdk/bar',
       name: 'Bar',
       version: '1.0.0',
     };
 
     const BarPackageInvalidVersion = {
-      path: 'bar;1.0.0',
+      path: 'bar',
       location: '/Users/me/Android/sdk/bar',
       name: 'Bar',
       version: '2.0.0',
     };
 
     const FooPackageSchema = { name: 'Foo', path: 'foo', version: '1' };
-    const BarPackageSchema = { name: 'Bar', path: /^bar;1\.\d+\.\d+$/, version: /^1\.\d+\.\d+$/ };
+    const BarPackageSchema = { name: 'Bar', path: 'bar', version: /^1\.\d+\.\d+$/ };
 
     const schema: APISchema = {
       level: '99999',
@@ -48,12 +41,6 @@ describe('android/utils/sdk/api', () => {
 
     it('should return unsatisfied packages for missing', () => {
       const api = [FooPackage];
-      const result = findUnsatisfiedPackages(api, schema);
-      expect(result).toEqual([BarPackageSchema]);
-    });
-
-    it('should return unsatisfied packages for invalid path', () => {
-      const api = [FooPackage, BarPackageInvalidPath];
       const result = findUnsatisfiedPackages(api, schema);
       expect(result).toEqual([BarPackageSchema]);
     });

@@ -61,19 +61,11 @@ async function list(args: string[]) {
 }
 
 function serializeError(e: Error): string {
-  let error: string;
-  let code: string | undefined;
-
-  if (e instanceof Exception) {
-    error = e.message;
-    code = e.code;
-  } else {
-    error = String(e.stack ? e.stack : e);
-  }
+  const stack = String(e.stack ? e.stack : e);
 
   if (process.argv.includes('--json')) {
-    return JSON.stringify({ error, code });
+    return JSON.stringify(e instanceof Exception ? e : { error: stack }, (k, v) => v instanceof RegExp ? v.toString() : v);
   }
 
-  return `${code ? code : 'ERR_UNKNOWN'}: ${error}\n`;
+  return (e instanceof Exception ? e.serialize() : stack) + '\n';
 }

@@ -6,8 +6,8 @@ import { AVDException, ERR_INVALID_SKIN, ERR_INVALID_SYSTEM_IMAGE, ERR_SDK_UNSAT
 import { readINI, writeINI } from '../../utils/ini';
 import { sort } from '../../utils/object';
 
-import { SDK, findAllSDKPackages } from './sdk';
-import { API_LEVEL_SCHEMAS, PartialAVDSchematic, findUnsatisfiedPackages, getAPILevels } from './sdk/api';
+import { SDK, SDKPackage, findAllSDKPackages } from './sdk';
+import { APILevel, API_LEVEL_SCHEMAS, PartialAVDSchematic, findUnsatisfiedPackages, getAPILevels } from './sdk/api';
 
 const modulePrefix = 'native-run:android:utils:avd';
 
@@ -145,39 +145,46 @@ export async function getDefaultAVDSchematic(sdk: SDK): Promise<AVDSchematic> {
   const debug = Debug(`${modulePrefix}:${getDefaultAVDSchematic.name}`);
   const packages = await findAllSDKPackages(sdk);
   const apis = await getAPILevels(packages);
+  const installations: { apiLevel: string; packages: SDKPackage[], errors: AVDException[]; }[] = [];
 
   for (const api of apis) {
     try {
-      const schema = API_LEVEL_SCHEMAS.find(s => s.level === api.level);
+      const schematic = await getAVDSchematicFromAPILevel(sdk, packages, api);
+      debug('Using schematic %s for default AVD', schematic.id);
 
-      if (!schema) {
-        throw new AVDException(`Unsupported API level: ${api.level}`, ERR_UNSUPPORTED_API_LEVEL);
-      }
-
-      const unsatisfiedPackages = findUnsatisfiedPackages(packages, schema);
-
-      if (unsatisfiedPackages.length > 0) {
-        throw new AVDException(`Unsatisfied packages within API ${api.level}: ${unsatisfiedPackages.map(pkg => pkg.path).join(', ')}`, ERR_SDK_UNSATISFIED_PACKAGES);
-      }
-
-      const schematic = await createAVDSchematic(sdk, await schema.loadPartialAVDSchematic());
-
-      if (schematic) {
-        debug('Using schematic %s for default AVD', schematic.id);
-        return schematic;
-      }
+      return schematic;
     } catch (e) {
       if (!(e instanceof AVDException)) {
         throw e;
       }
 
       debug('Issue with API %s: %s', api.level, e.message);
+      installations.push({ apiLevel: api.level, packages: api.packages, errors: [e] });
     }
   }
 
-  // TODO: Error with more helpful message about which packages need installation
+  throw new AVDException('No suitable API installation found.', ERR_UNSUITABLE_API_INSTALLATION, 1, { installations });
+}
 
-  throw new AVDException('No suitable API installation found.', ERR_UNSUITABLE_API_INSTALLATION);
+export async function getAVDSchematicFromAPILevel(sdk: SDK, packages: ReadonlyArray<SDKPackage>, api: APILevel): Promise<AVDSchematic> {
+  const schema = API_LEVEL_SCHEMAS.find(s => s.level === api.level);
+
+  if (!schema) {
+    throw new AVDException(`Unsupported API level: ${api.level}`, ERR_UNSUPPORTED_API_LEVEL);
+  }
+
+  const missingPackages = findUnsatisfiedPackages(packages, schema);
+
+  if (missingPackages.length > 0) {
+    throw new AVDException(
+      `Unsatisfied packages within API ${api.level}: ${missingPackages.map(pkg => pkg.path).join(', ')}`,
+      ERR_SDK_UNSATISFIED_PACKAGES,
+      1,
+      { apiLevel: api.level, missingPackages }
+    );
+  }
+
+  return createAVDSchematic(sdk, await schema.loadPartialAVDSchematic());
 }
 
 export async function getDefaultAVD(sdk: SDK, avds: ReadonlyArray<AVD>): Promise<AVD> {

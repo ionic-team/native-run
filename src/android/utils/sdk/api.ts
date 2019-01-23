@@ -65,7 +65,7 @@ export type PartialAVDSchematic = (
 
 export interface APISchemaPackage {
   readonly name: string;
-  readonly path: string | RegExp;
+  readonly path: string;
   readonly version: string | RegExp;
 }
 
@@ -79,7 +79,7 @@ export const API_LEVEL_28: APISchema = Object.freeze({
   level: '28',
   packages: [
     { name: 'Android Emulator', path: 'emulator', version: /.+/ },
-    { name: 'Android SDK Platform 28', path: /platforms;android-28/, version: /.+/ },
+    { name: 'Android SDK Platform 28', path: 'platforms;android-28', version: /.+/ },
     { name: 'Google APIs Intel x86 Atom System Image', path: 'system-images;android-28;google_apis;x86', version: /.+/ },
   ],
   loadPartialAVDSchematic: async () => import('../../data/avds/Pixel_2_API_28.json'),
