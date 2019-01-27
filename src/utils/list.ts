@@ -1,5 +1,7 @@
 import { CLIException, ERR_BAD_INPUT } from '../errors';
 
+import { stringify } from './json';
+
 export interface Target {
   readonly model?: string;
   readonly name?: string;
@@ -25,7 +27,7 @@ export function list(args: string[], devices: Target[], virtualDevices: Target[]
     } else {
       result = { devices, virtualDevices };
     }
-    return JSON.stringify(result, undefined, 2) + '\n';
+    return stringify(result) + '\n';
   }
 
   let output = '';

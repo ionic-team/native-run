@@ -1,18 +1,35 @@
-import { SDK, SDKPackage, findAllSDKPackages, getSDK } from './utils/sdk';
+import { stringify } from '../utils/json';
 
-type SDKInfo = Required<SDK>;
+import { SDKPackage, findAllSDKPackages, getSDK } from './utils/sdk';
+import { APILevel, API_LEVEL_SCHEMAS, findUnsatisfiedPackages, getAPILevels } from './utils/sdk/api';
+
+type Platform = Required<APILevel>;
+
+interface SDKInfo {
+  root: string;
+  avdHome: string;
+  platforms: Platform[];
+  tools: SDKPackage[];
+}
 
 export async function run(args: string[]) {
   const sdk = await getSDK();
   const packages = await findAllSDKPackages(sdk);
+  const apis = await getAPILevels(packages);
+  const platforms = apis.map(api => {
+    const schema = API_LEVEL_SCHEMAS.find(s => s.apiLevel === api.apiLevel);
+    return { ...api, missingPackages: schema ? findUnsatisfiedPackages(packages, schema) : [] };
+  });
 
   const sdkinfo: SDKInfo = {
-    ...sdk,
-    packages,
+    root: sdk.root,
+    avdHome: sdk.avdHome,
+    platforms,
+    tools: packages.filter(pkg => typeof pkg.apiLevel === 'undefined'),
   };
 
   if (args.includes('--json')) {
-    process.stdout.write(JSON.stringify(sdkinfo, undefined, 2));
+    process.stdout.write(stringify(sdkinfo));
     return;
   }
 
@@ -21,16 +38,24 @@ export async function run(args: string[]) {
 
 function formatSDKInfo(sdk: SDKInfo): string {
   return `
-SDK: ${sdk.root}
-${sdk.packages.map(p => formatSDKPackage(p)).join('')}
+SDK Location:         ${sdk.root}
+AVD Home:             ${sdk.avdHome}
+
+${sdk.platforms.map(platform => `${formatPlatform(platform)}\n\n`).join('\n')}
+Tools:
+
+${sdk.tools.map(tool => formatPackage(tool)).join('\n')}
   `.trim();
 }
 
-function formatSDKPackage(p: SDKPackage): string {
+function formatPlatform(platform: Platform): string {
   return `
-Name:     ${p.name}
-Path:     ${p.path}
-Version:  ${p.version}${p.apiLevel ? ` (API ${p.apiLevel})` : ''}
-Location: ${p.location}
-`;
+API Level:            ${platform.apiLevel}
+Packages:             ${platform.packages.map(p => formatPackage(p)).join('\n' + ' '.repeat(22))}
+${platform.missingPackages.length > 0 ? `(!) Missing Packages: ${platform.missingPackages.map(p => formatPackage(p)).join('\n' + ' '.repeat(22))}` : ''}
+  `.trim();
+}
+
+function formatPackage(p: { name: string; path: string; version?: string | RegExp; }): string {
+  return `${p.name}  ${p.path}  ${typeof p.version === 'string' ? p.version : ''}`;
 }

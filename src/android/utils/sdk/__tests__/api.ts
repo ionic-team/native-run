@@ -1,35 +1,35 @@
-import { APISchema, findUnsatisfiedPackages } from '../api';
+import { APISchema, findPackageBySchema, findUnsatisfiedPackages } from '../api';
 
 describe('android/utils/sdk/api', () => {
 
+  const FooPackage = {
+    path: 'foo',
+    location: '/Users/me/Android/sdk/foo',
+    name: 'Foo',
+    version: '1',
+  };
+
+  const BarPackage = {
+    path: 'bar',
+    location: '/Users/me/Android/sdk/bar',
+    name: 'Bar',
+    version: '1.0.0',
+  };
+
+  const BarPackageInvalidVersion = {
+    path: 'bar',
+    location: '/Users/me/Android/sdk/bar',
+    name: 'Bar',
+    version: '2.0.0',
+  };
+
+  const FooPackageSchema = { name: 'Foo', path: 'foo', version: '1' };
+  const BarPackageSchema = { name: 'Bar', path: 'bar', version: /^1\.\d+\.\d+$/ };
+
   describe('findUnsatisfiedPackages', () => {
 
-    const FooPackage = {
-      path: 'foo',
-      location: '/Users/me/Android/sdk/foo',
-      name: 'Foo',
-      version: '1',
-    };
-
-    const BarPackage = {
-      path: 'bar',
-      location: '/Users/me/Android/sdk/bar',
-      name: 'Bar',
-      version: '1.0.0',
-    };
-
-    const BarPackageInvalidVersion = {
-      path: 'bar',
-      location: '/Users/me/Android/sdk/bar',
-      name: 'Bar',
-      version: '2.0.0',
-    };
-
-    const FooPackageSchema = { name: 'Foo', path: 'foo', version: '1' };
-    const BarPackageSchema = { name: 'Bar', path: 'bar', version: /^1\.\d+\.\d+$/ };
-
     const schema: APISchema = {
-      level: '99999',
+      apiLevel: '99999',
       packages: [FooPackageSchema, BarPackageSchema],
       loadPartialAVDSchematic: (() => {}) as any,
     };
@@ -55,6 +55,25 @@ describe('android/utils/sdk/api', () => {
       const api = [FooPackage, BarPackage];
       const result = findUnsatisfiedPackages(api, schema);
       expect(result).toEqual([]);
+    });
+
+  });
+
+  describe('findPackageBySchema', () => {
+
+    it('should not find package in empty api', () => {
+      const pkg = findPackageBySchema([], FooPackageSchema);
+      expect(pkg).toBeUndefined();
+    });
+
+    it('should not find package for invalid version', () => {
+      const pkg = findPackageBySchema([FooPackage, BarPackageInvalidVersion], BarPackageSchema);
+      expect(pkg).toBeUndefined();
+    });
+
+    it('should find foo package by schema', () => {
+      const pkg = findPackageBySchema([FooPackage, BarPackage], FooPackageSchema);
+      expect(pkg).toBe(FooPackage);
     });
 
   });

@@ -2,6 +2,7 @@ import * as Debug from 'debug';
 import * as path from 'path';
 
 import { CLIException, ERR_BAD_INPUT, Exception } from './errors';
+import { stringify } from './utils/json';
 
 const debug = Debug('native-run');
 
@@ -64,7 +65,7 @@ function serializeError(e: Error): string {
   const stack = String(e.stack ? e.stack : e);
 
   if (process.argv.includes('--json')) {
-    return JSON.stringify(e instanceof Exception ? e : { error: stack }, (k, v) => v instanceof RegExp ? v.toString() : v);
+    return stringify(e instanceof Exception ? e : { error: stack });
   }
 
   return (e instanceof Exception ? e.serialize() : stack) + '\n';

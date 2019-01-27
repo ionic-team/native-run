@@ -145,7 +145,6 @@ export async function getDefaultAVDSchematic(sdk: SDK): Promise<AVDSchematic> {
   const debug = Debug(`${modulePrefix}:${getDefaultAVDSchematic.name}`);
   const packages = await findAllSDKPackages(sdk);
   const apis = await getAPILevels(packages);
-  const installations: { apiLevel: string; packages: SDKPackage[], errors: AVDException[]; }[] = [];
 
   for (const api of apis) {
     try {
@@ -158,30 +157,24 @@ export async function getDefaultAVDSchematic(sdk: SDK): Promise<AVDSchematic> {
         throw e;
       }
 
-      debug('Issue with API %s: %s', api.level, e.message);
-      installations.push({ apiLevel: api.level, packages: api.packages, errors: [e] });
+      debug('Issue with API %s: %s', api.apiLevel, e.message);
     }
   }
 
-  throw new AVDException('No suitable API installation found.', ERR_UNSUITABLE_API_INSTALLATION, 1, { installations });
+  throw new AVDException('No suitable API installation found.', ERR_UNSUITABLE_API_INSTALLATION, 1);
 }
 
 export async function getAVDSchematicFromAPILevel(sdk: SDK, packages: ReadonlyArray<SDKPackage>, api: APILevel): Promise<AVDSchematic> {
-  const schema = API_LEVEL_SCHEMAS.find(s => s.level === api.level);
+  const schema = API_LEVEL_SCHEMAS.find(s => s.apiLevel === api.apiLevel);
 
   if (!schema) {
-    throw new AVDException(`Unsupported API level: ${api.level}`, ERR_UNSUPPORTED_API_LEVEL);
+    throw new AVDException(`Unsupported API level: ${api.apiLevel}`, ERR_UNSUPPORTED_API_LEVEL);
   }
 
   const missingPackages = findUnsatisfiedPackages(packages, schema);
 
   if (missingPackages.length > 0) {
-    throw new AVDException(
-      `Unsatisfied packages within API ${api.level}: ${missingPackages.map(pkg => pkg.path).join(', ')}`,
-      ERR_SDK_UNSATISFIED_PACKAGES,
-      1,
-      { apiLevel: api.level, missingPackages }
-    );
+    throw new AVDException(`Unsatisfied packages within API ${api.apiLevel}: ${missingPackages.map(pkg => pkg.path).join(', ')}`, ERR_SDK_UNSATISFIED_PACKAGES, 1);
   }
 
   return createAVDSchematic(sdk, await schema.loadPartialAVDSchematic());

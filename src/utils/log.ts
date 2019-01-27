@@ -1,6 +1,8 @@
+import { stringify } from './json';
+
 export function log(message: string): void {
   if (process.argv.includes('--json')) {
-    message = JSON.stringify({ message });
+    message = stringify({ message });
   }
 
   process.stdout.write(message);

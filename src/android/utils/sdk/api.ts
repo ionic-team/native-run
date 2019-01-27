@@ -5,8 +5,9 @@ import { SDKPackage } from './';
 const modulePrefix = 'native-run:android:utils:sdk:api';
 
 export interface APILevel {
-  readonly level: string;
+  readonly apiLevel: string;
   readonly packages: SDKPackage[];
+  readonly missingPackages?: APISchemaPackage[];
 }
 
 export async function getAPILevels(packages: SDKPackage[]): Promise<APILevel[]> {
@@ -19,30 +20,34 @@ export async function getAPILevels(packages: SDKPackage[]): Promise<APILevel[]> 
     ),
   ].sort((a, b) => a <= b ? 1 : -1);
 
-  const apiLevels = levels.map(level => ({
-    level,
-    packages: packages.filter(pkg => pkg.apiLevel === level),
+  const apis = levels.map(apiLevel => ({
+    apiLevel,
+    packages: packages.filter(pkg => pkg.apiLevel === apiLevel),
   }));
 
-  debug('Discovered installed API Levels: %O', apiLevels.map(level => ({ ...level, packages: level.packages.map(pkg => pkg.path) })));
+  debug('Discovered installed API Levels: %O', apis.map(api => ({ ...api, packages: api.packages.map(pkg => pkg.path) })));
 
-  return apiLevels;
+  return apis;
 }
 
 export function findUnsatisfiedPackages(packages: ReadonlyArray<SDKPackage>, schema: APISchema): APISchemaPackage[] {
-  return schema.packages.filter(schemaPkg => {
-    const apiPkg = findPackageBySchemaPath(packages, schemaPkg.path);
+  return schema.packages.filter(pkg => !findPackageBySchema(packages, pkg));
+}
 
-    if (!apiPkg) {
-      return true;
+export function findPackageBySchema(packages: ReadonlyArray<SDKPackage>, pkg: APISchemaPackage): SDKPackage | undefined {
+  const apiPkg = findPackageBySchemaPath(packages, pkg.path);
+
+  if (apiPkg) {
+    if (typeof pkg.version === 'string') {
+      if (pkg.version === apiPkg.version) {
+        return apiPkg;
+      }
+    } else {
+      if (apiPkg.version.match(pkg.version)) {
+        return apiPkg;
+      }
     }
-
-    if (typeof schemaPkg.version !== 'string') {
-      return !apiPkg.version.match(schemaPkg.version);
-    }
-
-    return schemaPkg.version !== apiPkg.version;
-  });
+  }
 }
 
 export function findPackageBySchemaPath(packages: ReadonlyArray<SDKPackage>, path: string | RegExp): SDKPackage | undefined {
@@ -70,13 +75,13 @@ export interface APISchemaPackage {
 }
 
 export interface APISchema {
-  readonly level: string;
+  readonly apiLevel: string;
   readonly packages: ReadonlyArray<APISchemaPackage>;
   readonly loadPartialAVDSchematic: () => Promise<PartialAVDSchematic>;
 }
 
 export const API_LEVEL_28: APISchema = Object.freeze({
-  level: '28',
+  apiLevel: '28',
   packages: [
     { name: 'Android Emulator', path: 'emulator', version: /.+/ },
     { name: 'Android SDK Platform 28', path: 'platforms;android-28', version: /.+/ },
@@ -86,7 +91,7 @@ export const API_LEVEL_28: APISchema = Object.freeze({
 });
 
 export const API_LEVEL_27: APISchema = Object.freeze({
-  level: '27',
+  apiLevel: '27',
   packages: [
     { name: 'Android Emulator', path: 'emulator', version: /.+/ },
     { name: 'Android SDK Platform 27', path: 'platforms;android-27', version: /.+/ },
@@ -96,7 +101,7 @@ export const API_LEVEL_27: APISchema = Object.freeze({
 });
 
 export const API_LEVEL_26: APISchema = Object.freeze({
-  level: '26',
+  apiLevel: '26',
   packages: [
     { name: 'Android Emulator', path: 'emulator', version: /.+/ },
     { name: 'Android SDK Platform 26', path: 'platforms;android-26', version: /.+/ },
@@ -106,7 +111,7 @@ export const API_LEVEL_26: APISchema = Object.freeze({
 });
 
 export const API_LEVEL_25: APISchema = Object.freeze({
-  level: '25',
+  apiLevel: '25',
   packages: [
     { name: 'Android Emulator', path: 'emulator', version: /.+/ },
     { name: 'Android SDK Platform 25', path: 'platforms;android-25', version: /.+/ },
@@ -116,7 +121,7 @@ export const API_LEVEL_25: APISchema = Object.freeze({
 });
 
 export const API_LEVEL_24: APISchema = Object.freeze({
-  level: '24',
+  apiLevel: '24',
   packages: [
     { name: 'Android Emulator', path: 'emulator', version: /.+/ },
     { name: 'Android SDK Platform 24', path: 'platforms;android-24', version: /.+/ },
