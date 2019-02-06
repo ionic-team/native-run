@@ -33,6 +33,7 @@ export async function getVirtualTargets(sdk: SDK) {
 
 function deviceToTarget(device: Device): Target {
   return {
+    platform: 'android',
     model: `${device.manufacturer} ${device.model}`,
     sdkVersion: device.sdkVersion,
     id: device.serial,
@@ -44,6 +45,7 @@ function deviceToTarget(device: Device): Target {
 
 function avdToTarget(avd: AVD): Target {
   return {
+    platform: 'android',
     name: avd.name,
     sdkVersion: avd.sdkVersion,
     id: avd.id,

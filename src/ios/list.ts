@@ -17,6 +17,7 @@ export async function run(args: string[]) {
 
 function deviceToTarget(device: DeviceValues): Target {
   return {
+    platform: 'ios',
     name: device.DeviceName,
     model: device.ProductType,
     sdkVersion: device.ProductVersion,
@@ -29,6 +30,7 @@ function deviceToTarget(device: DeviceValues): Target {
 
 function simulatorToTarget(simulator: Simulator): Target {
   return {
+    platform: 'ios',
     name: simulator.name,
     sdkVersion: simulator.runtime.version,
     id: simulator.udid,

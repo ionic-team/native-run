@@ -3,6 +3,7 @@ import { CLIException, ERR_BAD_INPUT } from '../errors';
 import { stringify } from './json';
 
 export interface Target {
+  readonly platform: 'android' | 'ios';
   readonly model?: string;
   readonly name?: string;
   readonly sdkVersion: string;
