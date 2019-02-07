@@ -1,11 +1,11 @@
 import { Readable } from 'stream';
 import { promisify } from 'util';
-import { Entry, Options, ZipFile } from 'yauzl';
+import { Entry, Options, ZipFile, ZipFileOptions } from 'yauzl';
 
-// Override so promisify typing correctly infers params
-export type YauzlOpenReadStream = (entry: Entry, callback?: (err: Error, stream: Readable) => void) => Promise<Readable>;
-type YauzlOpen = (path: string, options: Options, callback?: (err: Error, zipfile: ZipFile) => void) => void;
-type UnzipOnEntry = (entry: Entry, zipfile: ZipFile, openReadStream: YauzlOpenReadStream) => void;
+// Specify which of possible overloads is being promisified
+type YauzlOpenReadStream = (entry: Entry, options?: ZipFileOptions, callback?: (err: Error, stream: Readable) => void) => void;
+type YauzlOpen = (path: string, options?: Options, callback?: (err: Error, zipfile: ZipFile) => void) => void;
+type UnzipOnEntry = (entry: Entry, zipfile: ZipFile, openReadStream: (arg1: Entry, arg2?: ZipFileOptions) => Promise<Readable>) => void;
 
 export async function unzip(srcPath: string, onEntry: UnzipOnEntry) {
   const yauzl = await import('yauzl');
