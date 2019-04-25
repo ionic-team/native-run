@@ -4,7 +4,7 @@ import * as Debug from 'debug';
 import { Exception } from '../../errors';
 import { onBeforeExit } from '../../utils/process';
 
-import { getXCodePath } from './path';
+import { getXCodePath, getXcodeVersionInfo } from './xcode';
 
 const debug = Debug('native-run:ios:utils:simulator');
 
@@ -39,15 +39,24 @@ interface SimCtlOutput {
 
 export async function getSimulators() {
   const simctl = spawnSync('xcrun', ['simctl', 'list', '--json'], { encoding: 'utf8' });
-  const output: SimCtlOutput = JSON.parse(simctl.stdout);
-  return output.runtimes
-    .filter(runtime => runtime.name.indexOf('watch') === -1 && runtime.name.indexOf('tv') === -1)
-    .map(runtime => output.devices[runtime.name]
-      .filter(device => !device.availability.includes('unavailable'))
-      .map(device => ({ ...device, runtime }))
-    )
-    .reduce((prev, next) => prev.concat(next)) // flatten
-    .sort((a, b) => a.name < b.name ? -1 : 1);
+  const [xcodeVersion] = getXcodeVersionInfo();
+  if (Number(xcodeVersion) < 10) {
+    throw new Exception('native-run only supports Xcode 10 and later');
+  }
+
+  try {
+    const output: SimCtlOutput = JSON.parse(simctl.stdout);
+    return output.runtimes
+      .filter(runtime => runtime.name.indexOf('watch') === -1 && runtime.name.indexOf('tv') === -1)
+      .map(runtime => output.devices[runtime.identifier]
+        .filter(device => !device.availability.includes('unavailable'))
+        .map(device => ({ ...device, runtime }))
+      )
+      .reduce((prev, next) => prev.concat(next)) // flatten
+      .sort((a, b) => a.name < b.name ? -1 : 1);
+  } catch (err) {
+    throw new Exception('Unable to retrieve simulator list');
+  }
 }
 
 export async function runOnSimulator(udid: string, appPath: string, bundleId: string, waitForApp: boolean) {

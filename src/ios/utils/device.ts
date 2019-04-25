@@ -7,7 +7,7 @@ import { promisify } from 'util';
 import { Exception } from '../../errors';
 import { onBeforeExit } from '../../utils/process';
 
-import { getDeveloperDiskImagePath } from './path';
+import { getDeveloperDiskImagePath } from './xcode';
 
 const debug = Debug('native-run:ios:utils:device');
 const wait = promisify(setTimeout);
