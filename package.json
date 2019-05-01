@@ -46,7 +46,7 @@
     "@types/elementtree": "^0.1.0",
     "@types/fs-extra": "^5.0.4",
     "@types/ini": "^1.3.30",
-    "@types/jest": "^23.3.13",
+    "@types/jest": "^24.0.12",
     "@types/node": "^8.10.39",
     "@types/split2": "^2.1.6",
     "@types/through2": "^2.0.34",
