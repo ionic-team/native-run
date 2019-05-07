@@ -11,10 +11,10 @@ import { getAPILevelFromPackageXml, getNameFromPackageXml, getPathFromPackageXml
 const modulePrefix = 'native-run:android:utils:sdk';
 
 const homedir = os.homedir();
-const SDK_DIRECTORIES = new Map<NodeJS.Platform, string[] | undefined>([
+export const SDK_DIRECTORIES: ReadonlyMap<NodeJS.Platform, string[] | undefined> = new Map<NodeJS.Platform, string[] | undefined>([
   ['darwin', [pathlib.join(homedir, 'Library', 'Android', 'sdk')]],
   ['linux', [pathlib.join(homedir, 'Android', 'sdk')]],
-  ['win32', [pathlib.join('%LOCALAPPDATA%', 'Android', 'sdk')]],
+  ['win32', [pathlib.join(process.env.LOCALAPPDATA || pathlib.join(homedir, 'AppData', 'Local'), 'Android', 'Sdk')]],
 ]);
 
 export interface SDK {

@@ -1,29 +1,60 @@
+import * as path from 'path';
+
 describe('android/utils/sdk', () => {
+
+  let sdkUtils: typeof import('../');
+  let mockIsDir: jest.Mock;
+  let mockHomedir: jest.Mock;
+  let originalPlatform: string;
+  let originalProcessEnv: NodeJS.ProcessEnv;
+
+  beforeEach(() => {
+    mockIsDir = jest.fn();
+    mockHomedir = jest.fn().mockReturnValue('/home/me');
+    originalPlatform = process.platform;
+    originalProcessEnv = process.env;
+
+    jest.resetModules();
+    jest.mock('path', () => path);
+    jest.mock('os', () => ({ homedir: mockHomedir }));
+    jest.mock('../../../../utils/fs', () => ({ isDir: mockIsDir }));
+  });
+
+  afterEach(() => {
+    Object.defineProperty(process, 'env', { value: originalProcessEnv });
+    Object.defineProperty(process, 'platform', { value: originalPlatform });
+  });
+
+  describe('SDK_DIRECTORIES', () => {
+
+    describe('windows', () => {
+
+      beforeEach(() => {
+        jest.mock('path', () => path.win32);
+        mockHomedir = jest.fn().mockReturnValue('C:\\Users\\me');
+        jest.mock('os', () => ({ homedir: mockHomedir }));
+      });
+
+      it('should default to windows 10 local app data directory', async () => {
+        Object.defineProperty(process, 'env', { value: {} });
+        sdkUtils = require('../');
+        expect(sdkUtils.SDK_DIRECTORIES.get('win32')).toEqual([path.win32.join('C:\\Users\\me\\AppData\\Local\\Android\\Sdk')]);
+      });
+
+      it('should use LOCALAPPDATA environment variable if present', async () => {
+        Object.defineProperty(process, 'env', { value: { LOCALAPPDATA: path.win32.join('C:\\', 'Documents and Settings', 'me', 'Application Data') } });
+        sdkUtils = require('../');
+        expect(sdkUtils.SDK_DIRECTORIES.get('win32')).toEqual([path.win32.join('C:\\Documents and Settings\\me\\Application Data\\Android\\Sdk')]);
+      });
+
+    });
+
+  });
 
   describe('resolveSDKRoot', () => {
 
-    let sdkUtils: typeof import('../');
-    let mockIsDir: jest.Mock;
-    let mockHomedir: jest.Mock;
-    let originalPlatform: string;
-    let originalProcessEnv: NodeJS.ProcessEnv;
-
     beforeEach(() => {
-      mockIsDir = jest.fn();
-      mockHomedir = jest.fn().mockReturnValue('/home/me');
-      originalPlatform = process.platform;
-      originalProcessEnv = process.env;
-
-      jest.resetModules();
-      jest.mock('os', () => ({ homedir: mockHomedir }));
-      jest.mock('../../../../utils/fs', () => ({ isDir: mockIsDir }));
-
       sdkUtils = require('../');
-    });
-
-    afterEach(() => {
-      Object.defineProperty(process, 'env', { value: originalProcessEnv });
-      Object.defineProperty(process, 'platform', { value: originalPlatform });
     });
 
     it('should resolve with ANDROID_HOME if in environment', async () => {
