@@ -9,3 +9,13 @@ export function getOptionValue(args: string[], arg: string, defaultValue?: strin
 
   return defaultValue;
 }
+
+export function getOptionsValue(args: string[], arg: string): string[] {
+  const returnVal: string[] = [];
+  args.map((entry: string, idx: number) => {
+      if(entry === arg){
+        returnVal.push(args[idx + 1])
+      };
+  })
+  return returnVal;
+}

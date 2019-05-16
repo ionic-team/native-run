@@ -1,5 +1,5 @@
 import { CLIException, ERR_BAD_INPUT, ERR_TARGET_NOT_FOUND, RunException } from '../errors';
-import { getOptionValue } from '../utils/cli';
+import { getOptionValue, getOptionsValue } from '../utils/cli';
 import { log } from '../utils/log';
 import { onBeforeExit } from '../utils/process';
 
@@ -10,20 +10,31 @@ import { installApkToDevice, selectDeviceByTarget, selectHardwareDevice, selectV
 import { SDK, getSDK } from './utils/sdk';
 
 export async function run(args: string[]) {
+  console.log("RUNNING NATIVE RUN")
+  console.log(JSON.stringify(args))
+
   const sdk = await getSDK();
   const apkPath = getOptionValue(args, '--app');
-  const forwardedPorts = getOptionValue(args, '--forward');
-  let ports: Ports | undefined;
 
-  if (forwardedPorts) {
-    const [ device, host ] = forwardedPorts.split(':');
+  const forwardedPorts = getOptionsValue(args, '--forward');
+
+  console.log("\n FROM NATIVE RUN, FORWAREDED PORTS", JSON.stringify(forwardedPorts))
+
+  let ports: Ports[] = [];
+
+  if (forwardedPorts && forwardedPorts.length > 0 ) {
+    forwardedPorts.forEach((port: string) => {
+    const [ device, host ] = port.split(':');
 
     if (!device || !host) {
       throw new CLIException('Invalid --forward value: expecting <device port:host port>, e.g. 8080:8080');
     }
 
-    ports = { device, host };
+      ports.push({ device, host })
+    })
   }
+
+
 
   if (!apkPath) {
     throw new CLIException('--app is required', ERR_BAD_INPUT);
@@ -37,8 +48,11 @@ export async function run(args: string[]) {
   await waitForBoot(sdk, device);
 
   if (ports) {
-    await forwardPorts(sdk, device, ports);
-    log(`Forwarded device port ${ports.device} to host port ${ports.host}\n`);
+    ports.map( async (port: Ports) => {
+      await forwardPorts(sdk, device, port);
+      log(`Forwarded device port ${port.device} to host port ${port.host}\n`);
+
+    })
   }
 
   await installApkToDevice(sdk, device, apkPath, appId);
@@ -50,7 +64,9 @@ export async function run(args: string[]) {
 
   onBeforeExit(async () => {
     if (ports) {
-      await unforwardPorts(sdk, device, ports);
+    ports.map( async (port: Ports) => {
+      await unforwardPorts(sdk, device, port);
+    })
     }
   });
 
