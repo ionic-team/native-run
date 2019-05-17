@@ -1,4 +1,4 @@
-import { APISchema, findPackageBySchema, findUnsatisfiedPackages } from '../api';
+import { APISchemaPackage, findPackageBySchema, findUnsatisfiedPackages } from '../api';
 
 describe('android/utils/sdk/api', () => {
 
@@ -28,32 +28,28 @@ describe('android/utils/sdk/api', () => {
 
   describe('findUnsatisfiedPackages', () => {
 
-    const schema: APISchema = {
-      apiLevel: '99999',
-      packages: [FooPackageSchema, BarPackageSchema],
-      loadPartialAVDSchematic: (() => {}) as any,
-    };
+    const schemaPackages: APISchemaPackage[] = [FooPackageSchema, BarPackageSchema];
 
     it('should return all package schemas for empty packages', () => {
-      const result = findUnsatisfiedPackages([], schema);
-      expect(result).toEqual(schema.packages);
+      const result = findUnsatisfiedPackages([], schemaPackages);
+      expect(result).toEqual(schemaPackages);
     });
 
     it('should return unsatisfied packages for missing', () => {
       const api = [FooPackage];
-      const result = findUnsatisfiedPackages(api, schema);
+      const result = findUnsatisfiedPackages(api, schemaPackages);
       expect(result).toEqual([BarPackageSchema]);
     });
 
     it('should return unsatisfied packages for invalid version', () => {
       const api = [FooPackage, BarPackageInvalidVersion];
-      const result = findUnsatisfiedPackages(api, schema);
+      const result = findUnsatisfiedPackages(api, schemaPackages);
       expect(result).toEqual([BarPackageSchema]);
     });
 
     it('should return empty array if everything is satisfied', () => {
       const api = [FooPackage, BarPackage];
-      const result = findUnsatisfiedPackages(api, schema);
+      const result = findUnsatisfiedPackages(api, schemaPackages);
       expect(result).toEqual([]);
     });
 

@@ -31,7 +31,7 @@ export async function getAPILevels(packages: SDKPackage[]): Promise<APILevel[]> 
 }
 
 export function findUnsatisfiedPackages(packages: ReadonlyArray<SDKPackage>, schemas: ReadonlyArray<APISchemaPackage>): APISchemaPackage[] {
-  return packages.filter(pkg => !findPackageBySchema(packages, pkg));
+  return schemas.filter(pkg => !findPackageBySchema(packages, pkg));
 }
 
 export function findPackageBySchema(packages: ReadonlyArray<SDKPackage>, pkg: APISchemaPackage): SDKPackage | undefined {
