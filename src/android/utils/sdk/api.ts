@@ -85,7 +85,6 @@ export const API_LEVEL_28: APISchema = Object.freeze({
   packages: [
     { name: 'Android Emulator', path: 'emulator', version: /.+/ },
     { name: 'Android SDK Platform 28', path: 'platforms;android-28', version: /.+/ },
-    { name: 'Google APIs Intel x86 Atom System Image', path: 'system-images;android-28;google_apis;x86', version: /.+/ },
   ],
   loadPartialAVDSchematic: async () => import('../../data/avds/Pixel_2_API_28.json'),
 });
@@ -95,7 +94,6 @@ export const API_LEVEL_27: APISchema = Object.freeze({
   packages: [
     { name: 'Android Emulator', path: 'emulator', version: /.+/ },
     { name: 'Android SDK Platform 27', path: 'platforms;android-27', version: /.+/ },
-    { name: 'Google APIs Intel x86 Atom System Image', path: 'system-images;android-27;google_apis;x86', version: /.+/ },
   ],
   loadPartialAVDSchematic: async () => import('../../data/avds/Pixel_2_API_27.json'),
 });
@@ -105,7 +103,6 @@ export const API_LEVEL_26: APISchema = Object.freeze({
   packages: [
     { name: 'Android Emulator', path: 'emulator', version: /.+/ },
     { name: 'Android SDK Platform 26', path: 'platforms;android-26', version: /.+/ },
-    { name: 'Google APIs Intel x86 Atom System Image', path: 'system-images;android-26;google_apis;x86', version: /.+/ },
   ],
   loadPartialAVDSchematic: async () => import('../../data/avds/Pixel_2_API_26.json'),
 });
@@ -115,7 +112,6 @@ export const API_LEVEL_25: APISchema = Object.freeze({
   packages: [
     { name: 'Android Emulator', path: 'emulator', version: /.+/ },
     { name: 'Android SDK Platform 25', path: 'platforms;android-25', version: /.+/ },
-    { name: 'Google APIs Intel x86 Atom System Image', path: 'system-images;android-25;google_apis;x86', version: /.+/ },
   ],
   loadPartialAVDSchematic: async () => import('../../data/avds/Pixel_API_25.json'),
 });
@@ -125,7 +121,6 @@ export const API_LEVEL_24: APISchema = Object.freeze({
   packages: [
     { name: 'Android Emulator', path: 'emulator', version: /.+/ },
     { name: 'Android SDK Platform 24', path: 'platforms;android-24', version: /.+/ },
-    { name: 'Google APIs Intel x86 Atom System Image', path: 'system-images;android-24;google_apis;x86', version: /.+/ },
   ],
   loadPartialAVDSchematic: async () => import('../../data/avds/Nexus_5X_API_24.json'),
 });

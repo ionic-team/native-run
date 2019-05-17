@@ -38,7 +38,6 @@
     "hw.sensors.orientation": "yes",
     "hw.sensors.proximity": "yes",
     "hw.trackBall": "no",
-    "image.sysdir.1": "system-images/android-24/google_apis/x86/",
     "runtime.network.latency": "none",
     "runtime.network.speed": "full",
     "sdcard.size": "100M",
@@ -46,7 +45,6 @@
     "skin.dynamic": "yes",
     "skin.name": "nexus_5x",
     "tag.display": "Google Play",
-    "tag.id": "google_apis",
     "vm.heapSize": "256"
   }
 }

@@ -31,12 +31,10 @@
     "hw.sdCard": "yes",
     "hw.sensors.orientation": "yes",
     "hw.sensors.proximity": "yes",
-    "image.sysdir.1": "system-images/android-28/google_apis/x86/",
     "sdcard.size": "100M",
     "showDeviceFrame": "yes",
     "skin.dynamic": "yes",
     "skin.name": "pixel_2",
-    "tag.display": "Google APIs",
-    "tag.id": "google_apis"
+    "tag.display": "Google APIs"
   }
 }

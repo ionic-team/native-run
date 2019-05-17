@@ -2,12 +2,12 @@ import { mkdirp, readdir, statSafe } from '@ionic/utils-fs';
 import * as Debug from 'debug';
 import * as pathlib from 'path';
 
-import { AVDException, ERR_INVALID_SKIN, ERR_INVALID_SYSTEM_IMAGE, ERR_SDK_UNSATISFIED_PACKAGES, ERR_UNSUITABLE_API_INSTALLATION, ERR_UNSUPPORTED_API_LEVEL } from '../../errors';
+import { AVDException, ERR_INVALID_SKIN, ERR_INVALID_SYSTEM_IMAGE, ERR_MISSING_SYSTEM_IMAGE, ERR_SDK_UNSATISFIED_PACKAGES, ERR_UNSUITABLE_API_INSTALLATION, ERR_UNSUPPORTED_API_LEVEL } from '../../errors';
 import { readINI, writeINI } from '../../utils/ini';
 import { sort } from '../../utils/object';
 
 import { SDK, SDKPackage, findAllSDKPackages } from './sdk';
-import { APILevel, API_LEVEL_SCHEMAS, PartialAVDSchematic, findUnsatisfiedPackages, getAPILevels } from './sdk/api';
+import { APILevel, API_LEVEL_SCHEMAS, PartialAVDSchematic, findPackageBySchemaPath, findUnsatisfiedPackages, getAPILevels } from './sdk/api';
 
 const modulePrefix = 'native-run:android:utils:avd';
 
@@ -118,11 +118,15 @@ export function getAVDFromConfigINI(inipath: string, ini: AVDINI, configini: AVD
     id,
     path: ini.path,
     name,
-    sdkVersion: ini.target.replace(/^android-(\d+)/, '$1'),
+    sdkVersion: getSDKVersionFromTarget(ini.target),
     screenDPI,
     screenWidth,
     screenHeight,
   };
+}
+
+export function getSDKVersionFromTarget(target: string): string {
+  return target.replace(/^android-(\d+)/, '$1');
 }
 
 export async function getAVDFromINI(inipath: string, ini: AVDINI): Promise<AVD | undefined> {
@@ -205,8 +209,16 @@ export async function createAVD(sdk: SDK, schematic: AVDSchematic): Promise<AVD>
 }
 
 export async function createAVDSchematic(sdk: SDK, partialSchematic: PartialAVDSchematic): Promise<AVDSchematic> {
+  const sysimage = findPackageBySchemaPath(sdk.packages || [], new RegExp(`^system-images;${partialSchematic.ini.target}`));
+
+  if (!sysimage) {
+    throw new AVDException(`Cannot create AVD schematic for ${partialSchematic.id}: missing system image.`, ERR_MISSING_SYSTEM_IMAGE);
+  }
+
   const avdpath = pathlib.join(sdk.avdHome, `${partialSchematic.id}.avd`);
   const skinpath = getSkinPathByName(sdk, partialSchematic.configini['skin.name']);
+  const sysdir = pathlib.relative(sdk.root, sysimage.location);
+  const [ , , tagid ] = sysimage.path.split(';');
 
   const schematic: AVDSchematic = {
     id: partialSchematic.id,
@@ -218,6 +230,8 @@ export async function createAVDSchematic(sdk: SDK, partialSchematic: PartialAVDS
     configini: sort({
       ...partialSchematic.configini,
       'skin.path': skinpath,
+      'image.sysdir.1': sysdir,
+      'tag.id': tagid,
     }),
   };
 
