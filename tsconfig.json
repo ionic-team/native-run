@@ -13,7 +13,8 @@
     "target": "es2017",
     "lib": [
       "es2017"
-    ]
+    ],
+    "plugins": [{ "name": "typescript-tslint-plugin" }]
   },
   "include": [
     "src/**/*"

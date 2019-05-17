@@ -10,11 +10,12 @@ export async function run(args: string[]) {
     return;
   }
 
+  let cmd: any;
   if (args.includes('--sdk-info')) {
-    const cmd = await import ('./sdk-info');
+    cmd = await import ('./sdk-info');
     return cmd.run(args);
   }
 
-  const cmd = await import('./run');
+  cmd = await import('./run');
   await cmd.run(args);
 }

@@ -10,19 +10,15 @@ import { installApkToDevice, selectDeviceByTarget, selectHardwareDevice, selectV
 import { SDK, getSDK } from './utils/sdk';
 
 export async function run(args: string[]) {
-  console.log("RUNNING NATIVE RUN")
-  console.log(JSON.stringify(args))
 
   const sdk = await getSDK();
   const apkPath = getOptionValue(args, '--app');
 
   const forwardedPorts = getOptionsValue(args, '--forward');
 
-  console.log("\n FROM NATIVE RUN, FORWAREDED PORTS", JSON.stringify(forwardedPorts))
+  const ports: Ports[] = [];
 
-  let ports: Ports[] = [];
-
-  if (forwardedPorts && forwardedPorts.length > 0 ) {
+  if (forwardedPorts && forwardedPorts.length > 0) {
     forwardedPorts.forEach((port: string) => {
     const [ device, host ] = port.split(':');
 
@@ -30,11 +26,9 @@ export async function run(args: string[]) {
       throw new CLIException('Invalid --forward value: expecting <device port:host port>, e.g. 8080:8080');
     }
 
-      ports.push({ device, host })
-    })
+    ports.push({ device, host });
+    });
   }
-
-
 
   if (!apkPath) {
     throw new CLIException('--app is required', ERR_BAD_INPUT);
@@ -48,11 +42,11 @@ export async function run(args: string[]) {
   await waitForBoot(sdk, device);
 
   if (ports) {
-    ports.map( async (port: Ports) => {
+    ports.map(async (port: Ports) => {
       await forwardPorts(sdk, device, port);
       log(`Forwarded device port ${port.device} to host port ${port.host}\n`);
 
-    })
+    });
   }
 
   await installApkToDevice(sdk, device, apkPath, appId);
@@ -64,9 +58,9 @@ export async function run(args: string[]) {
 
   onBeforeExit(async () => {
     if (ports) {
-    ports.map( async (port: Ports) => {
+    ports.map(async (port: Ports) => {
       await unforwardPorts(sdk, device, port);
-    })
+    });
     }
   });
 
