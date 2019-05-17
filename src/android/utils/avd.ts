@@ -1,13 +1,14 @@
-import { mkdirp, readdir, statSafe } from '@ionic/utils-fs';
+import { copy, mkdirp, readdir, statSafe } from '@ionic/utils-fs';
 import * as Debug from 'debug';
 import * as pathlib from 'path';
 
+import { ASSETS_PATH } from '../../constants';
 import { AVDException, ERR_INVALID_SKIN, ERR_INVALID_SYSTEM_IMAGE, ERR_MISSING_SYSTEM_IMAGE, ERR_SDK_UNSATISFIED_PACKAGES, ERR_UNSUITABLE_API_INSTALLATION, ERR_UNSUPPORTED_API_LEVEL } from '../../errors';
 import { readINI, writeINI } from '../../utils/ini';
 import { sort } from '../../utils/object';
 
 import { SDK, SDKPackage, findAllSDKPackages } from './sdk';
-import { APILevel, API_LEVEL_SCHEMAS, PartialAVDSchematic, findPackageBySchemaPath, findUnsatisfiedPackages, getAPILevels } from './sdk/api';
+import { APILevel, API_LEVEL_SCHEMAS, PartialAVDSchematic, findPackageBySchemaPath, getAPILevels } from './sdk/api';
 
 const modulePrefix = 'native-run:android:utils:avd';
 
@@ -175,7 +176,7 @@ export async function getAVDSchematicFromAPILevel(sdk: SDK, packages: ReadonlyAr
     throw new AVDException(`Unsupported API level: ${api.apiLevel}`, ERR_UNSUPPORTED_API_LEVEL);
   }
 
-  const missingPackages = findUnsatisfiedPackages(packages, schema);
+  const missingPackages = schema.validate(packages);
 
   if (missingPackages.length > 0) {
     throw new AVDException(`Unsatisfied packages within API ${api.apiLevel}: ${missingPackages.map(pkg => pkg.path).join(', ')}`, ERR_SDK_UNSATISFIED_PACKAGES, 1);
@@ -242,6 +243,7 @@ export async function createAVDSchematic(sdk: SDK, partialSchematic: PartialAVDS
 
 export async function validateAVDSchematic(sdk: SDK, schematic: AVDSchematic): Promise<void> {
   const { configini } = schematic;
+  const skin = configini['skin.name'];
   const skinpath = configini['skin.path'];
   const sysdir = configini['image.sysdir.1'];
 
@@ -253,20 +255,50 @@ export async function validateAVDSchematic(sdk: SDK, schematic: AVDSchematic): P
     throw new AVDException(`${schematic.id} does not have a system image defined.`, ERR_INVALID_SYSTEM_IMAGE);
   }
 
-  await validateSkinPath(skinpath);
+  await validateSkin(sdk, skin, skinpath);
   await validateSystemImagePath(sdk, sysdir);
 }
 
-export async function validateSkinPath(skinpath: string): Promise<void> {
-  const stat = await statSafe(pathlib.join(skinpath, 'layout'));
+export async function validateSkin(sdk: SDK, skin: string, skinpath: string): Promise<void> {
+  const debug = Debug(`${modulePrefix}:${validateSkin.name}`);
+  const p = pathlib.join(skinpath, 'layout');
 
-  if (!stat || !stat.isFile()) {
-    throw new AVDException(`${skinpath} is an invalid skin.`, ERR_INVALID_SKIN);
+  debug('Checking skin layout file: %s', p);
+
+  const stat = await statSafe(p);
+
+  if (stat && stat.isFile()) {
+    return;
   }
+
+  await copySkin(sdk, skin, skinpath);
+}
+
+export async function copySkin(sdk: SDK, skin: string, skinpath: string): Promise<void> {
+  const debug = Debug(`${modulePrefix}:${copySkin.name}`);
+  const skinsrc = pathlib.resolve(ASSETS_PATH, 'android', 'skins', skin);
+
+  const stat = await statSafe(skinsrc);
+
+  if (stat && stat.isDirectory()) {
+    debug('Copying skin from %s to %s', skinsrc, skinpath);
+
+    try {
+      return await copy(skinsrc, skinpath);
+    } catch (e) {
+      debug('Error while copying skin: %O', e);
+    }
+  }
+
+  throw new AVDException(`${skinpath} is an invalid skin.`, ERR_INVALID_SKIN);
 }
 
 export async function validateSystemImagePath(sdk: SDK, sysdir: string): Promise<void> {
+  const debug = Debug(`${modulePrefix}:${validateSystemImagePath.name}`);
   const p = pathlib.join(sdk.root, sysdir, 'package.xml');
+
+  debug('Checking package.xml file: %s', p);
+
   const stat = await statSafe(p);
 
   if (!stat || !stat.isFile()) {

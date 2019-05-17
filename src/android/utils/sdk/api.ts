@@ -30,8 +30,8 @@ export async function getAPILevels(packages: SDKPackage[]): Promise<APILevel[]> 
   return apis;
 }
 
-export function findUnsatisfiedPackages(packages: ReadonlyArray<SDKPackage>, schema: APISchema): APISchemaPackage[] {
-  return schema.packages.filter(pkg => !findPackageBySchema(packages, pkg));
+export function findUnsatisfiedPackages(packages: ReadonlyArray<SDKPackage>, schemas: ReadonlyArray<APISchemaPackage>): APISchemaPackage[] {
+  return packages.filter(pkg => !findPackageBySchema(packages, pkg));
 }
 
 export function findPackageBySchema(packages: ReadonlyArray<SDKPackage>, pkg: APISchemaPackage): SDKPackage | undefined {
@@ -76,52 +76,122 @@ export interface APISchemaPackage {
 
 export interface APISchema {
   readonly apiLevel: string;
-  readonly packages: ReadonlyArray<APISchemaPackage>;
+  readonly validate: (packages: ReadonlyArray<SDKPackage>) => APISchemaPackage[];
   readonly loadPartialAVDSchematic: () => Promise<PartialAVDSchematic>;
 }
 
 export const API_LEVEL_28: APISchema = Object.freeze({
   apiLevel: '28',
-  packages: [
-    { name: 'Android Emulator', path: 'emulator', version: /.+/ },
-    { name: 'Android SDK Platform 28', path: 'platforms;android-28', version: /.+/ },
-  ],
+  validate: (packages: ReadonlyArray<SDKPackage>) => {
+    const schemas: APISchemaPackage[] = [
+      { name: 'Android Emulator', path: 'emulator', version: /.+/ },
+      { name: 'Android SDK Platform 28', path: 'platforms;android-28', version: /.+/ },
+    ];
+
+    const missingPackages = findUnsatisfiedPackages(packages, schemas);
+
+    if (!findPackageBySchemaPath(packages, /^system-images;android-28;/)) {
+      missingPackages.push({
+        name: 'Google Play Intel x86 Atom System Image',
+        path: 'system-images;android-28;google_apis_playstore;x86',
+        version: '/.+/',
+      });
+    }
+
+    return missingPackages;
+  },
   loadPartialAVDSchematic: async () => import('../../data/avds/Pixel_2_API_28.json'),
 });
 
 export const API_LEVEL_27: APISchema = Object.freeze({
   apiLevel: '27',
-  packages: [
-    { name: 'Android Emulator', path: 'emulator', version: /.+/ },
-    { name: 'Android SDK Platform 27', path: 'platforms;android-27', version: /.+/ },
-  ],
+  validate: (packages: ReadonlyArray<SDKPackage>) => {
+    const schemas: APISchemaPackage[] = [
+      { name: 'Android Emulator', path: 'emulator', version: /.+/ },
+      { name: 'Android SDK Platform 27', path: 'platforms;android-27', version: /.+/ },
+    ];
+
+    const missingPackages = findUnsatisfiedPackages(packages, schemas);
+
+    if (!findPackageBySchemaPath(packages, /^system-images;android-27;/)) {
+      missingPackages.push({
+        name: 'Google Play Intel x86 Atom System Image',
+        path: 'system-images;android-27;google_apis_playstore;x86',
+        version: '/.+/',
+      });
+    }
+
+    return missingPackages;
+  },
   loadPartialAVDSchematic: async () => import('../../data/avds/Pixel_2_API_27.json'),
 });
 
 export const API_LEVEL_26: APISchema = Object.freeze({
   apiLevel: '26',
-  packages: [
-    { name: 'Android Emulator', path: 'emulator', version: /.+/ },
-    { name: 'Android SDK Platform 26', path: 'platforms;android-26', version: /.+/ },
-  ],
+  validate: (packages: ReadonlyArray<SDKPackage>) => {
+    const schemas: APISchemaPackage[] = [
+      { name: 'Android Emulator', path: 'emulator', version: /.+/ },
+      { name: 'Android SDK Platform 26', path: 'platforms;android-26', version: /.+/ },
+    ];
+
+    const missingPackages = findUnsatisfiedPackages(packages, schemas);
+
+    if (!findPackageBySchemaPath(packages, /^system-images;android-26;/)) {
+      missingPackages.push({
+        name: 'Google Play Intel x86 Atom System Image',
+        path: 'system-images;android-26;google_apis_playstore;x86',
+        version: '/.+/',
+      });
+    }
+
+    return missingPackages;
+  },
   loadPartialAVDSchematic: async () => import('../../data/avds/Pixel_2_API_26.json'),
 });
 
 export const API_LEVEL_25: APISchema = Object.freeze({
   apiLevel: '25',
-  packages: [
-    { name: 'Android Emulator', path: 'emulator', version: /.+/ },
-    { name: 'Android SDK Platform 25', path: 'platforms;android-25', version: /.+/ },
-  ],
+  validate: (packages: ReadonlyArray<SDKPackage>) => {
+    const schemas: APISchemaPackage[] = [
+      { name: 'Android Emulator', path: 'emulator', version: /.+/ },
+      { name: 'Android SDK Platform 25', path: 'platforms;android-25', version: /.+/ },
+    ];
+
+    const missingPackages = findUnsatisfiedPackages(packages, schemas);
+
+    if (!findPackageBySchemaPath(packages, /^system-images;android-25;/)) {
+      missingPackages.push({
+        name: 'Google Play Intel x86 Atom System Image',
+        path: 'system-images;android-25;google_apis_playstore;x86',
+        version: '/.+/',
+      });
+    }
+
+    return missingPackages;
+  },
   loadPartialAVDSchematic: async () => import('../../data/avds/Pixel_API_25.json'),
 });
 
 export const API_LEVEL_24: APISchema = Object.freeze({
   apiLevel: '24',
-  packages: [
-    { name: 'Android Emulator', path: 'emulator', version: /.+/ },
-    { name: 'Android SDK Platform 24', path: 'platforms;android-24', version: /.+/ },
-  ],
+  validate: (packages: ReadonlyArray<SDKPackage>) => {
+    const schemas: APISchemaPackage[] = [
+      { name: 'Android Emulator', path: 'emulator', version: /.+/ },
+      { name: 'Android SDK Platform 24', path: 'platforms;android-24', version: /.+/ },
+    ];
+
+    const missingPackages = findUnsatisfiedPackages(packages, schemas);
+
+    if (!findPackageBySchemaPath(packages, /^system-images;android-24;/)) {
+      missingPackages.push({
+        name: 'Google Play Intel x86 Atom System Image',
+        path: 'system-images;android-24;google_apis_playstore;x86',
+        version: '/.+/',
+      });
+    }
+
+    return missingPackages;
+  },
   loadPartialAVDSchematic: async () => import('../../data/avds/Nexus_5X_API_24.json'),
 });
 

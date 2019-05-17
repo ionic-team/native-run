@@ -1,7 +1,7 @@
 import { stringify } from '../utils/json';
 
 import { SDKPackage, findAllSDKPackages, getSDK } from './utils/sdk';
-import { APILevel, API_LEVEL_SCHEMAS, findUnsatisfiedPackages, getAPILevels } from './utils/sdk/api';
+import { APILevel, API_LEVEL_SCHEMAS, getAPILevels } from './utils/sdk/api';
 
 type Platform = Required<APILevel>;
 
@@ -18,7 +18,7 @@ export async function run(args: string[]) {
   const apis = await getAPILevels(packages);
   const platforms = apis.map(api => {
     const schema = API_LEVEL_SCHEMAS.find(s => s.apiLevel === api.apiLevel);
-    return { ...api, missingPackages: schema ? findUnsatisfiedPackages(packages, schema) : [] };
+    return { ...api, missingPackages: schema ? schema.validate(packages) : [] };
   });
 
   const sdkinfo: SDKInfo = {

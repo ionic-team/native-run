@@ -20,6 +20,7 @@
   },
   "main": "dist/index.js",
   "files": [
+    "assets",
     "bin",
     "dist"
   ],
