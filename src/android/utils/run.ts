@@ -1,6 +1,6 @@
 import * as Debug from 'debug';
 
-import { ADBException, ERR_INCOMPATIBLE_UPDATE } from '../../errors';
+import { ADBException, ERR_INCOMPATIBLE_UPDATE, ERR_VERSION_DOWNGRADE } from '../../errors';
 
 import { Device, installApk, uninstallApp } from './adb';
 import { AVD, getDefaultAVD } from './avd';
@@ -94,7 +94,7 @@ export async function installApkToDevice(sdk: SDK, device: Device, apk: string, 
     await installApk(sdk, device, apk);
   } catch (e) {
     if (e instanceof ADBException) {
-      if (e.code === ERR_INCOMPATIBLE_UPDATE) {
+      if (e.code === ERR_INCOMPATIBLE_UPDATE || e.code === ERR_VERSION_DOWNGRADE) {
         process.stdout.write(`${e.message} Uninstalling and trying again...\n`);
         await uninstallApp(sdk, device, appId);
         await installApk(sdk, device, apk);
