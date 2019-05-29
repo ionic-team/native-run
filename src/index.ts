@@ -48,8 +48,8 @@ async function list(args: string[]) {
   ]);
 
   if (!args.includes('--json')) {
-    process.stdout.write(`iOS ${iosOutput}\n`);
-    process.stdout.write(`Android ${androidOutput}`);
+    process.stdout.write(`iOS\n---\n\n${iosOutput}\n`);
+    process.stdout.write(`Android\n-------\n\n${androidOutput}`);
   } else {
     const adjustLines = (output: string) => output.split('\n').map(line => `  ${line}`).join('\n').trim();
     process.stdout.write(`
