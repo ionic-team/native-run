@@ -44,6 +44,8 @@
     "yauzl": "^2.10.0"
   },
   "devDependencies": {
+    "@semantic-release/changelog": "^3.0.2",
+    "@semantic-release/git": "^7.0.8",
     "@types/debug": "4.1.4",
     "@types/elementtree": "^0.1.0",
     "@types/fs-extra": "^7.0.0",
@@ -62,7 +64,15 @@
     "typescript": "^3.2.4"
   },
   "release": {
-    "branch": "stable"
+    "branch": "stable",
+    "plugins": [
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/changelog",
+      "@semantic-release/npm",
+      "@semantic-release/github",
+      "@semantic-release/git"
+    ]
   },
   "keywords": [
     "android",
