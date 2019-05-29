@@ -1,4 +1,4 @@
-export function sort<T extends { [key: string]: any; }>(obj: T): T {
+export function sort<T extends any>(obj: T): T {
   const entries = [...Object.entries(obj)];
 
   entries.sort(([k1], [k2]) => k1.localeCompare(k2));

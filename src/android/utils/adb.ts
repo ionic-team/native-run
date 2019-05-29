@@ -20,18 +20,21 @@ export interface DeviceProperties {
   [key: string]: string | undefined;
 }
 
-export interface Device {
-  serial: string;
-  state: string; // 'offline' | 'device' | 'no device'
-  type: 'emulator' | 'hardware';
+export interface MappedDeviceProps {
   manufacturer: string;
   model: string;
   product: string;
   sdkVersion: string;
+}
+
+export interface Device extends MappedDeviceProps {
+  serial: string;
+  state: string; // 'offline' | 'device' | 'no device'
+  type: 'emulator' | 'hardware';
   properties: DeviceProperties;
 }
 
-const ADB_GETPROP_MAP: ReadonlyMap<string, keyof Device> = new Map<string, keyof Device>([
+const ADB_GETPROP_MAP: ReadonlyMap<string, keyof MappedDeviceProps> = new Map<string, keyof MappedDeviceProps>([
   ['ro.product.manufacturer', 'manufacturer'],
   ['ro.product.model', 'model'],
   ['ro.product.name', 'product'],
@@ -60,6 +63,8 @@ export async function getDevices(sdk: SDK): Promise<Device[]> {
       }
     }
   }));
+
+  debug('Found adb devices: %O', devices);
 
   return devices;
 }
