@@ -12,7 +12,7 @@ aliases:
 defaults: &defaults
   working_directory: /tmp/workspace
   docker:
-    - image: circleci/node:8
+    - image: circleci/node:10
 
 jobs:
   build:
@@ -35,6 +35,21 @@ jobs:
       - attach_workspace:
           at: /tmp/workspace
       - run: npm run test
+  deploy:
+    <<: *defaults
+    environment:
+      GIT_AUTHOR_NAME: Ionitron
+      GIT_AUTHOR_EMAIL: hi@ionicframework.com
+      GIT_COMMITTER_NAME: Ionitron
+      GIT_COMMITTER_EMAIL: hi@ionicframework.com
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "47:33:b0:aa:d8:80:03:30:32:83:4f:3d:5f:58:88:67" # ionitron user key
+      - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - run: npx semantic-release
 
 workflows:
   version: 2
@@ -44,3 +59,9 @@ workflows:
       - test:
           requires:
             - build
+      - deploy:
+          requires:
+            - test
+          filters:
+            branches:
+              only: stable
