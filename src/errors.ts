@@ -34,6 +34,8 @@ export const ERR_SDK_NOT_FOUND = 'ERR_SDK_NOT_FOUND';
 export const ERR_SDK_PACKAGE_NOT_FOUND = 'ERR_SDK_PACKAGE_NOT_FOUND';
 export const ERR_SDK_UNSATISFIED_PACKAGES = 'ERR_SDK_UNSATISFIED_PACKAGES';
 export const ERR_TARGET_NOT_FOUND = 'ERR_TARGET_NOT_FOUND';
+export const ERR_NO_DEVICE = 'ERR_NO_DEVICE';
+export const ERR_NO_TARGET = 'ERR_NO_TARGET';
 export const ERR_UNKNOWN_AVD = 'ERR_UNKNOWN_AVD';
 export const ERR_UNSUPPORTED_API_LEVEL = 'ERR_UNSUPPORTED_API_LEVEL';
 
@@ -74,7 +76,9 @@ export class EmulatorException extends Exception<EmulatorExceptionCode> {}
 
 export type RunExceptionCode = (
   typeof ERR_NO_AVDS_FOUND |
-  typeof ERR_TARGET_NOT_FOUND
+  typeof ERR_TARGET_NOT_FOUND |
+  typeof ERR_NO_DEVICE |
+  typeof ERR_NO_TARGET
 );
 
 export class RunException extends Exception<RunExceptionCode> {}

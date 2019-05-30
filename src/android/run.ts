@@ -1,4 +1,6 @@
-import { CLIException, ERR_BAD_INPUT, ERR_TARGET_NOT_FOUND, RunException } from '../errors';
+import * as Debug from 'debug';
+
+import { AVDException, CLIException, ERR_BAD_INPUT, ERR_NO_DEVICE, ERR_NO_TARGET, ERR_TARGET_NOT_FOUND, ERR_UNSUITABLE_API_INSTALLATION, RunException } from '../errors';
 import { getOptionValue, getOptionValues } from '../utils/cli';
 import { log } from '../utils/log';
 import { onBeforeExit } from '../utils/process';
@@ -8,6 +10,8 @@ import { getApkInfo } from './utils/apk';
 import { getInstalledAVDs } from './utils/avd';
 import { installApkToDevice, selectDeviceByTarget, selectHardwareDevice, selectVirtualDevice } from './utils/run';
 import { SDK, getSDK } from './utils/sdk';
+
+const modulePrefix = 'native-run:android:run';
 
 export async function run(args: ReadonlyArray<string>): Promise<void> {
   const sdk = await getSDK();
@@ -72,6 +76,8 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
 }
 
 export async function selectDevice(sdk: SDK, args: ReadonlyArray<string>): Promise<Device> {
+  const debug = Debug(`${modulePrefix}:${selectDevice.name}`);
+
   const devices = await getDevices(sdk);
   const avds = await getInstalledAVDs(sdk);
 
@@ -93,8 +99,26 @@ export async function selectDevice(sdk: SDK, args: ReadonlyArray<string>): Promi
 
     if (selectedDevice) {
       return selectedDevice;
+    } else if (args.includes('--device')) {
+      throw new RunException(`No hardware devices found. Not attempting emulator because --device was specified.`, ERR_NO_DEVICE);
+    } else {
+      log('No hardare devices found, attempting emulator...\n');
     }
   }
 
-  return selectVirtualDevice(sdk, devices, avds);
+  try {
+    return await selectVirtualDevice(sdk, devices, avds);
+  } catch (e) {
+    if (!(e instanceof AVDException)) {
+      throw e;
+    }
+
+    debug('Issue with AVDs: %s', e.message);
+
+    if (e.code === ERR_UNSUITABLE_API_INSTALLATION) {
+      throw new RunException('No targets available. Cannot create AVD because there is no suitable API installation. Use --sdk-info to reveal missing packages and other issues.', ERR_NO_TARGET);
+    }
+  }
+
+  throw new RunException('No targets available.', ERR_NO_TARGET);
 }
