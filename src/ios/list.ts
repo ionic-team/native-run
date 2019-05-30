@@ -1,3 +1,4 @@
+import * as Debug from 'debug';
 import { DeviceValues } from 'node-ioslib';
 
 import { Target, list } from '../utils/list';
@@ -5,12 +6,24 @@ import { Target, list } from '../utils/list';
 import { getConnectedDevices } from './utils/device';
 import { Simulator, getSimulators } from './utils/simulator';
 
+const debug = Debug('native-run:ios:list');
+
 export async function run(args: string[]) {
-  // TODO check for darwin?
-  const [ devices, simulators ] = await Promise.all([
-    (await getConnectedDevices()).map(deviceToTarget),
-    (await getSimulators()).map(simulatorToTarget),
-  ]);
+  const devicesPromise = getConnectedDevices()
+          .then(devices => devices.map(deviceToTarget))
+          .catch(err => {
+            debug(`There was an error getting the iOS device list: ${err.message}`);
+            return [];
+          });
+
+  const simulatorsPromise = getSimulators()
+          .then(simulators => simulators.map(simulatorToTarget))
+          .catch(err => {
+            debug(`There was an error getting the iOS simulator list: ${err.message}`);
+            return [];
+          });
+
+  const [ devices, simulators ] = await Promise.all([devicesPromise, simulatorsPromise]);
 
   return list(args, devices, simulators);
 }
