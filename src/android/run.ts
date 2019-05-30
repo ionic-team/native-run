@@ -22,7 +22,7 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
       const [ device, host ] = port.split(':');
 
       if (!device || !host) {
-        throw new CLIException('Invalid --forward value: expecting <device port:host port>, e.g. 8080:8080');
+        throw new CLIException(`Invalid --forward value "${port}": expecting <device port:host port>, e.g. 8080:8080`);
       }
 
       ports.push({ device, host });
