@@ -1,8 +1,15 @@
-import * as adbUtils from '../adb';
+import * as os from 'os';
 
 describe('android/utils/adb', () => {
 
   describe('parseAdbDevices', () => {
+
+    let adbUtils: typeof import('../adb');
+
+    beforeEach(async () => {
+      jest.resetModules();
+      adbUtils = await import('../adb');
+    });
 
     it('should parse emulator-5554 device', async () => {
       const output = `
@@ -78,6 +85,39 @@ List of devices attached
           },
         },
       ]);
+    });
+
+    describe('windows', () => {
+
+      let adbUtils: typeof import('../adb');
+
+      beforeEach(async () => {
+        jest.resetModules();
+        jest.mock('os', () => ({ ...os, EOL: '\r\n' }));
+
+        adbUtils = await import('../adb');
+      });
+
+      it('should parse hardware device (MWS0216B24001482)', async () => {
+        const output = `\r\nList of devices attached\r\nMWS0216B24001482       offline transport_id:3\r\n\r\n`;
+        const devices = await adbUtils.parseAdbDevices(output);
+
+        expect(devices).toEqual([
+          {
+            serial: 'MWS0216B24001482',
+            state: 'offline',
+            type: 'emulator',
+            manufacturer: '',
+            model: '',
+            product: '',
+            sdkVersion: '',
+            properties: {
+              transport_id: '3',
+            },
+          },
+        ]);
+      });
+
     });
 
   });

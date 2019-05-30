@@ -37,13 +37,13 @@ describe('android/utils/sdk', () => {
 
       it('should default to windows 10 local app data directory', async () => {
         Object.defineProperty(process, 'env', { value: {} });
-        sdkUtils = require('../');
+        sdkUtils = await import('../');
         expect(sdkUtils.SDK_DIRECTORIES.get('win32')).toEqual([path.win32.join('C:\\Users\\me\\AppData\\Local\\Android\\Sdk')]);
       });
 
       it('should use LOCALAPPDATA environment variable if present', async () => {
         Object.defineProperty(process, 'env', { value: { LOCALAPPDATA: path.win32.join('C:\\', 'Documents and Settings', 'me', 'Application Data') } });
-        sdkUtils = require('../');
+        sdkUtils = await import('../');
         expect(sdkUtils.SDK_DIRECTORIES.get('win32')).toEqual([path.win32.join('C:\\Documents and Settings\\me\\Application Data\\Android\\Sdk')]);
       });
 
@@ -53,8 +53,8 @@ describe('android/utils/sdk', () => {
 
   describe('resolveSDKRoot', () => {
 
-    beforeEach(() => {
-      sdkUtils = require('../');
+    beforeEach(async () => {
+      sdkUtils = await import('../');
     });
 
     it('should resolve with ANDROID_HOME if in environment', async () => {

@@ -1,5 +1,6 @@
 import { spawn } from 'child_process';
 import * as Debug from 'debug';
+import * as os from 'os';
 import * as path from 'path';
 import * as split2 from 'split2';
 import * as through2 from 'through2';
@@ -93,7 +94,7 @@ export async function getDeviceProperties(sdk: SDK, device: Device): Promise<Dev
   const { stdout } = await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });
   const properties: DeviceProperties = {};
 
-  for (const line of stdout.split('\n')) {
+  for (const line of stdout.split(os.EOL)) {
     const m = line.match(re);
 
     if (m) {
@@ -253,7 +254,7 @@ export async function startActivity(sdk: SDK, device: Device, packageName: strin
 export function parseAdbDevices(output: string): Device[] {
   const debug = Debug(`${modulePrefix}:${parseAdbDevices.name}`);
   const re = /^([\S]+)\s+([a-z\s]+)\s+(.*)$/;
-  const lines = output.split('\n');
+  const lines = output.split(os.EOL);
 
   const devices: Device[] = [];
 
