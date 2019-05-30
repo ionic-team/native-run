@@ -19,13 +19,13 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
 
   if (forwardedPorts && forwardedPorts.length > 0) {
     forwardedPorts.forEach((port: string) => {
-    const [ device, host ] = port.split(':');
+      const [ device, host ] = port.split(':');
 
-    if (!device || !host) {
-      throw new CLIException('Invalid --forward value: expecting <device port:host port>, e.g. 8080:8080');
-    }
+      if (!device || !host) {
+        throw new CLIException('Invalid --forward value: expecting <device port:host port>, e.g. 8080:8080');
+      }
 
-    ports.push({ device, host });
+      ports.push({ device, host });
     });
   }
 
@@ -57,9 +57,9 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
 
   onBeforeExit(async () => {
     if (ports) {
-    ports.map(async (port: Ports) => {
-      await unforwardPorts(sdk, device, port);
-    });
+      ports.map(async (port: Ports) => {
+        await unforwardPorts(sdk, device, port);
+      });
     }
   });
 

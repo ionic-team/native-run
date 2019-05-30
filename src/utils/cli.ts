@@ -13,9 +13,9 @@ export function getOptionValue(args: ReadonlyArray<string>, arg: string, default
 export function getOptionsValue(args: ReadonlyArray<string>, arg: string): string[] {
   const returnVal: string[] = [];
   args.map((entry: string, idx: number) => {
-      if (entry === arg) {
-        returnVal.push(args[idx + 1]);
-      }
+    if (entry === arg) {
+      returnVal.push(args[idx + 1]);
+    }
   });
   return returnVal;
 }
