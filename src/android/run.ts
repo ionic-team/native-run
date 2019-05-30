@@ -41,11 +41,10 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   await waitForBoot(sdk, device);
 
   if (ports) {
-    ports.map(async (port: Ports) => {
+    await Promise.all(ports.map(async (port: Ports) => {
       await forwardPorts(sdk, device, port);
       log(`Forwarded device port ${port.device} to host port ${port.host}\n`);
-
-    });
+    }));
   }
 
   await installApkToDevice(sdk, device, apkPath, appId);
@@ -57,9 +56,9 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
 
   onBeforeExit(async () => {
     if (ports) {
-      ports.map(async (port: Ports) => {
+      await Promise.all(ports.map(async (port: Ports) => {
         await unforwardPorts(sdk, device, port);
-      });
+      }));
     }
   });
 
