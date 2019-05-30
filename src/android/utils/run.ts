@@ -9,7 +9,7 @@ import { SDK } from './sdk';
 
 const modulePrefix = 'native-run:android:utils:run';
 
-export async function selectDeviceByTarget(sdk: SDK, devices: ReadonlyArray<Device>, avds: ReadonlyArray<AVD>, target: string): Promise<Device | undefined> {
+export async function selectDeviceByTarget(sdk: SDK, devices: readonly Device[], avds: readonly AVD[], target: string): Promise<Device | undefined> {
   const debug = Debug(`${modulePrefix}:${selectDeviceByTarget.name}`);
 
   debug('--target %s detected', target);
@@ -59,7 +59,7 @@ export async function selectDeviceByTarget(sdk: SDK, devices: ReadonlyArray<Devi
   }
 }
 
-export async function selectHardwareDevice(devices: ReadonlyArray<Device>): Promise<Device | undefined> {
+export async function selectHardwareDevice(devices: readonly Device[]): Promise<Device | undefined> {
   const hardwareDevices = devices.filter(d => d.type === 'hardware');
 
   // If a hardware device is found, we prefer launching to it instead of in an emulator.
@@ -68,7 +68,7 @@ export async function selectHardwareDevice(devices: ReadonlyArray<Device>): Prom
   }
 }
 
-export async function selectVirtualDevice(sdk: SDK, devices: ReadonlyArray<Device>, avds: ReadonlyArray<AVD>): Promise<Device> {
+export async function selectVirtualDevice(sdk: SDK, devices: readonly Device[], avds: readonly AVD[]): Promise<Device> {
   const debug = Debug(`${modulePrefix}:${selectVirtualDevice.name}`);
   const emulators = devices.filter(d => d.type === 'emulator');
 

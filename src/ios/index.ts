@@ -1,6 +1,6 @@
 import { Command } from '../';
 
-export async function run(args: ReadonlyArray<string>): Promise<void> {
+export async function run(args: readonly string[]): Promise<void> {
   let cmd: Command;
 
   if (args.includes('--help') || args.includes('-h')) {

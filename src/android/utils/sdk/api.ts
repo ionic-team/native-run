@@ -30,11 +30,11 @@ export async function getAPILevels(packages: SDKPackage[]): Promise<APILevel[]> 
   return apis;
 }
 
-export function findUnsatisfiedPackages(packages: ReadonlyArray<SDKPackage>, schemas: ReadonlyArray<APISchemaPackage>): APISchemaPackage[] {
+export function findUnsatisfiedPackages(packages: readonly SDKPackage[], schemas: readonly APISchemaPackage[]): APISchemaPackage[] {
   return schemas.filter(pkg => !findPackageBySchema(packages, pkg));
 }
 
-export function findPackageBySchema(packages: ReadonlyArray<SDKPackage>, pkg: APISchemaPackage): SDKPackage | undefined {
+export function findPackageBySchema(packages: readonly SDKPackage[], pkg: APISchemaPackage): SDKPackage | undefined {
   const apiPkg = findPackageBySchemaPath(packages, pkg.path);
 
   if (apiPkg) {
@@ -50,7 +50,7 @@ export function findPackageBySchema(packages: ReadonlyArray<SDKPackage>, pkg: AP
   }
 }
 
-export function findPackageBySchemaPath(packages: ReadonlyArray<SDKPackage>, path: string | RegExp): SDKPackage | undefined {
+export function findPackageBySchemaPath(packages: readonly SDKPackage[], path: string | RegExp): SDKPackage | undefined {
   return packages.find(pkg => {
     if (typeof path !== 'string') {
       return !!pkg.path.match(path);
@@ -76,13 +76,13 @@ export interface APISchemaPackage {
 
 export interface APISchema {
   readonly apiLevel: string;
-  readonly validate: (packages: ReadonlyArray<SDKPackage>) => APISchemaPackage[];
+  readonly validate: (packages: readonly SDKPackage[]) => APISchemaPackage[];
   readonly loadPartialAVDSchematic: () => Promise<PartialAVDSchematic>;
 }
 
 export const API_LEVEL_28: APISchema = Object.freeze({
   apiLevel: '28',
-  validate: (packages: ReadonlyArray<SDKPackage>) => {
+  validate: (packages: readonly SDKPackage[]) => {
     const schemas: APISchemaPackage[] = [
       { name: 'Android Emulator', path: 'emulator', version: /.+/ },
       { name: 'Android SDK Platform 28', path: 'platforms;android-28', version: /.+/ },
@@ -105,7 +105,7 @@ export const API_LEVEL_28: APISchema = Object.freeze({
 
 export const API_LEVEL_27: APISchema = Object.freeze({
   apiLevel: '27',
-  validate: (packages: ReadonlyArray<SDKPackage>) => {
+  validate: (packages: readonly SDKPackage[]) => {
     const schemas: APISchemaPackage[] = [
       { name: 'Android Emulator', path: 'emulator', version: /.+/ },
       { name: 'Android SDK Platform 27', path: 'platforms;android-27', version: /.+/ },
@@ -128,7 +128,7 @@ export const API_LEVEL_27: APISchema = Object.freeze({
 
 export const API_LEVEL_26: APISchema = Object.freeze({
   apiLevel: '26',
-  validate: (packages: ReadonlyArray<SDKPackage>) => {
+  validate: (packages: readonly SDKPackage[]) => {
     const schemas: APISchemaPackage[] = [
       { name: 'Android Emulator', path: 'emulator', version: /.+/ },
       { name: 'Android SDK Platform 26', path: 'platforms;android-26', version: /.+/ },
@@ -151,7 +151,7 @@ export const API_LEVEL_26: APISchema = Object.freeze({
 
 export const API_LEVEL_25: APISchema = Object.freeze({
   apiLevel: '25',
-  validate: (packages: ReadonlyArray<SDKPackage>) => {
+  validate: (packages: readonly SDKPackage[]) => {
     const schemas: APISchemaPackage[] = [
       { name: 'Android Emulator', path: 'emulator', version: /.+/ },
       { name: 'Android SDK Platform 25', path: 'platforms;android-25', version: /.+/ },
@@ -174,7 +174,7 @@ export const API_LEVEL_25: APISchema = Object.freeze({
 
 export const API_LEVEL_24: APISchema = Object.freeze({
   apiLevel: '24',
-  validate: (packages: ReadonlyArray<SDKPackage>) => {
+  validate: (packages: readonly SDKPackage[]) => {
     const schemas: APISchemaPackage[] = [
       { name: 'Android Emulator', path: 'emulator', version: /.+/ },
       { name: 'Android SDK Platform 24', path: 'platforms;android-24', version: /.+/ },
@@ -195,4 +195,4 @@ export const API_LEVEL_24: APISchema = Object.freeze({
   loadPartialAVDSchematic: async () => import('../../data/avds/Nexus_5X_API_24.json'),
 });
 
-export const API_LEVEL_SCHEMAS: ReadonlyArray<APISchema> = [API_LEVEL_28, API_LEVEL_27, API_LEVEL_26, API_LEVEL_25, API_LEVEL_24];
+export const API_LEVEL_SCHEMAS: readonly APISchema[] = [API_LEVEL_28, API_LEVEL_27, API_LEVEL_26, API_LEVEL_25, API_LEVEL_24];

@@ -13,7 +13,7 @@ import { SDK, getSDK } from './utils/sdk';
 
 const modulePrefix = 'native-run:android:run';
 
-export async function run(args: ReadonlyArray<string>): Promise<void> {
+export async function run(args: readonly string[]): Promise<void> {
   const sdk = await getSDK();
   const apkPath = getOptionValue(args, '--app');
   const forwardedPorts = getOptionValues(args, '--forward');
@@ -75,7 +75,7 @@ export async function run(args: ReadonlyArray<string>): Promise<void> {
   }
 }
 
-export async function selectDevice(sdk: SDK, args: ReadonlyArray<string>): Promise<Device> {
+export async function selectDevice(sdk: SDK, args: readonly string[]): Promise<Device> {
   const debug = Debug(`${modulePrefix}:${selectDevice.name}`);
 
   const devices = await getDevices(sdk);

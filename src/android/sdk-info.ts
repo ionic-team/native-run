@@ -12,7 +12,7 @@ interface SDKInfo {
   tools: SDKPackage[];
 }
 
-export async function run(args: ReadonlyArray<string>): Promise<void> {
+export async function run(args: readonly string[]): Promise<void> {
   const sdk = await getSDK();
   const packages = await findAllSDKPackages(sdk);
   const apis = await getAPILevels(packages);

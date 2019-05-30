@@ -12,7 +12,7 @@ import { getSimulators, runOnSimulator } from './utils/simulator';
 
 const debug = Debug('native-run:ios:run');
 
-export async function run(args: ReadonlyArray<string>): Promise<void> {
+export async function run(args: readonly string[]): Promise<void> {
   let appPath = getOptionValue(args, '--app');
   if (!appPath) {
     throw new CLIException('--app is required', ERR_BAD_INPUT);

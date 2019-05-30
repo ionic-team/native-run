@@ -124,7 +124,7 @@ export function parseEmulatorOutput(line: string): EmulatorEvent | undefined {
   return event;
 }
 
-export async function getAVDFromEmulator(emulator: Device, avds: ReadonlyArray<AVD>): Promise<AVD> {
+export async function getAVDFromEmulator(emulator: Device, avds: readonly AVD[]): Promise<AVD> {
   const debug = Debug(`${modulePrefix}:${getAVDFromEmulator.name}`);
   const emulatorPortRegex = /^emulator-(\d+)$/;
   const m = emulator.serial.match(emulatorPortRegex);

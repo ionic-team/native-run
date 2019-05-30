@@ -169,7 +169,7 @@ export async function getDefaultAVDSchematic(sdk: SDK): Promise<AVDSchematic> {
   throw new AVDException('No suitable API installation found.', ERR_UNSUITABLE_API_INSTALLATION, 1);
 }
 
-export async function getAVDSchematicFromAPILevel(sdk: SDK, packages: ReadonlyArray<SDKPackage>, api: APILevel): Promise<AVDSchematic> {
+export async function getAVDSchematicFromAPILevel(sdk: SDK, packages: readonly SDKPackage[], api: APILevel): Promise<AVDSchematic> {
   const schema = API_LEVEL_SCHEMAS.find(s => s.apiLevel === api.apiLevel);
 
   if (!schema) {
@@ -185,7 +185,7 @@ export async function getAVDSchematicFromAPILevel(sdk: SDK, packages: ReadonlyAr
   return createAVDSchematic(sdk, await schema.loadPartialAVDSchematic());
 }
 
-export async function getDefaultAVD(sdk: SDK, avds: ReadonlyArray<AVD>): Promise<AVD> {
+export async function getDefaultAVD(sdk: SDK, avds: readonly AVD[]): Promise<AVD> {
   const defaultAvdSchematic = await getDefaultAVDSchematic(sdk);
   const defaultAvd = avds.find(avd => avd.id === defaultAvdSchematic.id);
 

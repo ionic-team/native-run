@@ -8,11 +8,11 @@ import { Simulator, getSimulators } from './utils/simulator';
 
 const debug = Debug('native-run:ios:list');
 
-export async function run(args: ReadonlyArray<string>): Promise<void> {
+export async function run(args: readonly string[]): Promise<void> {
   process.stdout.write(await list(args));
 }
 
-export async function list(args: ReadonlyArray<string>): Promise<string> {
+export async function list(args: readonly string[]): Promise<string> {
   const devicesPromise = getConnectedDevices()
     .then(devices => devices.map(deviceToTarget))
     .catch(err => {

@@ -7,7 +7,7 @@ import { execFile } from '../../utils/process';
 type XcodeVersion = string;
 type XcodeBuildVersion = string;
 
-export function getXcodeVersionInfo(): Readonly<[XcodeVersion, XcodeBuildVersion]> {
+export function getXcodeVersionInfo(): readonly [XcodeVersion, XcodeBuildVersion] {
   const xcodeVersionInfo = spawnSync('xcodebuild', ['-version'], { encoding: 'utf8' });
   if (xcodeVersionInfo.error) {
     throw xcodeVersionInfo.error;

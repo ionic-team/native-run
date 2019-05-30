@@ -7,7 +7,7 @@ import { stringify } from './utils/json';
 const debug = Debug('native-run');
 
 export interface Command {
-  readonly run: (args: ReadonlyArray<string>) => Promise<void>;
+  readonly run: (args: readonly string[]) => Promise<void>;
 }
 
 export async function run(): Promise<void> {
