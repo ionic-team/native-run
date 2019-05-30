@@ -1,6 +1,6 @@
 import { remove } from '@ionic/utils-fs';
 import * as Debug from 'debug';
-import { mkdtempSync } from 'fs';
+import { existsSync, mkdtempSync } from 'fs';
 import * as path from 'path';
 
 import { CLIException, ERR_BAD_INPUT, ERR_TARGET_NOT_FOUND, RunException } from '../errors';
@@ -21,6 +21,11 @@ export async function run(args: string[]) {
   const preferSimulator = args.includes('--virtual');
   const waitForApp = args.includes('--connect');
   const isIPA = appPath.endsWith('.ipa');
+
+  if (!existsSync(appPath)) {
+    throw new RunException(`Path '${appPath}' not found`);
+  }
+
   try {
     if (isIPA) {
       const { tmpdir } = await import('os');
