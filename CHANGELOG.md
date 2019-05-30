@@ -1,3 +1,10 @@
+## [0.2.1](https://github.com/ionic-team/native-run/compare/v0.2.0...v0.2.1) (2019-05-30)
+
+
+### Bug Fixes
+
+* **android:** handle \r\n for adb output on Windows during --list ([50bfa73](https://github.com/ionic-team/native-run/commit/50bfa73))
+
 # [0.2.0](https://github.com/ionic-team/native-run/compare/v0.1.2...v0.2.0) (2019-05-30)
 
 

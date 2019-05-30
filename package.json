@@ -1,6 +1,6 @@
 {
   "name": "native-run",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A CLI for running apps on iOS/Android devices and simulators/emulators",
   "bin": {
     "native-run": "./bin/native-run"
