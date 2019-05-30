@@ -1,5 +1,5 @@
 import { CLIException, ERR_BAD_INPUT, ERR_TARGET_NOT_FOUND, RunException } from '../errors';
-import { getOptionValue, getOptionsValue } from '../utils/cli';
+import { getOptionValue, getOptionValues } from '../utils/cli';
 import { log } from '../utils/log';
 import { onBeforeExit } from '../utils/process';
 
@@ -12,8 +12,7 @@ import { SDK, getSDK } from './utils/sdk';
 export async function run(args: ReadonlyArray<string>): Promise<void> {
   const sdk = await getSDK();
   const apkPath = getOptionValue(args, '--app');
-
-  const forwardedPorts = getOptionsValue(args, '--forward');
+  const forwardedPorts = getOptionValues(args, '--forward');
 
   const ports: Ports[] = [];
 

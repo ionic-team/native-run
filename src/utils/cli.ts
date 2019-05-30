@@ -10,7 +10,7 @@ export function getOptionValue(args: ReadonlyArray<string>, arg: string, default
   return defaultValue;
 }
 
-export function getOptionsValue(args: ReadonlyArray<string>, arg: string): string[] {
+export function getOptionValues(args: ReadonlyArray<string>, arg: string): string[] {
   const returnVal: string[] = [];
   args.map((entry: string, idx: number) => {
     if (entry === arg) {
