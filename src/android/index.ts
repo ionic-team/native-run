@@ -1,20 +1,23 @@
-export async function run(args: string[]) {
+import { Command } from '../';
+
+export async function run(args: ReadonlyArray<string>): Promise<void> {
+  let cmd: Command;
+
   if (args.includes('--help') || args.includes('-h')) {
-    const help = await import('./help');
-    return help.run();
-  }
-
-  if (args.includes('--list')) {
-    const list = await import ('./list');
-    process.stdout.write(await list.run(args));
-    return;
-  }
-
-  if (args.includes('--sdk-info')) {
-    const cmd = await import ('./sdk-info');
+    cmd = await import('./help');
     return cmd.run(args);
   }
 
-  const cmd = await import('./run');
+  if (args.includes('--list')) {
+    cmd = await import ('./list');
+    return cmd.run(args);
+  }
+
+  if (args.includes('--sdk-info')) {
+    cmd = await import ('./sdk-info');
+    return cmd.run(args);
+  }
+
+  cmd = await import('./run');
   await cmd.run(args);
 }

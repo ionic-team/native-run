@@ -11,7 +11,7 @@ export interface Target {
   readonly format: () => string;
 }
 
-export function list(args: string[], devices: Target[], virtualDevices: Target[]) {
+export function format(args: ReadonlyArray<string>, devices: ReadonlyArray<Target>, virtualDevices: ReadonlyArray<Target>): string {
   const virtualOnly = args.includes('--virtual');
   const devicesOnly = args.includes('--device');
 
@@ -43,7 +43,7 @@ export function list(args: string[], devices: Target[], virtualDevices: Target[]
   return output;
 }
 
-function printTargets(name: string, targets: Target[]) {
+function printTargets(name: string, targets: ReadonlyArray<Target>) {
   let output = `${name}s:\n\n`;
   if (targets.length === 0) {
     output += `  No ${name.toLowerCase()}s found\n`;

@@ -6,7 +6,11 @@ import { stringify } from './utils/json';
 
 const debug = Debug('native-run');
 
-export async function run() {
+export interface Command {
+  readonly run: (args: ReadonlyArray<string>) => Promise<void>;
+}
+
+export async function run(): Promise<void> {
   const args = process.argv.slice(2);
 
   if (args.includes('--version')) {
@@ -15,21 +19,23 @@ export async function run() {
     return;
   }
 
+  let cmd: Command;
   const [ platform, ...platformArgs ] = args;
 
   try {
     if (platform === 'android') {
-      const lib = await import('./android');
-      await lib.run(platformArgs);
+      cmd = await import('./android');
+      await cmd.run(platformArgs);
     } else if (platform === 'ios') {
-      const lib = await import('./ios');
-      await lib.run(platformArgs);
+      cmd = await import('./ios');
+      await cmd.run(platformArgs);
     } else if (platform === '--list') {
-      await list(args);
+      cmd = await import('./list');
+      await cmd.run(args);
     } else {
       if (!platform || platform === 'help' || args.includes('--help') || args.includes('-h') || platform.startsWith('-')) {
-        const help = await import('./help');
-        return help.run();
+        cmd = await import('./help');
+        return cmd.run(args);
       }
 
       throw new CLIException(`Unsupported platform: "${platform}"`, ERR_BAD_INPUT);
@@ -38,26 +44,6 @@ export async function run() {
     debug('Caught fatal error: %O', e);
     process.exitCode = e instanceof Exception ? e.exitCode : 1;
     process.stdout.write(serializeError(e));
-  }
-}
-
-async function list(args: string[]) {
-  const [iosOutput, androidOutput] = await Promise.all([
-    import('./ios/list').then(iosList => iosList.run(args)),
-    import('./android/list').then(androidList => androidList.run(args)),
-  ]);
-
-  if (!args.includes('--json')) {
-    process.stdout.write(`iOS\n---\n\n${iosOutput}\n`);
-    process.stdout.write(`Android\n-------\n\n${androidOutput}`);
-  } else {
-    const adjustLines = (output: string) => output.split('\n').map(line => `  ${line}`).join('\n').trim();
-    process.stdout.write(`
-{
-  "ios": ${adjustLines(iosOutput)},
-  "android": ${adjustLines(androidOutput)}
-}`
-    );
   }
 }
 

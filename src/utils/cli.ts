@@ -1,6 +1,6 @@
-export function getOptionValue(args: string[], arg: string): string | undefined;
-export function getOptionValue(args: string[], arg: string, defaultValue: string): string;
-export function getOptionValue(args: string[], arg: string, defaultValue?: string): string | undefined {
+export function getOptionValue(args: ReadonlyArray<string>, arg: string): string | undefined;
+export function getOptionValue(args: ReadonlyArray<string>, arg: string, defaultValue: string): string;
+export function getOptionValue(args: ReadonlyArray<string>, arg: string, defaultValue?: string): string | undefined {
   const i = args.indexOf(arg);
 
   if (i >= 0) {
@@ -8,4 +8,14 @@ export function getOptionValue(args: string[], arg: string, defaultValue?: strin
   }
 
   return defaultValue;
+}
+
+export function getOptionsValue(args: ReadonlyArray<string>, arg: string): string[] {
+  const returnVal: string[] = [];
+  args.map((entry: string, idx: number) => {
+    if (entry === arg) {
+      returnVal.push(args[idx + 1]);
+    }
+  });
+  return returnVal;
 }

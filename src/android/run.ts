@@ -1,5 +1,5 @@
 import { CLIException, ERR_BAD_INPUT, ERR_TARGET_NOT_FOUND, RunException } from '../errors';
-import { getOptionValue } from '../utils/cli';
+import { getOptionValue, getOptionsValue } from '../utils/cli';
 import { log } from '../utils/log';
 import { onBeforeExit } from '../utils/process';
 
@@ -9,20 +9,24 @@ import { getInstalledAVDs } from './utils/avd';
 import { installApkToDevice, selectDeviceByTarget, selectHardwareDevice, selectVirtualDevice } from './utils/run';
 import { SDK, getSDK } from './utils/sdk';
 
-export async function run(args: string[]) {
+export async function run(args: ReadonlyArray<string>): Promise<void> {
   const sdk = await getSDK();
   const apkPath = getOptionValue(args, '--app');
-  const forwardedPorts = getOptionValue(args, '--forward');
-  let ports: Ports | undefined;
 
-  if (forwardedPorts) {
-    const [ device, host ] = forwardedPorts.split(':');
+  const forwardedPorts = getOptionsValue(args, '--forward');
 
-    if (!device || !host) {
-      throw new CLIException('Invalid --forward value: expecting <device port:host port>, e.g. 8080:8080');
-    }
+  const ports: Ports[] = [];
 
-    ports = { device, host };
+  if (forwardedPorts && forwardedPorts.length > 0) {
+    forwardedPorts.forEach((port: string) => {
+      const [ device, host ] = port.split(':');
+
+      if (!device || !host) {
+        throw new CLIException(`Invalid --forward value "${port}": expecting <device port:host port>, e.g. 8080:8080`);
+      }
+
+      ports.push({ device, host });
+    });
   }
 
   if (!apkPath) {
@@ -37,8 +41,10 @@ export async function run(args: string[]) {
   await waitForBoot(sdk, device);
 
   if (ports) {
-    await forwardPorts(sdk, device, ports);
-    log(`Forwarded device port ${ports.device} to host port ${ports.host}\n`);
+    await Promise.all(ports.map(async (port: Ports) => {
+      await forwardPorts(sdk, device, port);
+      log(`Forwarded device port ${port.device} to host port ${port.host}\n`);
+    }));
   }
 
   await installApkToDevice(sdk, device, apkPath, appId);
@@ -50,7 +56,9 @@ export async function run(args: string[]) {
 
   onBeforeExit(async () => {
     if (ports) {
-      await unforwardPorts(sdk, device, ports);
+      await Promise.all(ports.map(async (port: Ports) => {
+        await unforwardPorts(sdk, device, port);
+      }));
     }
   });
 
@@ -64,7 +72,7 @@ export async function run(args: string[]) {
   }
 }
 
-export async function selectDevice(sdk: SDK, args: string[]): Promise<Device> {
+export async function selectDevice(sdk: SDK, args: ReadonlyArray<string>): Promise<Device> {
   const devices = await getDevices(sdk);
   const avds = await getInstalledAVDs(sdk);
 
