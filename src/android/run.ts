@@ -9,8 +9,7 @@ import { getInstalledAVDs } from './utils/avd';
 import { installApkToDevice, selectDeviceByTarget, selectHardwareDevice, selectVirtualDevice } from './utils/run';
 import { SDK, getSDK } from './utils/sdk';
 
-export async function run(args: string[]) {
-
+export async function run(args: ReadonlyArray<string>): Promise<void> {
   const sdk = await getSDK();
   const apkPath = getOptionValue(args, '--app');
 
@@ -74,7 +73,7 @@ export async function run(args: string[]) {
   }
 }
 
-export async function selectDevice(sdk: SDK, args: string[]): Promise<Device> {
+export async function selectDevice(sdk: SDK, args: ReadonlyArray<string>): Promise<Device> {
   const devices = await getDevices(sdk);
   const avds = await getInstalledAVDs(sdk);
 

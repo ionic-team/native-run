@@ -10,6 +10,6 @@ const help = `
 
 `;
 
-export async function run() {
+export async function run(args: ReadonlyArray<string>): Promise<void> {
   process.stdout.write(help);
 }
