@@ -22,6 +22,7 @@ emulator-5554          device product:sdk_gphone_x86 model:Android_SDK_built_for
           serial: 'emulator-5554',
           state: 'device',
           type: 'emulator',
+          connection: null,
           manufacturer: '',
           model: 'Android_SDK_built_for_x86',
           product: '',
@@ -47,6 +48,7 @@ LGUS996e5ef677         device usb:341835776X product:elsa_nao_us model:LG_US996 
           serial: 'LGUS996e5ef677',
           state: 'device',
           type: 'hardware',
+          connection: 'usb',
           manufacturer: '',
           model: 'LG_US996',
           product: '',
@@ -73,6 +75,7 @@ List of devices attached
           serial: '0a388e93',
           state: 'device',
           type: 'hardware',
+          connection: 'usb',
           manufacturer: '',
           model: 'Nexus_7',
           product: '',
@@ -82,6 +85,32 @@ List of devices attached
             product: 'razor',
             model: 'Nexus_7',
             device: 'flo',
+          },
+        },
+      ]);
+    });
+
+    it('should parse hardware device over tcpip ()', async () => {
+      const output = `
+List of devices attached
+192.168.0.3:5555       device product:mido model:Redmi_Note_4 device:mido transport_id:1\n\n`;
+      const devices = adbUtils.parseAdbDevices(output);
+
+      expect(devices).toEqual([
+        {
+          serial: '192.168.0.3:5555',
+          state: 'device',
+          type: 'hardware',
+          connection: 'tcpip',
+          manufacturer: '',
+          model: 'Redmi_Note_4',
+          product: '',
+          sdkVersion: '',
+          properties: {
+            device: 'mido',
+            product: 'mido',
+            model: 'Redmi_Note_4',
+            transport_id: '1',
           },
         },
       ]);
@@ -107,6 +136,7 @@ List of devices attached
             serial: 'MWS0216B24001482',
             state: 'offline',
             type: 'emulator',
+            connection: null,
             manufacturer: '',
             model: '',
             product: '',

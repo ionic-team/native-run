@@ -32,6 +32,7 @@ export interface Device extends MappedDeviceProps {
   serial: string;
   state: string; // 'offline' | 'device' | 'no device'
   type: 'emulator' | 'hardware';
+  connection: 'usb' | 'tcpip' | null;
   properties: DeviceProperties;
 }
 
@@ -254,7 +255,10 @@ export async function startActivity(sdk: SDK, device: Device, packageName: strin
 export function parseAdbDevices(output: string): Device[] {
   const debug = Debug(`${modulePrefix}:${parseAdbDevices.name}`);
   const re = /^([\S]+)\s+([a-z\s]+)\s+(.*)$/;
+  const ipRe = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+$/;
   const lines = output.split(os.EOL);
+
+  debug('Parsing adb devices from output lines: %O', lines);
 
   const devices: Device[] = [];
 
@@ -276,10 +280,15 @@ export function parseAdbDevices(output: string): Device[] {
             return acc;
           }, {} as { [key: string]: string; });
 
+        const isIP = !!serial.match(ipRe);
+        const type = 'usb' in properties || isIP ? 'hardware' : 'emulator';
+        const connection = 'usb' in properties ? 'usb' : isIP ? 'tcpip' : null;
+
         devices.push({
           serial,
           state,
-          type: 'usb' in properties ? 'hardware' : 'emulator',
+          type,
+          connection,
           properties,
           // We might not know these yet
           manufacturer: '',
