@@ -1,3 +1,10 @@
+## [0.2.2](https://github.com/ionic-team/native-run/compare/v0.2.1...v0.2.2) (2019-05-31)
+
+
+### Bug Fixes
+
+* **android:** handle devices connected over tcp/ip ([4869f4a](https://github.com/ionic-team/native-run/commit/4869f4a))
+
 ## [0.2.1](https://github.com/ionic-team/native-run/compare/v0.2.0...v0.2.1) (2019-05-30)
 
 
