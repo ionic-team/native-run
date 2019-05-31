@@ -49,7 +49,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: /tmp/workspace
-      - run: npx semantic-release
+      - run: npm run publish:ci
 
 workflows:
   version: 2
