@@ -116,9 +116,9 @@ export async function selectDevice(sdk: SDK, args: readonly string[]): Promise<D
     debug('Issue with AVDs: %s', e.message);
 
     if (e.code === ERR_UNSUITABLE_API_INSTALLATION) {
-      throw new RunException('No targets available. Cannot create AVD because there is no suitable API installation. Use --sdk-info to reveal missing packages and other issues.', ERR_NO_TARGET);
+      throw new RunException('No targets devices/emulators available. Cannot create AVD because there is no suitable API installation. Use --sdk-info to reveal missing packages and other issues.', ERR_NO_TARGET);
     }
   }
 
-  throw new RunException('No targets available.', ERR_NO_TARGET);
+  throw new RunException('No target devices/emulators available.', ERR_NO_TARGET);
 }
