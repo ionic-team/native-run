@@ -10,6 +10,7 @@ const debug = Debug('native-run:ios:utils:simulator');
 
 export interface Simulator {
   availability: '(available)' | '(unavailable)';
+  isAvailable: boolean;
   name: string; // "iPhone 5";
   state: string; // "Shutdown"
   udid: string;
@@ -49,7 +50,7 @@ export async function getSimulators() {
     return output.runtimes
       .filter(runtime => runtime.name.indexOf('watch') === -1 && runtime.name.indexOf('tv') === -1)
       .map(runtime => output.devices[runtime.identifier]
-        .filter(device => !device.availability.includes('unavailable'))
+        .filter(device => device.isAvailable)
         .map(device => ({ ...device, runtime }))
       )
       .reduce((prev, next) => prev.concat(next)) // flatten
