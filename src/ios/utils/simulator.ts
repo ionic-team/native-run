@@ -40,6 +40,10 @@ interface SimCtlOutput {
 
 export async function getSimulators() {
   const simctl = spawnSync('xcrun', ['simctl', 'list', '--json'], { encoding: 'utf8' });
+  if (simctl.status) {
+    throw new Exception(`Unable to retrieve simulator list: ${simctl.stderr}`);
+  }
+
   const [xcodeVersion] = getXcodeVersionInfo();
   if (Number(xcodeVersion) < 10) {
     throw new Exception('native-run only supports Xcode 10 and later');
@@ -56,7 +60,7 @@ export async function getSimulators() {
       .reduce((prev, next) => prev.concat(next)) // flatten
       .sort((a, b) => a.name < b.name ? -1 : 1);
   } catch (err) {
-    throw new Exception('Unable to retrieve simulator list');
+    throw new Exception(`Unable to retrieve simulator list: ${err.message}`);
   }
 }
 
