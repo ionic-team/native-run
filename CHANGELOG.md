@@ -1,3 +1,11 @@
+## [0.2.3](https://github.com/ionic-team/native-run/compare/v0.2.2...v0.2.3) (2019-06-05)
+
+
+### Bug Fixes
+
+* **ios:** fix getSimulators for Xcode 10+ tooling ([605164a](https://github.com/ionic-team/native-run/commit/605164a))
+* **ios:** improve getSimulators error messaging ([86205d6](https://github.com/ionic-team/native-run/commit/86205d6))
+
 ## [0.2.2](https://github.com/ionic-team/native-run/compare/v0.2.1...v0.2.2) (2019-05-31)
 
 
