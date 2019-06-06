@@ -8,12 +8,20 @@ Utility for running native binaries on iOS and Android devices and simulators/em
 
 ## Install
 
-```bash
+```console
 $ npm install -g native-run
 ```
 
 ## Usage
 
-```bash
+```console
 $ native-run <platform> [options]
+```
+
+See the help documentation with the `--help` flag.
+
+```console
+$ native-run --help
+$ native-run ios --help
+$ native-run android --help
 ```
