@@ -53,6 +53,7 @@ export async function findAllSDKPackages(sdk: SDK): Promise<SDKPackage[]> {
   debug('Walking %s to discover SDK packages', sdk.root);
   const contents = await readdirp(sdk.root, {
     filter: item => pathlib.basename(item.path) === 'package.xml',
+    onError: err => debug('Error while walking SDK: %O', err),
     walkerOptions: {
       pathFilter: p => {
         if ([
