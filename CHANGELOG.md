@@ -1,3 +1,10 @@
+## [0.2.4](https://github.com/ionic-team/native-run/compare/v0.2.3...v0.2.4) (2019-06-07)
+
+
+### Bug Fixes
+
+* **android:** log errors during sdk walk, don't throw ([ea2e0c5](https://github.com/ionic-team/native-run/commit/ea2e0c5))
+
 ## [0.2.3](https://github.com/ionic-team/native-run/compare/v0.2.2...v0.2.3) (2019-06-05)
 
 
