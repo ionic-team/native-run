@@ -42,7 +42,7 @@ export async function runEmulator(sdk: SDK, avd: AVD, port: number): Promise<Dev
 export async function spawnEmulator(sdk: SDK, avd: AVD, port: number): Promise<void> {
   const debug = Debug(`${modulePrefix}:${spawnEmulator.name}`);
   const emulator = await getSDKPackage(path.join(sdk.root, 'emulator'));
-  const emulatorBin = `${emulator.location}/emulator`;
+  const emulatorBin = path.join(emulator.location, 'emulator');
   const args = ['-avd', avd.id, '-port', port.toString(), '-verbose'];
   debug('Invoking emulator: %O %O', emulatorBin, args);
 
