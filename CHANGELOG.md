@@ -1,3 +1,10 @@
+## [0.2.5](https://github.com/ionic-team/native-run/compare/v0.2.4...v0.2.5) (2019-06-10)
+
+
+### Bug Fixes
+
+* **android:** fix path issue for windows ([9b87583](https://github.com/ionic-team/native-run/commit/9b87583))
+
 ## [0.2.4](https://github.com/ionic-team/native-run/compare/v0.2.3...v0.2.4) (2019-06-07)
 
 
