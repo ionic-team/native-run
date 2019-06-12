@@ -1,6 +1,7 @@
 ---
 name: Bug report for iOS
 about: Unexpected or buggy behavior when using "native-run ios"
+labels: ios
 
 ---
 

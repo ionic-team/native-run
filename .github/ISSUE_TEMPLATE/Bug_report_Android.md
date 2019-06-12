@@ -1,6 +1,7 @@
 ---
 name: Bug report for Android
 about: Unexpected or buggy behavior when using "native-run android"
+labels: android
 
 ---
 
