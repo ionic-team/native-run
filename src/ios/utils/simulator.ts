@@ -53,7 +53,7 @@ export async function getSimulators() {
     const output: SimCtlOutput = JSON.parse(simctl.stdout);
     return output.runtimes
       .filter(runtime => runtime.name.indexOf('watch') === -1 && runtime.name.indexOf('tv') === -1)
-      .map(runtime => output.devices[runtime.identifier]
+      .map(runtime => (output.devices[runtime.identifier] || output.devices[runtime.name])
         .filter(device => device.isAvailable)
         .map(device => ({ ...device, runtime }))
       )
