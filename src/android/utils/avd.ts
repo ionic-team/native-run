@@ -3,7 +3,7 @@ import * as Debug from 'debug';
 import * as pathlib from 'path';
 
 import { ASSETS_PATH } from '../../constants';
-import { AVDException, ERR_INVALID_SKIN, ERR_INVALID_SYSTEM_IMAGE, ERR_MISSING_SYSTEM_IMAGE, ERR_SDK_UNSATISFIED_PACKAGES, ERR_UNSUITABLE_API_INSTALLATION, ERR_UNSUPPORTED_API_LEVEL } from '../../errors';
+import { AVDException, ERR_AVD_HOME_NOT_FOUND, ERR_INVALID_SKIN, ERR_INVALID_SYSTEM_IMAGE, ERR_MISSING_SYSTEM_IMAGE, ERR_SDK_UNSATISFIED_PACKAGES, ERR_UNSUITABLE_API_INSTALLATION, ERR_UNSUPPORTED_API_LEVEL, SDKException } from '../../errors';
 import { readINI, writeINI } from '../../utils/ini';
 import { sort } from '../../utils/object';
 
@@ -87,11 +87,18 @@ export const isAVDConfigINI = (o: any): o is AVDConfigINI => o
 
 export async function getAVDINIs(sdk: SDK): Promise<[string, AVDINI][]> {
   const debug = Debug(`${modulePrefix}:${getAVDINIs.name}`);
-  const contents = await readdir(sdk.avdHome);
+
+  const { avdHome } = sdk;
+
+  if (!avdHome) {
+    throw new SDKException(`No valid Android AVD home found.`, ERR_AVD_HOME_NOT_FOUND);
+  }
+
+  const contents = await readdir(avdHome);
 
   const iniFilePaths = contents
     .filter(f => pathlib.extname(f) === '.ini')
-    .map(f => pathlib.resolve(sdk.avdHome, f));
+    .map(f => pathlib.resolve(avdHome, f));
 
   debug('Discovered AVD ini files: %O', iniFilePaths);
 
@@ -197,26 +204,37 @@ export async function getDefaultAVD(sdk: SDK, avds: readonly AVD[]): Promise<AVD
 }
 
 export async function createAVD(sdk: SDK, schematic: AVDSchematic): Promise<AVD> {
+  const { avdHome } = sdk;
   const { id, ini, configini } = schematic;
 
-  await mkdirp(pathlib.join(sdk.avdHome, `${id}.avd`));
+  if (!avdHome) {
+    throw new SDKException(`No valid Android AVD home found.`, ERR_AVD_HOME_NOT_FOUND);
+  }
+
+  await mkdirp(pathlib.join(avdHome, `${id}.avd`));
 
   await Promise.all([
-    writeINI(pathlib.join(sdk.avdHome, `${id}.ini`), ini),
-    writeINI(pathlib.join(sdk.avdHome, `${id}.avd`, 'config.ini'), configini),
+    writeINI(pathlib.join(avdHome, `${id}.ini`), ini),
+    writeINI(pathlib.join(avdHome, `${id}.avd`, 'config.ini'), configini),
   ]);
 
-  return getAVDFromConfigINI(pathlib.join(sdk.avdHome, `${id}.ini`), ini, configini);
+  return getAVDFromConfigINI(pathlib.join(avdHome, `${id}.ini`), ini, configini);
 }
 
 export async function createAVDSchematic(sdk: SDK, partialSchematic: PartialAVDSchematic): Promise<AVDSchematic> {
+  const { avdHome } = sdk;
+
+  if (!avdHome) {
+    throw new SDKException(`No valid Android AVD home found.`, ERR_AVD_HOME_NOT_FOUND);
+  }
+
   const sysimage = findPackageBySchemaPath(sdk.packages || [], new RegExp(`^system-images;${partialSchematic.ini.target}`));
 
   if (!sysimage) {
     throw new AVDException(`Cannot create AVD schematic for ${partialSchematic.id}: missing system image.`, ERR_MISSING_SYSTEM_IMAGE);
   }
 
-  const avdpath = pathlib.join(sdk.avdHome, `${partialSchematic.id}.avd`);
+  const avdpath = pathlib.join(avdHome, `${partialSchematic.id}.avd`);
   const skinpath = getSkinPathByName(sdk, partialSchematic.configini['skin.name']);
   const sysdir = pathlib.relative(sdk.root, sysimage.location);
   const [ , , tagid ] = sysimage.path.split(';');

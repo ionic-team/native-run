@@ -7,7 +7,7 @@ type Platform = Required<APILevel>;
 
 interface SDKInfo {
   root: string;
-  avdHome: string;
+  avdHome?: string;
   platforms: Platform[];
   tools: SDKPackage[];
 }
@@ -39,7 +39,7 @@ export async function run(args: readonly string[]): Promise<void> {
 function formatSDKInfo(sdk: SDKInfo): string {
   return `
 SDK Location:         ${sdk.root}
-AVD Home:             ${sdk.avdHome}
+AVD Home${sdk.avdHome ? `:             ${sdk.avdHome}` : ` (!):         not found`}
 
 ${sdk.platforms.map(platform => `${formatPlatform(platform)}\n\n`).join('\n')}
 Tools:

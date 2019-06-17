@@ -1,3 +1,4 @@
+import { serializeError } from '../errors';
 import { Targets, formatTargets } from '../utils/list';
 
 import { getDeviceTargets, getVirtualTargets } from './utils/list';
@@ -10,8 +11,22 @@ export async function run(args: readonly string[]): Promise<void> {
 export async function list(args: readonly string[]): Promise<Targets> {
   const sdk = await getSDK();
   const [ devices, virtualDevices ] = await Promise.all([
-    getDeviceTargets(sdk),
-    getVirtualTargets(sdk),
+    (async () => {
+      try {
+        return await getDeviceTargets(sdk);
+      } catch (e) {
+        process.stderr.write(`Error with Android device targets: ${serializeError(e)}`);
+        return [];
+      }
+    })(),
+    (async () => {
+      try {
+        return await getVirtualTargets(sdk);
+      } catch (e) {
+        process.stderr.write(`Error with Android virtual targets: ${serializeError(e)}`);
+        return [];
+      }
+    })(),
   ]);
 
   return { devices, virtualDevices };

@@ -1,44 +1,24 @@
-import * as Debug from 'debug';
-
 import { Target } from '../../utils/list';
 
 import { Device, getDevices } from './adb';
 import { AVD, getDefaultAVD, getInstalledAVDs } from './avd';
 import { SDK } from './sdk';
 
-const modulePrefix = 'native-run:android:utils:list';
-
 export async function getDeviceTargets(sdk: SDK): Promise<Target[]> {
-  const debug = Debug(`${modulePrefix}:${getDeviceTargets.name}`);
-
-  try {
-    return (await getDevices(sdk))
-      .filter(device => device.type === 'hardware')
-      .map(deviceToTarget);
-  } catch (e) {
-    debug('Error getting device targets: %O', e);
-  }
-
-  return [];
+  return (await getDevices(sdk))
+    .filter(device => device.type === 'hardware')
+    .map(deviceToTarget);
 }
 
 export async function getVirtualTargets(sdk: SDK): Promise<Target[]> {
-  const debug = Debug(`${modulePrefix}:${getVirtualTargets.name}`);
+  const avds = await getInstalledAVDs(sdk);
+  const defaultAvd = await getDefaultAVD(sdk, avds);
 
-  try {
-    const avds = await getInstalledAVDs(sdk);
-    const defaultAvd = await getDefaultAVD(sdk, avds);
-
-    if (!avds.includes(defaultAvd)) {
-      avds.push(defaultAvd);
-    }
-
-    return avds.map(avdToTarget);
-  } catch (e) {
-    debug('Error getting virtual targets: %O', e);
+  if (!avds.includes(defaultAvd)) {
+    avds.push(defaultAvd);
   }
 
-  return [];
+  return avds.map(avdToTarget);
 }
 
 export function deviceToTarget(device: Device): Target {
