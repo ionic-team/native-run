@@ -1,3 +1,10 @@
+## [0.2.6](https://github.com/ionic-team/native-run/compare/v0.2.5...v0.2.6) (2019-06-17)
+
+
+### Bug Fixes
+
+* **ios:** support old simctl runtime output format ([aa73578](https://github.com/ionic-team/native-run/commit/aa73578))
+
 ## [0.2.5](https://github.com/ionic-team/native-run/compare/v0.2.4...v0.2.5) (2019-06-10)
 
 
