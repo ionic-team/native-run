@@ -1,7 +1,7 @@
 import * as Debug from 'debug';
 import { DeviceValues } from 'node-ioslib';
 
-import { Target, format } from '../utils/list';
+import { Target, Targets, formatTargets } from '../utils/list';
 
 import { getConnectedDevices } from './utils/device';
 import { Simulator, getSimulators } from './utils/simulator';
@@ -9,10 +9,10 @@ import { Simulator, getSimulators } from './utils/simulator';
 const debug = Debug('native-run:ios:list');
 
 export async function run(args: readonly string[]): Promise<void> {
-  process.stdout.write(await list(args));
+  process.stdout.write(`\n${formatTargets(args, await list(args))}\n`);
 }
 
-export async function list(args: readonly string[]): Promise<string> {
+export async function list(args: readonly string[]): Promise<Targets> {
   const devicesPromise = getConnectedDevices()
     .then(devices => devices.map(deviceToTarget))
     .catch(err => {
@@ -27,9 +27,9 @@ export async function list(args: readonly string[]): Promise<string> {
       return [];
     });
 
-  const [ devices, simulators ] = await Promise.all([devicesPromise, simulatorsPromise]);
+  const [ devices, virtualDevices ] = await Promise.all([devicesPromise, simulatorsPromise]);
 
-  return format(args, devices, simulators);
+  return { devices, virtualDevices };
 }
 
 function deviceToTarget(device: DeviceValues): Target {

@@ -2,6 +2,11 @@ import { CLIException, ERR_BAD_INPUT } from '../errors';
 
 import { stringify } from './json';
 
+export interface Targets {
+  readonly devices: readonly Target[];
+  readonly virtualDevices: readonly Target[];
+}
+
 export interface Target {
   readonly platform: 'android' | 'ios';
   readonly model?: string;
@@ -11,7 +16,9 @@ export interface Target {
   readonly format: () => string;
 }
 
-export function format(args: readonly string[], devices: readonly Target[], virtualDevices: readonly Target[]): string {
+export function formatTargets(args: readonly string[], targets: Targets): string {
+  const { devices, virtualDevices } = targets;
+
   const virtualOnly = args.includes('--virtual');
   const devicesOnly = args.includes('--device');
 
@@ -28,7 +35,7 @@ export function format(args: readonly string[], devices: readonly Target[], virt
     } else {
       result = { devices, virtualDevices };
     }
-    return stringify(result) + '\n';
+    return stringify(result);
   }
 
   let output = '';

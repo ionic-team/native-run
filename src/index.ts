@@ -1,8 +1,7 @@
 import * as Debug from 'debug';
 import * as path from 'path';
 
-import { CLIException, ERR_BAD_INPUT, Exception } from './errors';
-import { stringify } from './utils/json';
+import { CLIException, ERR_BAD_INPUT, Exception, serializeError } from './errors';
 
 const debug = Debug('native-run');
 
@@ -45,14 +44,4 @@ export async function run(): Promise<void> {
     process.exitCode = e instanceof Exception ? e.exitCode : 1;
     process.stdout.write(serializeError(e));
   }
-}
-
-function serializeError(e: Error): string {
-  const stack = String(e.stack ? e.stack : e);
-
-  if (process.argv.includes('--json')) {
-    return stringify(e instanceof Exception ? e : { error: stack });
-  }
-
-  return (e instanceof Exception ? e.serialize() : stack) + '\n';
 }

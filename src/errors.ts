@@ -1,3 +1,5 @@
+import { stringify } from './utils/json';
+
 export class Exception<T extends string, D = object> extends Error implements NodeJS.ErrnoException {
   constructor(readonly message: string, readonly code?: T, readonly exitCode = 1, readonly data?: D) {
     super(message);
@@ -92,3 +94,13 @@ export type SDKExceptionCode = (
 );
 
 export class SDKException extends Exception<SDKExceptionCode> {}
+
+export function serializeError(e = new Error()): string {
+  const stack = String(e.stack ? e.stack : e);
+
+  if (process.argv.includes('--json')) {
+    return stringify(e instanceof Exception ? e : { error: stack });
+  }
+
+  return (e instanceof Exception ? e.serialize() : stack) + '\n';
+}
