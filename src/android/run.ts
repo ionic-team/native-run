@@ -102,7 +102,7 @@ export async function selectDevice(sdk: SDK, args: readonly string[]): Promise<D
     } else if (args.includes('--device')) {
       throw new RunException(`No hardware devices found. Not attempting emulator because --device was specified.`, ERR_NO_DEVICE);
     } else {
-      log('No hardare devices found, attempting emulator...\n');
+      log('No hardware devices found, attempting emulator...\n');
     }
   }
 
