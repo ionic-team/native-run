@@ -271,17 +271,18 @@ export function parseAdbDevices(output: string): Device[] {
         const properties = description
           .split(/\s+/)
           .map(prop => prop.includes(':') ? prop.split(':') : undefined)
-          .filter((kv: any): kv is [string, string] => typeof kv !== 'undefined' && typeof kv[0] === 'string' && typeof kv[1] === 'string')
+          .filter((kv): kv is [string, string] => typeof kv !== 'undefined' && kv.length >= 2)
           .reduce((acc, [ k, v ]) => {
             if (k && v) {
               acc[k.trim()] = v.trim();
             }
 
             return acc;
-          }, {} as { [key: string]: string; });
+          }, {} as { [key: string]: string | undefined; });
 
         const isIP = !!serial.match(ipRe);
-        const type = 'usb' in properties || isIP ? 'hardware' : 'emulator';
+        const isGenericDevice = (properties['device'] || '').startsWith('generic');
+        const type = 'usb' in properties || isIP || !serial.startsWith('emulator') || !isGenericDevice ? 'hardware' : 'emulator';
         const connection = 'usb' in properties ? 'usb' : isIP ? 'tcpip' : null;
 
         devices.push({
@@ -293,7 +294,7 @@ export function parseAdbDevices(output: string): Device[] {
           // We might not know these yet
           manufacturer: '',
           model: properties['model'] || '',
-          product: '',
+          product: properties['product'] || '',
           sdkVersion: '',
         });
       } else {

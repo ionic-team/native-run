@@ -25,7 +25,7 @@ emulator-5554          device product:sdk_gphone_x86 model:Android_SDK_built_for
           connection: null,
           manufacturer: '',
           model: 'Android_SDK_built_for_x86',
-          product: '',
+          product: 'sdk_gphone_x86',
           sdkVersion: '',
           properties: {
             product: 'sdk_gphone_x86',
@@ -51,7 +51,7 @@ LGUS996e5ef677         device usb:341835776X product:elsa_nao_us model:LG_US996 
           connection: 'usb',
           manufacturer: '',
           model: 'LG_US996',
-          product: '',
+          product: 'elsa_nao_us',
           sdkVersion: '',
           properties: {
             usb: '341835776X',
@@ -78,7 +78,7 @@ List of devices attached
           connection: 'usb',
           manufacturer: '',
           model: 'Nexus_7',
-          product: '',
+          product: 'razor',
           sdkVersion: '',
           properties: {
             usb: '1-1',
@@ -90,7 +90,7 @@ List of devices attached
       ]);
     });
 
-    it('should parse hardware device over tcpip ()', async () => {
+    it('should parse hardware device over tcpip (192.168.0.3:5555)', async () => {
       const output = `
 List of devices attached
 192.168.0.3:5555       device product:mido model:Redmi_Note_4 device:mido transport_id:1\n\n`;
@@ -104,13 +104,39 @@ List of devices attached
           connection: 'tcpip',
           manufacturer: '',
           model: 'Redmi_Note_4',
-          product: '',
+          product: 'mido',
           sdkVersion: '',
           properties: {
             device: 'mido',
             product: 'mido',
             model: 'Redmi_Note_4',
             transport_id: '1',
+          },
+        },
+      ]);
+    });
+
+    it('should parse hardware device from line without usb (98897a474748594558)', async () => {
+      const output = `
+List of devices attached
+98897a474748594558     device product:dreamqltesq model:SM_G950U device:dreamqltesq transport_id:2\n\n`;
+      const devices = adbUtils.parseAdbDevices(output);
+
+      expect(devices).toEqual([
+        {
+          serial: '98897a474748594558',
+          state: 'device',
+          type: 'hardware',
+          connection: null,
+          manufacturer: '',
+          model: 'SM_G950U',
+          product: 'dreamqltesq',
+          sdkVersion: '',
+          properties: {
+            device: 'dreamqltesq',
+            product: 'dreamqltesq',
+            model: 'SM_G950U',
+            transport_id: '2',
           },
         },
       ]);
@@ -135,7 +161,7 @@ List of devices attached
           {
             serial: 'MWS0216B24001482',
             state: 'offline',
-            type: 'emulator',
+            type: 'hardware',
             connection: null,
             manufacturer: '',
             model: '',
