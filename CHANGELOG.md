@@ -1,3 +1,11 @@
+## [0.2.7](https://github.com/ionic-team/native-run/compare/v0.2.6...v0.2.7) (2019-06-25)
+
+
+### Bug Fixes
+
+* **android:** more accurate device/emulator detection ([5ec454b](https://github.com/ionic-team/native-run/commit/5ec454b))
+* **list:** handle errors with devices/virtual devices ([9c2375d](https://github.com/ionic-team/native-run/commit/9c2375d))
+
 ## [0.2.6](https://github.com/ionic-team/native-run/compare/v0.2.5...v0.2.6) (2019-06-17)
 
 
