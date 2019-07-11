@@ -1,7 +1,7 @@
 import * as Debug from 'debug';
 import * as path from 'path';
 
-import { CLIException, ERR_BAD_INPUT, Exception, serializeError } from './errors';
+import { CLIException, ERR_BAD_INPUT, Exception, ExitCode, serializeError } from './errors';
 
 const debug = Debug('native-run');
 
@@ -41,7 +41,7 @@ export async function run(): Promise<void> {
     }
   } catch (e) {
     debug('Caught fatal error: %O', e);
-    process.exitCode = e instanceof Exception ? e.exitCode : 1;
+    process.exitCode = e instanceof Exception ? e.exitCode : ExitCode.GENERAL;
     process.stdout.write(serializeError(e));
   }
 }

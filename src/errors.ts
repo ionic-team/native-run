@@ -1,7 +1,11 @@
 import { stringify } from './utils/json';
 
+export const enum ExitCode {
+  GENERAL = 1,
+}
+
 export class Exception<T extends string, D = object> extends Error implements NodeJS.ErrnoException {
-  constructor(readonly message: string, readonly code?: T, readonly exitCode = 1, readonly data?: D) {
+  constructor(readonly message: string, readonly code?: T, readonly exitCode = ExitCode.GENERAL, readonly data?: D) {
     super(message);
   }
 

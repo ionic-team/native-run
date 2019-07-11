@@ -1,49 +1,31 @@
-import { serializeError } from './errors';
 import { stringify } from './utils/json';
 import { Targets, formatTargets } from './utils/list';
 
 export async function run(args: readonly string[]): Promise<void> {
-  let iosError: Error | undefined;
-  let androidError: Error | undefined;
-
-  const [ios, android] = await Promise.all([
-    (async (): Promise<Targets | undefined> => {
+  const [ ios, android ] = await Promise.all([
+    (async (): Promise<Targets> => {
       const cmd = await import('./ios/list');
-
-      try {
-        return await cmd.list(args);
-      } catch (e) {
-        iosError = e;
-      }
+      return cmd.list(args);
     })(),
-    (async (): Promise<Targets | undefined> => {
+    (async (): Promise<Targets> => {
       const cmd = await import('./android/list');
-
-      try {
-        return await cmd.list(args);
-      } catch (e) {
-        androidError = e;
-      }
+      return cmd.list(args);
     })(),
   ]);
 
-  if (iosError || androidError) {
-    process.exitCode = 1;
-  }
-
   if (args.includes('--json')) {
-    process.stdout.write(stringify({ ios, iosError, android, androidError }));
+    process.stdout.write(stringify({ ios, android }));
   } else {
     process.stdout.write(`
-iOS ${iosError ? '(!)' : ''}
+iOS
 ---
 
-${ios ? formatTargets(args, ios) : serializeError(iosError)}
+${formatTargets(args, ios)}
 
-Android ${androidError ? '(!)' : ''}
+Android
 -------
 
-${android ? formatTargets(args, android) : serializeError(androidError)}
+${formatTargets(args, android)}
 
     `);
   }

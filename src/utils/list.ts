@@ -1,10 +1,11 @@
-import { CLIException, ERR_BAD_INPUT } from '../errors';
+import { CLIException, ERR_BAD_INPUT, Exception, serializeError } from '../errors';
 
 import { stringify } from './json';
 
 export interface Targets {
   readonly devices: readonly Target[];
   readonly virtualDevices: readonly Target[];
+  readonly errors: readonly Exception<string>[];
 }
 
 export interface Target {
@@ -17,7 +18,7 @@ export interface Target {
 }
 
 export function formatTargets(args: readonly string[], targets: Targets): string {
-  const { devices, virtualDevices } = targets;
+  const { devices, virtualDevices, errors } = targets;
 
   const virtualOnly = args.includes('--virtual');
   const devicesOnly = args.includes('--device');
@@ -29,16 +30,21 @@ export function formatTargets(args: readonly string[], targets: Targets): string
   if (args.includes('--json')) {
     let result;
     if (virtualOnly) {
-      result = { virtualDevices };
+      result = { virtualDevices, errors };
     } else if (devicesOnly) {
-      result = { devices };
+      result = { devices, errors };
     } else {
-      result = { devices, virtualDevices };
+      result = { devices, virtualDevices, errors };
     }
     return stringify(result);
   }
 
   let output = '';
+
+  if (errors.length > 0) {
+    output += `Errors (!):\n\n${errors.map(e => `  ${serializeError(e)}`)}\n`;
+  }
+
   if (!virtualOnly) {
     output += printTargets('Connected Device', devices);
     if (devicesOnly) {

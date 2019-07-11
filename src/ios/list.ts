@@ -1,23 +1,25 @@
 import { DeviceValues } from 'node-ioslib';
 
-import { serializeError } from '../errors';
+import { Exception } from '../errors';
 import { Target, Targets, formatTargets } from '../utils/list';
 
 import { getConnectedDevices } from './utils/device';
 import { Simulator, getSimulators } from './utils/simulator';
 
 export async function run(args: readonly string[]): Promise<void> {
-  process.stdout.write(`\n${formatTargets(args, await list(args))}\n`);
+  const targets = await list(args);
+  process.stdout.write(`\n${formatTargets(args, targets)}\n`);
 }
 
 export async function list(args: readonly string[]): Promise<Targets> {
+  const errors: Exception<string>[] = [];
   const [ devices, virtualDevices ] = await Promise.all([
     (async () => {
       try {
         const devices = await getConnectedDevices();
         return devices.map(deviceToTarget);
       } catch (e) {
-        process.stderr.write(`Error with iOS device targets: ${serializeError(e)}`);
+        errors.push(e);
         return [];
       }
     })(),
@@ -26,13 +28,13 @@ export async function list(args: readonly string[]): Promise<Targets> {
         const simulators = await getSimulators();
         return simulators.map(simulatorToTarget);
       } catch (e) {
-        process.stderr.write(`Error with iOS virtual targets: ${serializeError(e)}`);
+        errors.push(e);
         return [];
       }
     })(),
   ]);
 
-  return { devices, virtualDevices };
+  return { devices, virtualDevices, errors };
 }
 
 function deviceToTarget(device: DeviceValues): Target {
