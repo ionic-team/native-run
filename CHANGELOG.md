@@ -1,3 +1,10 @@
+## [0.2.8](https://github.com/ionic-team/native-run/compare/v0.2.7...v0.2.8) (2019-07-12)
+
+
+### Bug Fixes
+
+* **list:** include errors in standard output ([9ceb343](https://github.com/ionic-team/native-run/commit/9ceb343))
+
 ## [0.2.7](https://github.com/ionic-team/native-run/compare/v0.2.6...v0.2.7) (2019-06-25)
 
 
