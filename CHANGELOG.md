@@ -1,3 +1,10 @@
+## [0.2.9](https://github.com/ionic-team/native-run/compare/v0.2.8...v0.2.9) (2019-10-15)
+
+
+### Bug Fixes
+
+* **ios:** added support for iOS 13 ([c27675f](https://github.com/ionic-team/native-run/commit/c27675f20ef40264837af5cf091e94bd1af2db91))
+
 ## [0.2.8](https://github.com/ionic-team/native-run/compare/v0.2.7...v0.2.8) (2019-07-12)
 
 
