@@ -4,9 +4,13 @@
 
 # native-run
 
-Utility for running native binaries on iOS and Android devices and simulators/emulators.
+`native-run` is a cross-platform command-line utility for running native binaries on devices and simulators/emulators. It supports deploying both `.apk` and `.ipa` files to Android and iOS devices.
+
+This tool is used by the Ionic CLI, but it can be used standalone as part of a development or testing pipeline for launching apps. It doesn't matter whether the `.apk` or `.ipa` is created with Cordova or native IDEs, `native-run` will be able to deploy it.
 
 ## Install
+
+`native-run` is written entirely in TypeScript/NodeJS and it has no native dependencies. To install, run:
 
 ```console
 $ npm install -g native-run
