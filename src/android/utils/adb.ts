@@ -5,7 +5,7 @@ import * as path from 'path';
 import * as split2 from 'split2';
 import * as through2 from 'through2';
 
-import { ADBException, ERR_INCOMPATIBLE_UPDATE, ERR_VERSION_DOWNGRADE } from '../../errors';
+import { ADBException, ERR_INCOMPATIBLE_UPDATE, ERR_MIN_SDK_VERSION, ERR_VERSION_DOWNGRADE } from '../../errors';
 import { execFile } from '../../utils/process';
 
 import { SDK, getSDKPackage, supplementProcessEnv } from './sdk';
@@ -193,6 +193,8 @@ export async function installApk(sdk: SDK, device: Device, apk: string): Promise
         reject(new ADBException(`Encountered adb error: ${ADBEvent[event]}.`, ERR_INCOMPATIBLE_UPDATE));
       } else if (event === ADBEvent.NewerVersionOnDeviceFailure) {
         reject(new ADBException(`Encountered adb error: ${ADBEvent[event]}.`, ERR_VERSION_DOWNGRADE));
+      } else if (event === ADBEvent.NewerSdkRequiredOnDeviceFailure) {
+        reject(new ADBException(`Encountered adb error: ${ADBEvent[event]}.`, ERR_MIN_SDK_VERSION));
       }
 
       cb();
@@ -223,6 +225,7 @@ export async function uninstallApp(sdk: SDK, device: Device, app: string): Promi
 export enum ADBEvent {
   IncompatibleUpdateFailure, // signatures do not match the previously installed version
   NewerVersionOnDeviceFailure, // version of app on device is newer than the one being deployed
+  NewerSdkRequiredOnDeviceFailure, // device does not meet minSdkVersion requirement
 }
 
 export function parseAdbInstallOutput(line: string): ADBEvent | undefined {
@@ -233,6 +236,8 @@ export function parseAdbInstallOutput(line: string): ADBEvent | undefined {
     event = ADBEvent.IncompatibleUpdateFailure;
   } else if (line.includes('INSTALL_FAILED_VERSION_DOWNGRADE')) {
     event = ADBEvent.NewerVersionOnDeviceFailure;
+  } else if (line.includes('INSTALL_FAILED_OLDER_SDK')) {
+    event = ADBEvent.NewerSdkRequiredOnDeviceFailure;
   }
 
   if (typeof event !== 'undefined') {
