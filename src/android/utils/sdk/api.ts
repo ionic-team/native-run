@@ -61,6 +61,7 @@ export function findPackageBySchemaPath(packages: readonly SDKPackage[], path: s
 }
 
 export type PartialAVDSchematic = (
+  typeof import('../../data/avds/Pixel_3_API_29.json') |
   typeof import('../../data/avds/Pixel_2_API_28.json') |
   typeof import('../../data/avds/Pixel_2_API_27.json') |
   typeof import('../../data/avds/Pixel_2_API_26.json') |
@@ -79,6 +80,29 @@ export interface APISchema {
   readonly validate: (packages: readonly SDKPackage[]) => APISchemaPackage[];
   readonly loadPartialAVDSchematic: () => Promise<PartialAVDSchematic>;
 }
+
+export const API_LEVEL_29: APISchema = Object.freeze({
+  apiLevel: '29',
+  validate: (packages: readonly SDKPackage[]) => {
+    const schemas: APISchemaPackage[] = [
+      { name: 'Android Emulator', path: 'emulator', version: /.+/ },
+      { name: 'Android SDK Platform 29', path: 'platforms;android-29', version: /.+/ },
+    ];
+
+    const missingPackages = findUnsatisfiedPackages(packages, schemas);
+
+    if (!findPackageBySchemaPath(packages, /^system-images;android-29;/)) {
+      missingPackages.push({
+        name: 'Google Play Intel x86 Atom System Image',
+        path: 'system-images;android-29;google_apis_playstore;x86',
+        version: '/.+/',
+      });
+    }
+
+    return missingPackages;
+  },
+  loadPartialAVDSchematic: async () => import('../../data/avds/Pixel_3_API_29.json'),
+});
 
 export const API_LEVEL_28: APISchema = Object.freeze({
   apiLevel: '28',
@@ -195,4 +219,11 @@ export const API_LEVEL_24: APISchema = Object.freeze({
   loadPartialAVDSchematic: async () => import('../../data/avds/Nexus_5X_API_24.json'),
 });
 
-export const API_LEVEL_SCHEMAS: readonly APISchema[] = [API_LEVEL_28, API_LEVEL_27, API_LEVEL_26, API_LEVEL_25, API_LEVEL_24];
+export const API_LEVEL_SCHEMAS: readonly APISchema[] = [
+  API_LEVEL_29,
+  API_LEVEL_28,
+  API_LEVEL_27,
+  API_LEVEL_26,
+  API_LEVEL_25,
+  API_LEVEL_24,
+];
