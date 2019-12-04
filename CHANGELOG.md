@@ -1,3 +1,11 @@
+# [0.3.0](https://github.com/ionic-team/native-run/compare/v0.2.9...v0.3.0) (2019-12-04)
+
+
+### Features
+
+* **android:** handle INSTALL_FAILED_OLDER_SDK adb error ([#92](https://github.com/ionic-team/native-run/issues/92)) ([6616f37](https://github.com/ionic-team/native-run/commit/6616f379a60797650709ba7a70f195558ddcdedd))
+* **android:** support API 29 ([2282b3a](https://github.com/ionic-team/native-run/commit/2282b3acfa58da685b0dc1981cf602a781bd6a1a))
+
 ## [0.2.9](https://github.com/ionic-team/native-run/compare/v0.2.8...v0.2.9) (2019-10-15)
 
 
