@@ -34,7 +34,7 @@
     "url": "git+https://github.com/ionic-team/native-run.git"
   },
   "dependencies": {
-    "@ionic/utils-fs": "^2.0.0",
+    "@ionic/utils-fs": "^3.0.0",
     "debug": "^4.1.1",
     "elementtree": "^0.1.7",
     "ini": "^1.3.5",
