@@ -45,7 +45,7 @@
     "yauzl": "^2.10.0"
   },
   "devDependencies": {
-    "@semantic-release/changelog": "^3.0.2",
+    "@semantic-release/changelog": "^5.0.0",
     "@semantic-release/git": "^7.0.8",
     "@types/debug": "4.1.5",
     "@types/elementtree": "^0.1.0",
