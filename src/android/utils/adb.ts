@@ -5,7 +5,7 @@ import * as path from 'path';
 import * as split2 from 'split2';
 import * as through2 from 'through2';
 
-import { ADBException, ERR_INCOMPATIBLE_UPDATE, ERR_MIN_SDK_VERSION, ERR_VERSION_DOWNGRADE } from '../../errors';
+import { ADBException, ERR_INCOMPATIBLE_UPDATE, ERR_MIN_SDK_VERSION, ERR_NO_CERTIFICATES, ERR_VERSION_DOWNGRADE } from '../../errors';
 import { execFile } from '../../utils/process';
 
 import { SDK, getSDKPackage, supplementProcessEnv } from './sdk';
@@ -195,6 +195,8 @@ export async function installApk(sdk: SDK, device: Device, apk: string): Promise
         reject(new ADBException(`Encountered adb error: ${ADBEvent[event]}.`, ERR_VERSION_DOWNGRADE));
       } else if (event === ADBEvent.NewerSdkRequiredOnDeviceFailure) {
         reject(new ADBException(`Encountered adb error: ${ADBEvent[event]}.`, ERR_MIN_SDK_VERSION));
+      } else if (event === ADBEvent.NoCertificates) {
+        reject(new ADBException(`Encountered adb error: ${ADBEvent[event]}.`, ERR_NO_CERTIFICATES));
       }
 
       cb();
@@ -226,6 +228,7 @@ export enum ADBEvent {
   IncompatibleUpdateFailure, // signatures do not match the previously installed version
   NewerVersionOnDeviceFailure, // version of app on device is newer than the one being deployed
   NewerSdkRequiredOnDeviceFailure, // device does not meet minSdkVersion requirement
+  NoCertificates, // no certificates in APK, likely due to improper signing config
 }
 
 export function parseAdbInstallOutput(line: string): ADBEvent | undefined {
@@ -238,6 +241,8 @@ export function parseAdbInstallOutput(line: string): ADBEvent | undefined {
     event = ADBEvent.NewerVersionOnDeviceFailure;
   } else if (line.includes('INSTALL_FAILED_OLDER_SDK')) {
     event = ADBEvent.NewerSdkRequiredOnDeviceFailure;
+  } else if (line.includes('INSTALL_PARSE_FAILED_NO_CERTIFICATES')) {
+    event = ADBEvent.NoCertificates;
   }
 
   if (typeof event !== 'undefined') {
