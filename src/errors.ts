@@ -22,6 +22,16 @@ export class Exception<T extends string, D = object> extends Error implements No
   }
 }
 
+export class AndroidException<T extends string, D = object> extends Exception<T, D> {
+  serialize() {
+    return (
+      `${super.serialize()}\n\n` +
+      `\tMore details for this error may be available online:\n\n` +
+      `\thttps://github.com/ionic-team/native-run/wiki/Android-Errors`
+    );
+  }
+}
+
 export const ERR_BAD_INPUT = 'ERR_BAD_INPUT';
 export const ERR_ALREADY_RUNNING = 'ERR_ALREADY_RUNNING ';
 export const ERR_AVD_HOME_NOT_FOUND = 'ERR_AVD_HOME_NOT_FOUND';
@@ -57,10 +67,11 @@ export type ADBExceptionCode = (
   typeof ERR_INCOMPATIBLE_UPDATE |
   typeof ERR_VERSION_DOWNGRADE |
   typeof ERR_MIN_SDK_VERSION |
+  typeof ERR_NO_CERTIFICATES |
   typeof ERR_NON_ZERO_EXIT
 );
 
-export class ADBException extends Exception<ADBExceptionCode> {}
+export class ADBException extends AndroidException<ADBExceptionCode> {}
 
 export type AVDExceptionCode = (
   typeof ERR_INVALID_SKIN |
@@ -71,7 +82,7 @@ export type AVDExceptionCode = (
   typeof ERR_MISSING_SYSTEM_IMAGE
 );
 
-export class AVDException extends Exception<AVDExceptionCode> {}
+export class AVDException extends AndroidException<AVDExceptionCode> {}
 
 export type EmulatorExceptionCode = (
   typeof ERR_ALREADY_RUNNING |
@@ -81,7 +92,7 @@ export type EmulatorExceptionCode = (
   typeof ERR_UNKNOWN_AVD
 );
 
-export class EmulatorException extends Exception<EmulatorExceptionCode> {}
+export class EmulatorException extends AndroidException<EmulatorExceptionCode> {}
 
 export type RunExceptionCode = (
   typeof ERR_NO_AVDS_FOUND |
@@ -90,7 +101,7 @@ export type RunExceptionCode = (
   typeof ERR_NO_TARGET
 );
 
-export class RunException extends Exception<RunExceptionCode> {}
+export class RunException extends AndroidException<RunExceptionCode> {}
 
 export type SDKExceptionCode = (
   typeof ERR_AVD_HOME_NOT_FOUND |
@@ -100,7 +111,7 @@ export type SDKExceptionCode = (
   typeof ERR_SDK_PACKAGE_NOT_FOUND
 );
 
-export class SDKException extends Exception<SDKExceptionCode> {}
+export class SDKException extends AndroidException<SDKExceptionCode> {}
 
 export function serializeError(e = new Error()): string {
   const stack = String(e.stack ? e.stack : e);
