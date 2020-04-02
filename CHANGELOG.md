@@ -1,3 +1,21 @@
+# [1.0.0](https://github.com/ionic-team/native-run/compare/v0.3.0...v1.0.0) (2020-04-02)
+
+
+### chore
+
+* require Node 10 ([430d23a](https://github.com/ionic-team/native-run/commit/430d23ac5dfb4f5c0ab059e923839a6bd7d523d4))
+
+
+### Features
+
+* **android:** handle adb error re: improper signing ([829585f](https://github.com/ionic-team/native-run/commit/829585f82cab311f5ceee84369ccdac2b327d744))
+* **android:** show link to online help docs for errors ([0bc4487](https://github.com/ionic-team/native-run/commit/0bc448715af72ba7febee4f8f3e5b008cd489f16))
+
+
+### BREAKING CHANGES
+
+* A minimum of Node.js 10.3.0 is required.
+
 # [0.3.0](https://github.com/ionic-team/native-run/compare/v0.2.9...v0.3.0) (2019-12-04)
 
 
