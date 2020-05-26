@@ -1,11 +1,11 @@
 import * as Debug from 'debug';
 import { readFileSync } from 'fs';
-import { AFCError, AFC_STATUS, ClientManager, DeviceValues, IPLookupResult, LockdowndClient, UsbmuxdClient } from 'node-ioslib';
 import * as path from 'path';
 import { promisify } from 'util';
 
 import { Exception } from '../../errors';
 import { onBeforeExit } from '../../utils/process';
+import { AFCError, AFC_STATUS, ClientManager, DeviceValues, IPLookupResult, LockdowndClient, UsbmuxdClient } from '../lib';
 
 import { getDeveloperDiskImagePath } from './xcode';
 

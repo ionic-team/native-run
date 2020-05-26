@@ -1,8 +1,7 @@
-import { DeviceValues } from 'node-ioslib';
-
 import { Exception } from '../errors';
 import { Target, Targets, formatTargets } from '../utils/list';
 
+import { DeviceValues } from './lib';
 import { getConnectedDevices } from './utils/device';
 import { Simulator, getSimulators } from './utils/simulator';
 
