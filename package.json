@@ -62,7 +62,7 @@
     "jest": "^25.1.0",
     "jest-cli": "^25.1.0",
     "semantic-release": "^15.13.12",
-    "ts-jest": "^25.2.1",
+    "ts-jest": "^26.1.0",
     "tslint": "^5.12.1",
     "tslint-ionic-rules": "0.0.21",
     "typescript": "~3.8.2",
