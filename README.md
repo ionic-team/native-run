@@ -10,7 +10,7 @@ This tool is used by the Ionic CLI, but it can be used standalone as part of a d
 
 ## Install
 
-`native-run` is written entirely in TypeScript/NodeJS and it has no native dependencies. To install, run:
+`native-run` is written entirely in TypeScript/NodeJS and it has no native dependencies. It requires NodeJS 10 or later. To install, run:
 
 ```console
 $ npm install -g native-run
