@@ -1,3 +1,15 @@
+# [1.1.0](https://github.com/ionic-team/native-run/compare/v1.0.0...v1.1.0) (2020-09-10)
+
+
+### Bug Fixes
+
+* **ios:** do not falsely link to Android Wiki for iOS errors ([18371f2](https://github.com/ionic-team/native-run/commit/18371f296fb8a3cb0ab070f2c5316f98e9351263))
+
+
+### Features
+
+* **android:** create AVD home if not found ([1cec3c2](https://github.com/ionic-team/native-run/commit/1cec3c258b26c876bf12f8d823ef270faa4a6a78))
+
 # [1.0.0](https://github.com/ionic-team/native-run/compare/v0.3.0...v1.0.0) (2020-04-02)
 
 
