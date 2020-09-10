@@ -5,7 +5,8 @@ import * as plist from 'plist';
 import {
   PlistProtocolReader,
   ProtocolClient,
-  ProtocolReaderFactory, ProtocolWriter
+  ProtocolReaderFactory,
+  ProtocolWriter,
 } from './protocol';
 
 const debug = Debug('native-run:ios:lib:protocol:usbmux');
@@ -18,19 +19,16 @@ export interface UsbmuxMessage {
 }
 
 export class UsbmuxProtocolClient extends ProtocolClient<UsbmuxMessage> {
-
   constructor(socket: net.Socket) {
     super(
       socket,
       new ProtocolReaderFactory(UsbmuxProtocolReader),
-      new UsbmuxProtocolWriter()
+      new UsbmuxProtocolWriter(),
     );
   }
-
 }
 
 export class UsbmuxProtocolReader extends PlistProtocolReader {
-
   constructor(callback: (data: any) => any) {
     super(USBMUXD_HEADER_SIZE, callback);
   }
@@ -44,21 +42,21 @@ export class UsbmuxProtocolReader extends PlistProtocolReader {
     debug(`Response: ${JSON.stringify(resp)}`);
     return resp;
   }
-
 }
 
 export class UsbmuxProtocolWriter implements ProtocolWriter {
   private useTag = 0;
 
-  write(socket: net.Socket, msg: UsbmuxMessage) { // TODO Usbmux message type
+  write(socket: net.Socket, msg: UsbmuxMessage) {
+    // TODO Usbmux message type
     debug(`socket write: ${JSON.stringify(msg)}`);
     const { messageType, extraFields } = msg;
     const plistMessage = plist.build({
-      'BundleID': 'io.ionic.native-run', // TODO
-      'ClientVersionString': 'usbmux.js', // TODO
-      'MessageType': messageType,
-      'ProgName': 'native-run', // TODO
-      'kLibUSBMuxVersion': 3,
+      BundleID: 'io.ionic.native-run', // TODO
+      ClientVersionString: 'usbmux.js', // TODO
+      MessageType: messageType,
+      ProgName: 'native-run', // TODO
+      kLibUSBMuxVersion: 3,
       ...extraFields,
     });
 
@@ -74,5 +72,4 @@ export class UsbmuxProtocolWriter implements ProtocolWriter {
     socket.write(header);
     socket.write(plistMessage);
   }
-
 }

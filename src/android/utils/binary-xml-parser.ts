@@ -180,24 +180,24 @@ export class BinaryXmlParser {
     dimension.rawUnit = unit;
 
     switch (unit) {
-    case TypedValue.COMPLEX_UNIT_MM:
-      dimension.unit = 'mm';
-      break;
-    case TypedValue.COMPLEX_UNIT_PX:
-      dimension.unit = 'px';
-      break;
-    case TypedValue.COMPLEX_UNIT_DIP:
-      dimension.unit = 'dp';
-      break;
-    case TypedValue.COMPLEX_UNIT_SP:
-      dimension.unit = 'sp';
-      break;
-    case TypedValue.COMPLEX_UNIT_PT:
-      dimension.unit = 'pt';
-      break;
-    case TypedValue.COMPLEX_UNIT_IN:
-      dimension.unit = 'in';
-      break;
+      case TypedValue.COMPLEX_UNIT_MM:
+        dimension.unit = 'mm';
+        break;
+      case TypedValue.COMPLEX_UNIT_PX:
+        dimension.unit = 'px';
+        break;
+      case TypedValue.COMPLEX_UNIT_DIP:
+        dimension.unit = 'dp';
+        break;
+      case TypedValue.COMPLEX_UNIT_SP:
+        dimension.unit = 'sp';
+        break;
+      case TypedValue.COMPLEX_UNIT_PT:
+        dimension.unit = 'pt';
+        break;
+      case TypedValue.COMPLEX_UNIT_IN:
+        dimension.unit = 'in';
+        break;
     }
 
     return dimension;
@@ -219,12 +219,12 @@ export class BinaryXmlParser {
     fraction.rawType = type;
 
     switch (type) {
-    case TypedValue.COMPLEX_UNIT_FRACTION:
-      fraction.type = '%';
-      break;
-    case TypedValue.COMPLEX_UNIT_FRACTION_PARENT:
-      fraction.type = '%p';
-      break;
+      case TypedValue.COMPLEX_UNIT_FRACTION:
+        fraction.type = '%';
+        break;
+      case TypedValue.COMPLEX_UNIT_FRACTION_PARENT:
+        fraction.type = '%p';
+        break;
     }
 
     return fraction;
@@ -265,63 +265,63 @@ export class BinaryXmlParser {
     typedValue.rawType = dataType;
 
     switch (dataType) {
-    case TypedValue.TYPE_INT_DEC:
-      typedValue.value = this.readS32();
-      typedValue.type = 'int_dec';
-      break;
-    case TypedValue.TYPE_INT_HEX:
-      typedValue.value = this.readS32();
-      typedValue.type = 'int_hex';
-      break;
-    case TypedValue.TYPE_STRING:
-      const ref = this.readS32();
-      typedValue.value = ref > 0 ? this.strings[ref] : '';
-      typedValue.type = 'string';
-      break;
-    case TypedValue.TYPE_REFERENCE:
-      const id = this.readU32();
-      typedValue.value = `resourceId:0x${id.toString(16)}`;
-      typedValue.type = 'reference';
-      break;
-    case TypedValue.TYPE_INT_BOOLEAN:
-      typedValue.value = this.readS32() !== 0;
-      typedValue.type = 'boolean';
-      break;
-    case TypedValue.TYPE_NULL:
-      this.readU32();
-      typedValue.value = null;
-      typedValue.type = 'null';
-      break;
-    case TypedValue.TYPE_INT_COLOR_RGB8:
-      typedValue.value = this.readHex24();
-      typedValue.type = 'rgb8';
-      break;
-    case TypedValue.TYPE_INT_COLOR_RGB4:
-      typedValue.value = this.readHex24();
-      typedValue.type = 'rgb4';
-      break;
-    case TypedValue.TYPE_INT_COLOR_ARGB8:
-      typedValue.value = this.readHex32();
-      typedValue.type = 'argb8';
-      break;
-    case TypedValue.TYPE_INT_COLOR_ARGB4:
-      typedValue.value = this.readHex32();
-      typedValue.type = 'argb4';
-      break;
-    case TypedValue.TYPE_DIMENSION:
-      typedValue.value = this.readDimension();
-      typedValue.type = 'dimension';
-      break;
-    case TypedValue.TYPE_FRACTION:
-      typedValue.value = this.readFraction();
-      typedValue.type = 'fraction';
-      break;
-    default: {
-      // const type = dataType.toString(16);
-      // debug(`Not sure what to do with typed value of type 0x${type}, falling back to reading an uint32.`);
-      typedValue.value = this.readU32();
-      typedValue.type = 'unknown';
-    }
+      case TypedValue.TYPE_INT_DEC:
+        typedValue.value = this.readS32();
+        typedValue.type = 'int_dec';
+        break;
+      case TypedValue.TYPE_INT_HEX:
+        typedValue.value = this.readS32();
+        typedValue.type = 'int_hex';
+        break;
+      case TypedValue.TYPE_STRING:
+        const ref = this.readS32();
+        typedValue.value = ref > 0 ? this.strings[ref] : '';
+        typedValue.type = 'string';
+        break;
+      case TypedValue.TYPE_REFERENCE:
+        const id = this.readU32();
+        typedValue.value = `resourceId:0x${id.toString(16)}`;
+        typedValue.type = 'reference';
+        break;
+      case TypedValue.TYPE_INT_BOOLEAN:
+        typedValue.value = this.readS32() !== 0;
+        typedValue.type = 'boolean';
+        break;
+      case TypedValue.TYPE_NULL:
+        this.readU32();
+        typedValue.value = null;
+        typedValue.type = 'null';
+        break;
+      case TypedValue.TYPE_INT_COLOR_RGB8:
+        typedValue.value = this.readHex24();
+        typedValue.type = 'rgb8';
+        break;
+      case TypedValue.TYPE_INT_COLOR_RGB4:
+        typedValue.value = this.readHex24();
+        typedValue.type = 'rgb4';
+        break;
+      case TypedValue.TYPE_INT_COLOR_ARGB8:
+        typedValue.value = this.readHex32();
+        typedValue.type = 'argb8';
+        break;
+      case TypedValue.TYPE_INT_COLOR_ARGB4:
+        typedValue.value = this.readHex32();
+        typedValue.type = 'argb4';
+        break;
+      case TypedValue.TYPE_DIMENSION:
+        typedValue.value = this.readDimension();
+        typedValue.type = 'dimension';
+        break;
+      case TypedValue.TYPE_FRACTION:
+        typedValue.value = this.readFraction();
+        typedValue.type = 'fraction';
+        break;
+      default: {
+        // const type = dataType.toString(16);
+        // debug(`Not sure what to do with typed value of type 0x${type}, falling back to reading an uint32.`);
+        typedValue.value = this.readU32();
+        typedValue.type = 'unknown';
+      }
     }
 
     // Ensure we consume the whole value
@@ -329,9 +329,9 @@ export class BinaryXmlParser {
     if (this.cursor !== end) {
       // const type = dataType.toString(16);
       // const diff = end - this.cursor;
-//       debug(`Cursor is off by ${diff} bytes at ${this.cursor} at supposed end \
-// of typed value of type 0x${type}. The typed value started at offset ${start} \
-// and is supposed to end at offset ${end}. Ignoring the rest of the value.`);
+      //       debug(`Cursor is off by ${diff} bytes at ${this.cursor} at supposed end \
+      // of typed value of type 0x${type}. The typed value started at offset ${start} \
+      // and is supposed to end at offset ${end}. Ignoring the rest of the value.`);
       this.cursor = end;
     }
 
@@ -341,8 +341,8 @@ export class BinaryXmlParser {
   // https://twitter.com/kawasima/status/427730289201139712
   convertIntToFloat(int: number) {
     const buf = new ArrayBuffer(4);
-    (new Int32Array(buf))[0] = int;
-    return (new Float32Array(buf))[0];
+    new Int32Array(buf)[0] = int;
+    return new Float32Array(buf)[0];
   }
 
   readString(encoding: string) {
@@ -351,26 +351,34 @@ export class BinaryXmlParser {
     let byteLength;
     let value;
     switch (encoding) {
-    case 'utf-8':
-      stringLength = this.readLength8();
-      // debug('stringLength:', stringLength);
-      byteLength = this.readLength8();
-      // debug('byteLength:', byteLength);
-      value = this.buffer.toString(encoding, this.cursor, (this.cursor += byteLength));
-      // debug('value:', value);
-      assert.equal(this.readU8(), 0, 'String must end with trailing zero');
-      return value;
-    case 'ucs2':
-      stringLength = this.readLength16();
-      // debug('stringLength:', stringLength);
-      byteLength = stringLength * 2;
-      // debug('byteLength:', byteLength);
-      value = this.buffer.toString(encoding, this.cursor, (this.cursor += byteLength));
-      // debug('value:', value);
-      assert.equal(this.readU16(), 0, 'String must end with trailing zero');
-      return value;
-    default:
-      throw new Exception(`Unsupported encoding '${encoding}'`);
+      case 'utf-8':
+        stringLength = this.readLength8();
+        // debug('stringLength:', stringLength);
+        byteLength = this.readLength8();
+        // debug('byteLength:', byteLength);
+        value = this.buffer.toString(
+          encoding,
+          this.cursor,
+          (this.cursor += byteLength),
+        );
+        // debug('value:', value);
+        assert.equal(this.readU8(), 0, 'String must end with trailing zero');
+        return value;
+      case 'ucs2':
+        stringLength = this.readLength16();
+        // debug('stringLength:', stringLength);
+        byteLength = stringLength * 2;
+        // debug('byteLength:', byteLength);
+        value = this.buffer.toString(
+          encoding,
+          this.cursor,
+          (this.cursor += byteLength),
+        );
+        // debug('value:', value);
+        assert.equal(this.readU16(), 0, 'String must end with trailing zero');
+        return value;
+      default:
+        throw new Exception(`Unsupported encoding '${encoding}'`);
     }
   }
 
@@ -415,9 +423,8 @@ export class BinaryXmlParser {
 
     // const sorted = (header.flags & StringFlags.SORTED) === StringFlags.SORTED;
     // debug('sorted:', sorted);
-    const encoding = (header.flags & StringFlags.UTF8) === StringFlags.UTF8
-      ? 'utf-8'
-      : 'ucs2';
+    const encoding =
+      (header.flags & StringFlags.UTF8) === StringFlags.UTF8 ? 'utf-8' : 'ucs2';
     // debug('encoding:', encoding);
 
     const stringsStart = header.startOffset + header.stringsStart;
@@ -532,7 +539,7 @@ export class BinaryXmlParser {
       this.parent.childNodes.push(node);
       this.parent = node;
     } else {
-      this.document = (this.parent = node);
+      this.document = this.parent = node;
     }
 
     this.stack.push(node);
@@ -636,32 +643,32 @@ export class BinaryXmlParser {
       const start = this.cursor;
       const header = this.readChunkHeader();
       switch (header.chunkType) {
-      case ChunkType.STRING_POOL:
-        this.readStringPool(header);
-        break;
-      case ChunkType.XML_RESOURCE_MAP:
-        this.readResourceMap(header);
-        break;
-      case ChunkType.XML_START_NAMESPACE:
-        this.readXmlNamespaceStart();
-        break;
-      case ChunkType.XML_END_NAMESPACE:
-        this.readXmlNamespaceEnd();
-        break;
-      case ChunkType.XML_START_ELEMENT:
-        this.readXmlElementStart();
-        break;
-      case ChunkType.XML_END_ELEMENT:
-        this.readXmlElementEnd();
-        break;
-      case ChunkType.XML_CDATA:
-        this.readXmlCData();
-        break;
-      case ChunkType.NULL:
-        this.readNull(header);
-        break;
-      default:
-        throw new Exception(`Unsupported chunk type '${header.chunkType}'`);
+        case ChunkType.STRING_POOL:
+          this.readStringPool(header);
+          break;
+        case ChunkType.XML_RESOURCE_MAP:
+          this.readResourceMap(header);
+          break;
+        case ChunkType.XML_START_NAMESPACE:
+          this.readXmlNamespaceStart();
+          break;
+        case ChunkType.XML_END_NAMESPACE:
+          this.readXmlNamespaceEnd();
+          break;
+        case ChunkType.XML_START_ELEMENT:
+          this.readXmlElementStart();
+          break;
+        case ChunkType.XML_END_ELEMENT:
+          this.readXmlElementEnd();
+          break;
+        case ChunkType.XML_CDATA:
+          this.readXmlCData();
+          break;
+        case ChunkType.NULL:
+          this.readNull(header);
+          break;
+        default:
+          throw new Exception(`Unsupported chunk type '${header.chunkType}'`);
       }
 
       // Ensure we consume the whole chunk
@@ -670,9 +677,9 @@ export class BinaryXmlParser {
         // const diff = end - this.cursor;
         // const type = header.chunkType.toString(16);
         // debug(`Cursor is off by ${diff} bytes at ${this.cursor} at supposed \
-// end of chunk of type 0x${type}. The chunk started at offset ${start} and is \
-// supposed to end at offset ${end}. Ignoring the rest of the chunk.`);
-//         this.cursor = end;
+        // end of chunk of type 0x${type}. The chunk started at offset ${start} and is \
+        // supposed to end at offset ${end}. Ignoring the rest of the chunk.`);
+        //         this.cursor = end;
       }
     }
 

@@ -1,7 +1,6 @@
 import * as path from 'path';
 
 describe('android/utils/sdk', () => {
-
   let sdkUtils: typeof import('../');
   let mockIsDir: jest.Mock;
   let mockHomedir: jest.Mock;
@@ -26,9 +25,7 @@ describe('android/utils/sdk', () => {
   });
 
   describe('SDK_DIRECTORIES', () => {
-
     describe('windows', () => {
-
       beforeEach(() => {
         jest.mock('path', () => path.win32);
         mockHomedir = jest.fn().mockReturnValue('C:\\Users\\me');
@@ -38,28 +35,45 @@ describe('android/utils/sdk', () => {
       it('should default to windows 10 local app data directory', async () => {
         Object.defineProperty(process, 'env', { value: {} });
         sdkUtils = await import('../');
-        expect(sdkUtils.SDK_DIRECTORIES.get('win32')).toEqual([path.win32.join('C:\\Users\\me\\AppData\\Local\\Android\\Sdk')]);
+        expect(sdkUtils.SDK_DIRECTORIES.get('win32')).toEqual([
+          path.win32.join('C:\\Users\\me\\AppData\\Local\\Android\\Sdk'),
+        ]);
       });
 
       it('should use LOCALAPPDATA environment variable if present', async () => {
-        Object.defineProperty(process, 'env', { value: { LOCALAPPDATA: path.win32.join('C:\\', 'Documents and Settings', 'me', 'Application Data') } });
+        Object.defineProperty(process, 'env', {
+          value: {
+            LOCALAPPDATA: path.win32.join(
+              'C:\\',
+              'Documents and Settings',
+              'me',
+              'Application Data',
+            ),
+          },
+        });
         sdkUtils = await import('../');
-        expect(sdkUtils.SDK_DIRECTORIES.get('win32')).toEqual([path.win32.join('C:\\Documents and Settings\\me\\Application Data\\Android\\Sdk')]);
+        expect(sdkUtils.SDK_DIRECTORIES.get('win32')).toEqual([
+          path.win32.join(
+            'C:\\Documents and Settings\\me\\Application Data\\Android\\Sdk',
+          ),
+        ]);
       });
-
     });
-
   });
 
   describe('resolveSDKRoot', () => {
-
     beforeEach(async () => {
       sdkUtils = await import('../');
     });
 
     it('should resolve with ANDROID_HOME if in environment', async () => {
       mockIsDir.mockResolvedValueOnce(true);
-      Object.defineProperty(process, 'env', { value: { ANDROID_HOME: '/some/dir', ANDROID_SDK_ROOT: '/some/other/dir' } });
+      Object.defineProperty(process, 'env', {
+        value: {
+          ANDROID_HOME: '/some/dir',
+          ANDROID_SDK_ROOT: '/some/other/dir',
+        },
+      });
       await expect(sdkUtils.resolveSDKRoot()).resolves.toEqual('/some/dir');
       expect(mockIsDir).toHaveBeenCalledTimes(1);
       expect(mockIsDir).toHaveBeenCalledWith('/some/dir');
@@ -67,8 +81,12 @@ describe('android/utils/sdk', () => {
 
     it('should resolve with ANDROID_SDK_ROOT if in environment', async () => {
       mockIsDir.mockResolvedValueOnce(true);
-      Object.defineProperty(process, 'env', { value: { ANDROID_SDK_ROOT: '/some/other/dir' } });
-      await expect(sdkUtils.resolveSDKRoot()).resolves.toEqual('/some/other/dir');
+      Object.defineProperty(process, 'env', {
+        value: { ANDROID_SDK_ROOT: '/some/other/dir' },
+      });
+      await expect(sdkUtils.resolveSDKRoot()).resolves.toEqual(
+        '/some/other/dir',
+      );
       expect(mockIsDir).toHaveBeenCalledTimes(1);
       expect(mockIsDir).toHaveBeenCalledWith('/some/other/dir');
     });
@@ -77,7 +95,9 @@ describe('android/utils/sdk', () => {
       mockIsDir.mockResolvedValueOnce(true);
       Object.defineProperty(process, 'env', { value: {} });
       Object.defineProperty(process, 'platform', { value: 'linux' });
-      await expect(sdkUtils.resolveSDKRoot()).resolves.toEqual('/home/me/Android/sdk');
+      await expect(sdkUtils.resolveSDKRoot()).resolves.toEqual(
+        '/home/me/Android/sdk',
+      );
       expect(mockIsDir).toHaveBeenCalledTimes(1);
       expect(mockIsDir).toHaveBeenCalledWith('/home/me/Android/sdk');
     });
@@ -86,7 +106,9 @@ describe('android/utils/sdk', () => {
       mockIsDir.mockResolvedValueOnce(true);
       Object.defineProperty(process, 'env', { value: {} });
       Object.defineProperty(process, 'platform', { value: 'darwin' });
-      await expect(sdkUtils.resolveSDKRoot()).resolves.toEqual('/home/me/Library/Android/sdk');
+      await expect(sdkUtils.resolveSDKRoot()).resolves.toEqual(
+        '/home/me/Library/Android/sdk',
+      );
       expect(mockIsDir).toHaveBeenCalledTimes(1);
       expect(mockIsDir).toHaveBeenCalledWith('/home/me/Library/Android/sdk');
     });
@@ -95,11 +117,11 @@ describe('android/utils/sdk', () => {
       mockIsDir.mockResolvedValueOnce(false);
       Object.defineProperty(process, 'env', { value: {} });
       Object.defineProperty(process, 'platform', { value: 'darwin' });
-      await expect(sdkUtils.resolveSDKRoot()).rejects.toThrowError('No valid Android SDK root found.');
+      await expect(sdkUtils.resolveSDKRoot()).rejects.toThrowError(
+        'No valid Android SDK root found.',
+      );
       expect(mockIsDir).toHaveBeenCalledTimes(1);
       expect(mockIsDir).toHaveBeenCalledWith('/home/me/Library/Android/sdk');
     });
-
   });
-
 });

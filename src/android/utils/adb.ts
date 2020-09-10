@@ -5,7 +5,13 @@ import * as path from 'path';
 import * as split2 from 'split2';
 import * as through2 from 'through2';
 
-import { ADBException, ERR_INCOMPATIBLE_UPDATE, ERR_MIN_SDK_VERSION, ERR_NO_CERTIFICATES, ERR_VERSION_DOWNGRADE } from '../../errors';
+import {
+  ADBException,
+  ERR_INCOMPATIBLE_UPDATE,
+  ERR_MIN_SDK_VERSION,
+  ERR_NO_CERTIFICATES,
+  ERR_VERSION_DOWNGRADE,
+} from '../../errors';
 import { execFile } from '../../utils/process';
 
 import { SDK, getSDKPackage, supplementProcessEnv } from './sdk';
@@ -36,7 +42,10 @@ export interface Device extends MappedDeviceProps {
   properties: DeviceProperties;
 }
 
-const ADB_GETPROP_MAP: ReadonlyMap<string, keyof MappedDeviceProps> = new Map<string, keyof MappedDeviceProps>([
+const ADB_GETPROP_MAP: ReadonlyMap<string, keyof MappedDeviceProps> = new Map<
+  string,
+  keyof MappedDeviceProps
+>([
   ['ro.product.manufacturer', 'manufacturer'],
   ['ro.product.model', 'model'],
   ['ro.product.name', 'product'],
@@ -45,61 +54,82 @@ const ADB_GETPROP_MAP: ReadonlyMap<string, keyof MappedDeviceProps> = new Map<st
 
 export async function getDevices(sdk: SDK): Promise<Device[]> {
   const debug = Debug(`${modulePrefix}:${getDevices.name}`);
-  const platformTools = await getSDKPackage(path.join(sdk.root, 'platform-tools'));
+  const platformTools = await getSDKPackage(
+    path.join(sdk.root, 'platform-tools'),
+  );
   const adbBin = path.join(platformTools.location, 'adb');
   const args = ['devices', '-l'];
   debug('Invoking adb: %O %O', adbBin, args);
 
-  const { stdout } = await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });
+  const { stdout } = await execFile(adbBin, args, {
+    env: supplementProcessEnv(sdk),
+  });
 
   const devices = parseAdbDevices(stdout);
 
-  await Promise.all(devices.map(async device => {
-    const properties = await getDeviceProperties(sdk, device);
+  await Promise.all(
+    devices.map(async device => {
+      const properties = await getDeviceProperties(sdk, device);
 
-    for (const [ prop, deviceProp ] of ADB_GETPROP_MAP.entries()) {
-      const value = properties[prop];
+      for (const [prop, deviceProp] of ADB_GETPROP_MAP.entries()) {
+        const value = properties[prop];
 
-      if (value) {
-        device[deviceProp] = value;
+        if (value) {
+          device[deviceProp] = value;
+        }
       }
-    }
-  }));
+    }),
+  );
 
   debug('Found adb devices: %O', devices);
 
   return devices;
 }
 
-export async function getDeviceProperty(sdk: SDK, device: Device, property: string): Promise<string> {
+export async function getDeviceProperty(
+  sdk: SDK,
+  device: Device,
+  property: string,
+): Promise<string> {
   const debug = Debug(`${modulePrefix}:${getDeviceProperty.name}`);
-  const platformTools = await getSDKPackage(path.join(sdk.root, 'platform-tools'));
+  const platformTools = await getSDKPackage(
+    path.join(sdk.root, 'platform-tools'),
+  );
   const adbBin = path.join(platformTools.location, 'adb');
   const args = ['-s', device.serial, 'shell', 'getprop', property];
   debug('Invoking adb: %O %O', adbBin, args);
 
-  const { stdout } = await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });
+  const { stdout } = await execFile(adbBin, args, {
+    env: supplementProcessEnv(sdk),
+  });
 
   return stdout.trim();
 }
 
-export async function getDeviceProperties(sdk: SDK, device: Device): Promise<DeviceProperties> {
+export async function getDeviceProperties(
+  sdk: SDK,
+  device: Device,
+): Promise<DeviceProperties> {
   const debug = Debug(`${modulePrefix}:${getDeviceProperties.name}`);
   const re = /^\[([a-z0-9\.]+)\]: \[(.*)\]$/;
-  const platformTools = await getSDKPackage(path.join(sdk.root, 'platform-tools'));
+  const platformTools = await getSDKPackage(
+    path.join(sdk.root, 'platform-tools'),
+  );
   const adbBin = path.join(platformTools.location, 'adb');
   const args = ['-s', device.serial, 'shell', 'getprop'];
   debug('Invoking adb: %O %O', adbBin, args);
   const propAllowList = [...ADB_GETPROP_MAP.keys()];
 
-  const { stdout } = await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });
+  const { stdout } = await execFile(adbBin, args, {
+    env: supplementProcessEnv(sdk),
+  });
   const properties: DeviceProperties = {};
 
   for (const line of stdout.split(os.EOL)) {
     const m = line.match(re);
 
     if (m) {
-      const [ , key, value ] = m;
+      const [, key, value] = m;
 
       if (propAllowList.includes(key)) {
         properties[key] = value;
@@ -112,7 +142,9 @@ export async function getDeviceProperties(sdk: SDK, device: Device): Promise<Dev
 
 export async function waitForDevice(sdk: SDK, serial: string): Promise<void> {
   const debug = Debug(`${modulePrefix}:${waitForDevice.name}`);
-  const platformTools = await getSDKPackage(path.join(sdk.root, 'platform-tools'));
+  const platformTools = await getSDKPackage(
+    path.join(sdk.root, 'platform-tools'),
+  );
   const adbBin = path.join(platformTools.location, 'adb');
   const args = ['-s', serial, 'wait-for-any-device'];
   debug('Invoking adb: %O %O', adbBin, args);
@@ -138,9 +170,15 @@ export async function waitForBoot(sdk: SDK, device: Device): Promise<void> {
   });
 }
 
-export async function waitForClose(sdk: SDK, device: Device, app: string): Promise<void> {
+export async function waitForClose(
+  sdk: SDK,
+  device: Device,
+  app: string,
+): Promise<void> {
   const debug = Debug(`${modulePrefix}:${waitForClose.name}`);
-  const platformTools = await getSDKPackage(path.join(sdk.root, 'platform-tools'));
+  const platformTools = await getSDKPackage(
+    path.join(sdk.root, 'platform-tools'),
+  );
   const adbBin = path.join(platformTools.location, 'adb');
   const args = ['-s', device.serial, 'shell', `ps | grep ${app}`];
 
@@ -152,7 +190,11 @@ export async function waitForClose(sdk: SDK, device: Device, app: string): Promi
         await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });
       } catch (e) {
         debug('Error received from adb: %O', e);
-        debug('App %s no longer found in process list for %s', app, device.serial);
+        debug(
+          'App %s no longer found in process list for %s',
+          app,
+          device.serial,
+        );
         clearInterval(interval);
         resolve();
       }
@@ -160,14 +202,23 @@ export async function waitForClose(sdk: SDK, device: Device, app: string): Promi
   });
 }
 
-export async function installApk(sdk: SDK, device: Device, apk: string): Promise<void> {
+export async function installApk(
+  sdk: SDK,
+  device: Device,
+  apk: string,
+): Promise<void> {
   const debug = Debug(`${modulePrefix}:${installApk.name}`);
-  const platformTools = await getSDKPackage(path.join(sdk.root, 'platform-tools'));
+  const platformTools = await getSDKPackage(
+    path.join(sdk.root, 'platform-tools'),
+  );
   const adbBin = path.join(platformTools.location, 'adb');
   const args = ['-s', device.serial, 'install', '-r', '-t', apk];
   debug('Invoking adb: %O %O', adbBin, args);
 
-  const p = spawn(adbBin, args, { stdio: 'pipe', env: supplementProcessEnv(sdk) });
+  const p = spawn(adbBin, args, {
+    stdio: 'pipe',
+    env: supplementProcessEnv(sdk),
+  });
 
   return new Promise<void>((resolve, reject) => {
     p.on('close', code => {
@@ -183,30 +234,58 @@ export async function installApk(sdk: SDK, device: Device, apk: string): Promise
       reject(err);
     });
 
-    p.stderr.pipe(split2()).pipe(through2((chunk, enc, cb) => {
-      const line = chunk.toString();
+    p.stderr.pipe(split2()).pipe(
+      through2((chunk, enc, cb) => {
+        const line = chunk.toString();
 
-      debug('adb install: %O', line);
-      const event = parseAdbInstallOutput(line);
+        debug('adb install: %O', line);
+        const event = parseAdbInstallOutput(line);
 
-      if (event === ADBEvent.IncompatibleUpdateFailure) {
-        reject(new ADBException(`Encountered adb error: ${ADBEvent[event]}.`, ERR_INCOMPATIBLE_UPDATE));
-      } else if (event === ADBEvent.NewerVersionOnDeviceFailure) {
-        reject(new ADBException(`Encountered adb error: ${ADBEvent[event]}.`, ERR_VERSION_DOWNGRADE));
-      } else if (event === ADBEvent.NewerSdkRequiredOnDeviceFailure) {
-        reject(new ADBException(`Encountered adb error: ${ADBEvent[event]}.`, ERR_MIN_SDK_VERSION));
-      } else if (event === ADBEvent.NoCertificates) {
-        reject(new ADBException(`Encountered adb error: ${ADBEvent[event]}.`, ERR_NO_CERTIFICATES));
-      }
+        if (event === ADBEvent.IncompatibleUpdateFailure) {
+          reject(
+            new ADBException(
+              `Encountered adb error: ${ADBEvent[event]}.`,
+              ERR_INCOMPATIBLE_UPDATE,
+            ),
+          );
+        } else if (event === ADBEvent.NewerVersionOnDeviceFailure) {
+          reject(
+            new ADBException(
+              `Encountered adb error: ${ADBEvent[event]}.`,
+              ERR_VERSION_DOWNGRADE,
+            ),
+          );
+        } else if (event === ADBEvent.NewerSdkRequiredOnDeviceFailure) {
+          reject(
+            new ADBException(
+              `Encountered adb error: ${ADBEvent[event]}.`,
+              ERR_MIN_SDK_VERSION,
+            ),
+          );
+        } else if (event === ADBEvent.NoCertificates) {
+          reject(
+            new ADBException(
+              `Encountered adb error: ${ADBEvent[event]}.`,
+              ERR_NO_CERTIFICATES,
+            ),
+          );
+        }
 
-      cb();
-    }));
+        cb();
+      }),
+    );
   });
 }
 
-export async function closeApp(sdk: SDK, device: Device, app: string): Promise<void> {
+export async function closeApp(
+  sdk: SDK,
+  device: Device,
+  app: string,
+): Promise<void> {
   const debug = Debug(`${modulePrefix}:${closeApp.name}`);
-  const platformTools = await getSDKPackage(path.join(sdk.root, 'platform-tools'));
+  const platformTools = await getSDKPackage(
+    path.join(sdk.root, 'platform-tools'),
+  );
   const adbBin = path.join(platformTools.location, 'adb');
   const args = ['-s', device.serial, 'shell', 'am', 'force-stop', app];
   debug('Invoking adb: %O %O', adbBin, args);
@@ -214,9 +293,15 @@ export async function closeApp(sdk: SDK, device: Device, app: string): Promise<v
   await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });
 }
 
-export async function uninstallApp(sdk: SDK, device: Device, app: string): Promise<void> {
+export async function uninstallApp(
+  sdk: SDK,
+  device: Device,
+  app: string,
+): Promise<void> {
   const debug = Debug(`${modulePrefix}:${uninstallApp.name}`);
-  const platformTools = await getSDKPackage(path.join(sdk.root, 'platform-tools'));
+  const platformTools = await getSDKPackage(
+    path.join(sdk.root, 'platform-tools'),
+  );
   const adbBin = path.join(platformTools.location, 'adb');
   const args = ['-s', device.serial, 'uninstall', app];
   debug('Invoking adb: %O %O', adbBin, args);
@@ -252,11 +337,27 @@ export function parseAdbInstallOutput(line: string): ADBEvent | undefined {
   return event;
 }
 
-export async function startActivity(sdk: SDK, device: Device, packageName: string, activityName: string): Promise<void> {
+export async function startActivity(
+  sdk: SDK,
+  device: Device,
+  packageName: string,
+  activityName: string,
+): Promise<void> {
   const debug = Debug(`${modulePrefix}:${startActivity.name}`);
-  const platformTools = await getSDKPackage(path.join(sdk.root, 'platform-tools'));
+  const platformTools = await getSDKPackage(
+    path.join(sdk.root, 'platform-tools'),
+  );
   const adbBin = path.join(platformTools.location, 'adb');
-  const args = ['-s', device.serial, 'shell', 'am', 'start', '-W', '-n', `${packageName}/${activityName}`];
+  const args = [
+    '-s',
+    device.serial,
+    'shell',
+    'am',
+    'start',
+    '-W',
+    '-n',
+    `${packageName}/${activityName}`,
+  ];
   debug('Invoking adb: %O %O', adbBin, args);
 
   await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });
@@ -277,22 +378,33 @@ export function parseAdbDevices(output: string): Device[] {
       const m = line.match(re);
 
       if (m) {
-        const [ , serial, state, description ] = m;
+        const [, serial, state, description] = m;
         const properties = description
           .split(/\s+/)
-          .map(prop => prop.includes(':') ? prop.split(':') : undefined)
-          .filter((kv): kv is [string, string] => typeof kv !== 'undefined' && kv.length >= 2)
-          .reduce((acc, [ k, v ]) => {
+          .map(prop => (prop.includes(':') ? prop.split(':') : undefined))
+          .filter(
+            (kv): kv is [string, string] =>
+              typeof kv !== 'undefined' && kv.length >= 2,
+          )
+          .reduce((acc, [k, v]) => {
             if (k && v) {
               acc[k.trim()] = v.trim();
             }
 
             return acc;
-          }, {} as { [key: string]: string | undefined; });
+          }, {} as { [key: string]: string | undefined });
 
         const isIP = !!serial.match(ipRe);
-        const isGenericDevice = (properties['device'] || '').startsWith('generic');
-        const type = 'usb' in properties || isIP || !serial.startsWith('emulator') || !isGenericDevice ? 'hardware' : 'emulator';
+        const isGenericDevice = (properties['device'] || '').startsWith(
+          'generic',
+        );
+        const type =
+          'usb' in properties ||
+          isIP ||
+          !serial.startsWith('emulator') ||
+          !isGenericDevice
+            ? 'hardware'
+            : 'emulator';
         const connection = 'usb' in properties ? 'usb' : isIP ? 'tcpip' : null;
 
         devices.push({
@@ -308,7 +420,10 @@ export function parseAdbDevices(output: string): Device[] {
           sdkVersion: '',
         });
       } else {
-        debug('adb devices output line does not match expected regex: %O', line);
+        debug(
+          'adb devices output line does not match expected regex: %O',
+          line,
+        );
       }
     }
   }
@@ -316,21 +431,45 @@ export function parseAdbDevices(output: string): Device[] {
   return devices;
 }
 
-export async function forwardPorts(sdk: SDK, device: Device, ports: Ports): Promise<void> {
+export async function forwardPorts(
+  sdk: SDK,
+  device: Device,
+  ports: Ports,
+): Promise<void> {
   const debug = Debug(`${modulePrefix}:${forwardPorts.name}`);
-  const platformTools = await getSDKPackage(path.join(sdk.root, 'platform-tools'));
+  const platformTools = await getSDKPackage(
+    path.join(sdk.root, 'platform-tools'),
+  );
   const adbBin = path.join(platformTools.location, 'adb');
-  const args = ['-s', device.serial, 'reverse', `tcp:${ports.device}`, `tcp:${ports.host}`];
+  const args = [
+    '-s',
+    device.serial,
+    'reverse',
+    `tcp:${ports.device}`,
+    `tcp:${ports.host}`,
+  ];
   debug('Invoking adb: %O %O', adbBin, args);
 
   await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });
 }
 
-export async function unforwardPorts(sdk: SDK, device: Device, ports: Ports): Promise<void> {
+export async function unforwardPorts(
+  sdk: SDK,
+  device: Device,
+  ports: Ports,
+): Promise<void> {
   const debug = Debug(`${modulePrefix}:${forwardPorts.name}`);
-  const platformTools = await getSDKPackage(path.join(sdk.root, 'platform-tools'));
+  const platformTools = await getSDKPackage(
+    path.join(sdk.root, 'platform-tools'),
+  );
   const adbBin = path.join(platformTools.location, 'adb');
-  const args = ['-s', device.serial, 'reverse', '--remove', `tcp:${ports.device}`];
+  const args = [
+    '-s',
+    device.serial,
+    'reverse',
+    '--remove',
+    `tcp:${ports.device}`,
+  ];
   debug('Invoking adb: %O %O', adbBin, args);
 
   await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });

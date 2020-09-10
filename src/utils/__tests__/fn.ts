@@ -1,9 +1,7 @@
 import { once } from '../fn';
 
 describe('utils/fn', () => {
-
   describe('once', () => {
-
     it('should call function once despite multiple calls', () => {
       const mock = jest.fn();
       const fn = once(mock);
@@ -28,7 +26,5 @@ describe('utils/fn', () => {
       expect(mock).toHaveBeenCalledTimes(1);
       expect(r).toBe(expected);
     });
-
   });
-
 });

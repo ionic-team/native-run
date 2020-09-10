@@ -1,7 +1,13 @@
 import * as Debug from 'debug';
 import * as path from 'path';
 
-import { CLIException, ERR_BAD_INPUT, Exception, ExitCode, serializeError } from './errors';
+import {
+  CLIException,
+  ERR_BAD_INPUT,
+  Exception,
+  ExitCode,
+  serializeError,
+} from './errors';
 
 const debug = Debug('native-run');
 
@@ -19,7 +25,7 @@ export async function run(): Promise<void> {
   }
 
   let cmd: Command;
-  const [ platform, ...platformArgs ] = args;
+  const [platform, ...platformArgs] = args;
 
   try {
     if (platform === 'android') {
@@ -32,12 +38,21 @@ export async function run(): Promise<void> {
       cmd = await import('./list');
       await cmd.run(args);
     } else {
-      if (!platform || platform === 'help' || args.includes('--help') || args.includes('-h') || platform.startsWith('-')) {
+      if (
+        !platform ||
+        platform === 'help' ||
+        args.includes('--help') ||
+        args.includes('-h') ||
+        platform.startsWith('-')
+      ) {
         cmd = await import('./help');
         return cmd.run(args);
       }
 
-      throw new CLIException(`Unsupported platform: "${platform}"`, ERR_BAD_INPUT);
+      throw new CLIException(
+        `Unsupported platform: "${platform}"`,
+        ERR_BAD_INPUT,
+      );
     }
   } catch (e) {
     debug('Caught fatal error: %O', e);

@@ -1,4 +1,9 @@
-import { CLIException, ERR_BAD_INPUT, Exception, serializeError } from '../errors';
+import {
+  CLIException,
+  ERR_BAD_INPUT,
+  Exception,
+  serializeError,
+} from '../errors';
 
 import { stringify } from './json';
 
@@ -17,14 +22,20 @@ export interface Target {
   readonly format: () => string;
 }
 
-export function formatTargets(args: readonly string[], targets: Targets): string {
+export function formatTargets(
+  args: readonly string[],
+  targets: Targets,
+): string {
   const { devices, virtualDevices, errors } = targets;
 
   const virtualOnly = args.includes('--virtual');
   const devicesOnly = args.includes('--device');
 
   if (virtualOnly && devicesOnly) {
-    throw new CLIException('Only one of --device or --virtual may be specified', ERR_BAD_INPUT);
+    throw new CLIException(
+      'Only one of --device or --virtual may be specified',
+      ERR_BAD_INPUT,
+    );
   }
 
   if (args.includes('--json')) {
@@ -62,7 +73,7 @@ function printTargets(name: string, targets: readonly Target[]) {
     output += `  No ${name.toLowerCase()}s found\n`;
   } else {
     for (const target of targets) {
-      output += `  ${(target.format())}\n`;
+      output += `  ${target.format()}\n`;
     }
   }
   return output;

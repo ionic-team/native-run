@@ -13,7 +13,7 @@ export async function list(args: readonly string[]): Promise<Targets> {
   const sdk = await getSDK();
 
   const errors: Exception<string>[] = [];
-  const [ devices, virtualDevices ] = await Promise.all([
+  const [devices, virtualDevices] = await Promise.all([
     (async () => {
       try {
         return await getDeviceTargets(sdk);

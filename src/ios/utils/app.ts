@@ -13,9 +13,11 @@ const debug = Debug('native-run:ios:utils:app');
 export async function getBundleId(appPath: string) {
   const plistPath = path.resolve(appPath, 'Info.plist');
   try {
-    const { stdout } = await execFile('/usr/libexec/PlistBuddy',
-                                      ['-c', 'Print :CFBundleIdentifier', plistPath],
-                                      { encoding: 'utf8' });
+    const { stdout } = await execFile(
+      '/usr/libexec/PlistBuddy',
+      ['-c', 'Print :CFBundleIdentifier', plistPath],
+      { encoding: 'utf8' },
+    );
     if (stdout) {
       return stdout.trim();
     }
@@ -41,8 +43,10 @@ export async function unzipIPA(ipaPath: string, destPath: string) {
     } else {
       await mkdirp(path.dirname(dest));
       const readStream = await openReadStream(entry);
-      readStream.on('error', (err: Error) => error = err);
-      readStream.on('end', () => { zipfile.readEntry(); });
+      readStream.on('error', (err: Error) => (error = err));
+      readStream.on('end', () => {
+        zipfile.readEntry();
+      });
       readStream.pipe(createWriteStream(dest));
     }
   });

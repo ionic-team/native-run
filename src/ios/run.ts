@@ -3,7 +3,12 @@ import * as Debug from 'debug';
 import { existsSync, mkdtempSync } from 'fs';
 import * as path from 'path';
 
-import { CLIException, ERR_BAD_INPUT, ERR_TARGET_NOT_FOUND, IOSRunException } from '../errors';
+import {
+  CLIException,
+  ERR_BAD_INPUT,
+  ERR_TARGET_NOT_FOUND,
+  IOSRunException,
+} from '../errors';
 import { getOptionValue } from '../utils/cli';
 
 import { getBundleId, unzipIPA } from './utils/app';
@@ -48,14 +53,27 @@ export async function run(args: readonly string[]): Promise<void> {
       } else if (simulators.find(s => s.udid === udid)) {
         await runOnSimulator(udid, appPath, bundleId, waitForApp);
       } else {
-        throw new IOSRunException(`No device or simulator with UDID "${udid}" found`, ERR_TARGET_NOT_FOUND);
+        throw new IOSRunException(
+          `No device or simulator with UDID "${udid}" found`,
+          ERR_TARGET_NOT_FOUND,
+        );
       }
     } else if (devices.length && !preferSimulator) {
       // no udid, use first connected device
-      await runOnDevice(devices[0].UniqueDeviceID, appPath, bundleId, waitForApp);
+      await runOnDevice(
+        devices[0].UniqueDeviceID,
+        appPath,
+        bundleId,
+        waitForApp,
+      );
     } else {
       // use default sim
-      await runOnSimulator(simulators[simulators.length - 1].udid, appPath, bundleId, waitForApp);
+      await runOnSimulator(
+        simulators[simulators.length - 1].udid,
+        appPath,
+        bundleId,
+        waitForApp,
+      );
     }
   } finally {
     if (isIPA) {

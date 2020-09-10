@@ -1,6 +1,10 @@
 import * as Debug from 'debug';
 
-import { ADBException, ERR_INCOMPATIBLE_UPDATE, ERR_VERSION_DOWNGRADE } from '../../errors';
+import {
+  ADBException,
+  ERR_INCOMPATIBLE_UPDATE,
+  ERR_VERSION_DOWNGRADE,
+} from '../../errors';
 
 import { Device, installApk, uninstallApp } from './adb';
 import { AVD, getDefaultAVD } from './avd';
@@ -9,7 +13,12 @@ import { SDK } from './sdk';
 
 const modulePrefix = 'native-run:android:utils:run';
 
-export async function selectDeviceByTarget(sdk: SDK, devices: readonly Device[], avds: readonly AVD[], target: string): Promise<Device | undefined> {
+export async function selectDeviceByTarget(
+  sdk: SDK,
+  devices: readonly Device[],
+  avds: readonly AVD[],
+  target: string,
+): Promise<Device | undefined> {
   const debug = Debug(`${modulePrefix}:${selectDeviceByTarget.name}`);
 
   debug('--target %s detected', target);
@@ -23,7 +32,9 @@ export async function selectDeviceByTarget(sdk: SDK, devices: readonly Device[],
 
   const emulatorDevices = devices.filter(d => d.type === 'emulator');
 
-  const pairAVD = async (emulator: Device): Promise<[Device, AVD | undefined]> => {
+  const pairAVD = async (
+    emulator: Device,
+  ): Promise<[Device, AVD | undefined]> => {
     let avd: AVD | undefined;
 
     try {
@@ -33,16 +44,24 @@ export async function selectDeviceByTarget(sdk: SDK, devices: readonly Device[],
       debug('Error with emulator %s: %O', emulator.serial, e);
     }
 
-    return [ emulator, avd ];
+    return [emulator, avd];
   };
 
-  debug('Checking if any of %d running emulators are using AVD by ID: %s', emulatorDevices.length, target);
-  const emulatorsAndAVDs = await Promise.all(emulatorDevices.map(emulator => pairAVD(emulator)));
-  const emulators = emulatorsAndAVDs.filter((t): t is [Device, AVD] => typeof t[1] !== 'undefined');
-  const emulator = emulators.find(([ , avd ]) => avd.id === target);
+  debug(
+    'Checking if any of %d running emulators are using AVD by ID: %s',
+    emulatorDevices.length,
+    target,
+  );
+  const emulatorsAndAVDs = await Promise.all(
+    emulatorDevices.map(emulator => pairAVD(emulator)),
+  );
+  const emulators = emulatorsAndAVDs.filter(
+    (t): t is [Device, AVD] => typeof t[1] !== 'undefined',
+  );
+  const emulator = emulators.find(([, avd]) => avd.id === target);
 
   if (emulator) {
-    const [ device, avd ] = emulator;
+    const [device, avd] = emulator;
     debug('Emulator %s found by AVD: %s', device.serial, avd.id);
     return device;
   }
@@ -59,7 +78,9 @@ export async function selectDeviceByTarget(sdk: SDK, devices: readonly Device[],
   }
 }
 
-export async function selectHardwareDevice(devices: readonly Device[]): Promise<Device | undefined> {
+export async function selectHardwareDevice(
+  devices: readonly Device[],
+): Promise<Device | undefined> {
   const hardwareDevices = devices.filter(d => d.type === 'hardware');
 
   // If a hardware device is found, we prefer launching to it instead of in an emulator.
@@ -68,13 +89,17 @@ export async function selectHardwareDevice(devices: readonly Device[]): Promise<
   }
 }
 
-export async function selectVirtualDevice(sdk: SDK, devices: readonly Device[], avds: readonly AVD[]): Promise<Device> {
+export async function selectVirtualDevice(
+  sdk: SDK,
+  devices: readonly Device[],
+  avds: readonly AVD[],
+): Promise<Device> {
   const debug = Debug(`${modulePrefix}:${selectVirtualDevice.name}`);
   const emulators = devices.filter(d => d.type === 'emulator');
 
   // If an emulator is running, use it.
   if (emulators.length > 0) {
-    const [ emulator ] = emulators;
+    const [emulator] = emulators;
     debug('Found running emulator: %s', emulator.serial);
     return emulator;
   }
@@ -87,14 +112,22 @@ export async function selectVirtualDevice(sdk: SDK, devices: readonly Device[], 
   return device;
 }
 
-export async function installApkToDevice(sdk: SDK, device: Device, apk: string, appId: string): Promise<void> {
+export async function installApkToDevice(
+  sdk: SDK,
+  device: Device,
+  apk: string,
+  appId: string,
+): Promise<void> {
   process.stdout.write(`Installing ${apk}...\n`);
 
   try {
     await installApk(sdk, device, apk);
   } catch (e) {
     if (e instanceof ADBException) {
-      if (e.code === ERR_INCOMPATIBLE_UPDATE || e.code === ERR_VERSION_DOWNGRADE) {
+      if (
+        e.code === ERR_INCOMPATIBLE_UPDATE ||
+        e.code === ERR_VERSION_DOWNGRADE
+      ) {
         process.stdout.write(`${e.message} Uninstalling and trying again...\n`);
         await uninstallApp(sdk, device, appId);
         await installApk(sdk, device, apk);

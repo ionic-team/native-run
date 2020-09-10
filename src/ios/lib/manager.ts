@@ -8,22 +8,30 @@ import { DebugserverClient } from './client/debugserver';
 import { InstallationProxyClient } from './client/installation_proxy';
 import { LockdowndClient } from './client/lockdownd';
 import { MobileImageMounterClient } from './client/mobile_image_mounter';
-import { UsbmuxdClient, UsbmuxdDevice, UsbmuxdPairRecord } from './client/usbmuxd';
+import {
+  UsbmuxdClient,
+  UsbmuxdDevice,
+  UsbmuxdPairRecord,
+} from './client/usbmuxd';
 
 export class ClientManager {
   private connections: net.Socket[];
   constructor(
     public pairRecord: UsbmuxdPairRecord,
     public device: UsbmuxdDevice,
-    private lockdowndClient: LockdowndClient
+    private lockdowndClient: LockdowndClient,
   ) {
     this.connections = [lockdowndClient.socket];
   }
 
   static async create(udid?: string) {
-    const usbmuxClient = new UsbmuxdClient(UsbmuxdClient.connectUsbmuxdSocket());
+    const usbmuxClient = new UsbmuxdClient(
+      UsbmuxdClient.connectUsbmuxdSocket(),
+    );
     const device = await usbmuxClient.getDevice(udid);
-    const pairRecord = await usbmuxClient.readPairRecord(device.Properties.SerialNumber);
+    const pairRecord = await usbmuxClient.readPairRecord(
+      device.Properties.SerialNumber,
+    );
     const lockdownSocket = await usbmuxClient.connect(device, 62078);
     const lockdownClient = new LockdowndClient(lockdownSocket);
     await lockdownClient.doHandshake(pairRecord);
@@ -31,13 +39,17 @@ export class ClientManager {
   }
 
   async getUsbmuxdClient() {
-    const usbmuxClient = new UsbmuxdClient(UsbmuxdClient.connectUsbmuxdSocket());
+    const usbmuxClient = new UsbmuxdClient(
+      UsbmuxdClient.connectUsbmuxdSocket(),
+    );
     this.connections.push(usbmuxClient.socket);
     return usbmuxClient;
   }
 
   async getLockdowndClient() {
-    const usbmuxClient = new UsbmuxdClient(UsbmuxdClient.connectUsbmuxdSocket());
+    const usbmuxClient = new UsbmuxdClient(
+      UsbmuxdClient.connectUsbmuxdSocket(),
+    );
     const lockdownSocket = await usbmuxClient.connect(this.device, 62078);
     const lockdownClient = new LockdowndClient(lockdownSocket);
     this.connections.push(lockdownClient.socket);
@@ -55,20 +67,39 @@ export class ClientManager {
   }
 
   async getInstallationProxyClient() {
-    return this.getServiceClient('com.apple.mobile.installation_proxy', InstallationProxyClient);
+    return this.getServiceClient(
+      'com.apple.mobile.installation_proxy',
+      InstallationProxyClient,
+    );
   }
 
   async getMobileImageMounterClient() {
-    return this.getServiceClient('com.apple.mobile.mobile_image_mounter', MobileImageMounterClient);
+    return this.getServiceClient(
+      'com.apple.mobile.mobile_image_mounter',
+      MobileImageMounterClient,
+    );
   }
 
   async getDebugserverClient() {
-    return this.getServiceClient('com.apple.debugserver', DebugserverClient, true);
+    return this.getServiceClient(
+      'com.apple.debugserver',
+      DebugserverClient,
+      true,
+    );
   }
 
-  private async getServiceClient<T extends ServiceClient<any>>(name: string, ServiceType: new(...args: any[]) => T, disableSSL = false) {
-    const { port: servicePort, enableServiceSSL } = await this.lockdowndClient.startService(name);
-    const usbmuxClient = new UsbmuxdClient(UsbmuxdClient.connectUsbmuxdSocket());
+  private async getServiceClient<T extends ServiceClient<any>>(
+    name: string,
+    ServiceType: new (...args: any[]) => T,
+    disableSSL = false,
+  ) {
+    const {
+      port: servicePort,
+      enableServiceSSL,
+    } = await this.lockdowndClient.startService(name);
+    const usbmuxClient = new UsbmuxdClient(
+      UsbmuxdClient.connectUsbmuxdSocket(),
+    );
     let usbmuxdSocket = await usbmuxClient.connect(this.device, servicePort);
 
     if (enableServiceSSL) {
@@ -91,8 +122,10 @@ export class ClientManager {
         tlsOptions.socket = proxy;
 
         await new Promise((res, rej) => {
-          const timeoutId = setTimeout(() => { rej('The TLS handshake failed to complete after 5s.'); }, 5000);
-          tls.connect(tlsOptions, function(this: tls.TLSSocket) {
+          const timeoutId = setTimeout(() => {
+            rej('The TLS handshake failed to complete after 5s.');
+          }, 5000);
+          tls.connect(tlsOptions, function (this: tls.TLSSocket) {
             clearTimeout(timeoutId);
             // After the handshake, we don't need TLS or the proxy anymore,
             // since we'll just pass in the naked usbmuxd socket to the service client
@@ -100,7 +133,6 @@ export class ClientManager {
             res();
           });
         });
-
       } else {
         tlsOptions.socket = usbmuxdSocket;
         usbmuxdSocket = tls.connect(tlsOptions);

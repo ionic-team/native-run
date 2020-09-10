@@ -26,7 +26,7 @@ interface SimCtlRuntime {
 }
 
 interface SimCtlType {
-  readonly name: string;  // "iPhone 7"
+  readonly name: string; // "iPhone 7"
   readonly identifier: string; // "com.apple.CoreSimulator.SimDeviceType.iPhone-7"
 }
 
@@ -39,7 +39,9 @@ interface SimCtlOutput {
 }
 
 export async function getSimulators() {
-  const simctl = spawnSync('xcrun', ['simctl', 'list', '--json'], { encoding: 'utf8' });
+  const simctl = spawnSync('xcrun', ['simctl', 'list', '--json'], {
+    encoding: 'utf8',
+  });
   if (simctl.status) {
     throw new Exception(`Unable to retrieve simulator list: ${simctl.stderr}`);
   }
@@ -52,48 +54,94 @@ export async function getSimulators() {
   try {
     const output: SimCtlOutput = JSON.parse(simctl.stdout);
     return output.runtimes
-      .filter(runtime => runtime.name.indexOf('watch') === -1 && runtime.name.indexOf('tv') === -1)
-      .map(runtime => (output.devices[runtime.identifier] || output.devices[runtime.name])
-        .filter(device => device.isAvailable)
-        .map(device => ({ ...device, runtime }))
+      .filter(
+        runtime =>
+          runtime.name.indexOf('watch') === -1 &&
+          runtime.name.indexOf('tv') === -1,
+      )
+      .map(runtime =>
+        (output.devices[runtime.identifier] || output.devices[runtime.name])
+          .filter(device => device.isAvailable)
+          .map(device => ({ ...device, runtime })),
       )
       .reduce((prev, next) => prev.concat(next)) // flatten
-      .sort((a, b) => a.name < b.name ? -1 : 1);
+      .sort((a, b) => (a.name < b.name ? -1 : 1));
   } catch (err) {
     throw new Exception(`Unable to retrieve simulator list: ${err.message}`);
   }
 }
 
-export async function runOnSimulator(udid: string, appPath: string, bundleId: string, waitForApp: boolean) {
+export async function runOnSimulator(
+  udid: string,
+  appPath: string,
+  bundleId: string,
+  waitForApp: boolean,
+) {
   debug(`Booting simulator ${udid}`);
-  const bootResult = spawnSync('xcrun', ['simctl', 'boot', udid], { encoding: 'utf8' });
+  const bootResult = spawnSync('xcrun', ['simctl', 'boot', udid], {
+    encoding: 'utf8',
+  });
   // TODO: is there a better way to check this?
-  if (bootResult.status && !bootResult.stderr.includes('Unable to boot device in current state: Booted')) {
-    throw new Exception(`There was an error booting simulator: ${bootResult.stderr}`);
+  if (
+    bootResult.status &&
+    !bootResult.stderr.includes(
+      'Unable to boot device in current state: Booted',
+    )
+  ) {
+    throw new Exception(
+      `There was an error booting simulator: ${bootResult.stderr}`,
+    );
   }
 
   debug(`Installing ${appPath} on ${udid}`);
-  const installResult = spawnSync('xcrun', ['simctl', 'install', udid, appPath], { encoding: 'utf8' });
+  const installResult = spawnSync(
+    'xcrun',
+    ['simctl', 'install', udid, appPath],
+    { encoding: 'utf8' },
+  );
   if (installResult.status) {
-    throw new Exception(`There was an error installing app on simulator: ${installResult.stderr}`);
+    throw new Exception(
+      `There was an error installing app on simulator: ${installResult.stderr}`,
+    );
   }
 
   const xCodePath = await getXCodePath();
   debug(`Running simulator ${udid}`);
-  const openResult = spawnSync('open', [`${xCodePath}/Applications/Simulator.app`, '--args', '-CurrentDeviceUDID', udid], { encoding: 'utf8' });
+  const openResult = spawnSync(
+    'open',
+    [
+      `${xCodePath}/Applications/Simulator.app`,
+      '--args',
+      '-CurrentDeviceUDID',
+      udid,
+    ],
+    { encoding: 'utf8' },
+  );
   if (openResult.status) {
-    throw new Exception(`There was an error opening simulator: ${openResult.stderr}`);
+    throw new Exception(
+      `There was an error opening simulator: ${openResult.stderr}`,
+    );
   }
 
   debug(`Launching ${appPath} on ${udid}`);
-  const launchResult = spawnSync('xcrun', ['simctl', 'launch', udid, bundleId], { encoding: 'utf8' });
+  const launchResult = spawnSync(
+    'xcrun',
+    ['simctl', 'launch', udid, bundleId],
+    { encoding: 'utf8' },
+  );
   if (launchResult.status) {
-    throw new Exception(`There was an error launching app on simulator: ${launchResult.stderr}`);
+    throw new Exception(
+      `There was an error launching app on simulator: ${launchResult.stderr}`,
+    );
   }
 
   if (waitForApp) {
     onBeforeExit(async () => {
-      const terminateResult = spawnSync('xcrun', ['simctl', 'terminate', udid, bundleId], { encoding: 'utf8' });
+      const terminateResult = spawnSync(
+        'xcrun',
+        ['simctl', 'terminate', udid, bundleId],
+        { encoding: 'utf8' },
+      );
       if (terminateResult.status) {
         debug('Unable to terminate app on simulator');
       }
@@ -109,7 +157,11 @@ async function waitForSimulatorClose(udid: string, bundleId: string) {
     // poll service list for bundle id
     const interval = setInterval(async () => {
       try {
-        const data = spawnSync('xcrun', ['simctl', 'spawn', udid, 'launchctl', 'list'], { encoding: 'utf8' });
+        const data = spawnSync(
+          'xcrun',
+          ['simctl', 'spawn', udid, 'launchctl', 'list'],
+          { encoding: 'utf8' },
+        );
         // if bundle id isn't in list, app isn't running
         if (data.stdout.indexOf(bundleId) === -1) {
           clearInterval(interval);

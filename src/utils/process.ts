@@ -17,24 +17,36 @@ export function onBeforeExit(fn: ExitQueueFn): void {
   exitQueue.push(fn);
 }
 
-const BEFORE_EXIT_SIGNALS: NodeJS.Signals[] = ['SIGINT', 'SIGTERM', 'SIGHUP', 'SIGBREAK'];
+const BEFORE_EXIT_SIGNALS: NodeJS.Signals[] = [
+  'SIGINT',
+  'SIGTERM',
+  'SIGHUP',
+  'SIGBREAK',
+];
 
-const beforeExitHandlerWrapper = (signal: NodeJS.Signals) => once(async () => {
-  debug('onBeforeExit handler: %s received', signal);
-  debug('onBeforeExit handler: running %s queued functions', exitQueue.length);
+const beforeExitHandlerWrapper = (signal: NodeJS.Signals) =>
+  once(async () => {
+    debug('onBeforeExit handler: %s received', signal);
+    debug(
+      'onBeforeExit handler: running %s queued functions',
+      exitQueue.length,
+    );
 
-  for (const [ i, fn ] of exitQueue.entries()) {
-    try {
-      await fn();
-    } catch (e) {
-      debug('Error from function %d in exit queue: %O', i, e);
+    for (const [i, fn] of exitQueue.entries()) {
+      try {
+        await fn();
+      } catch (e) {
+        debug('Error from function %d in exit queue: %O', i, e);
+      }
     }
-  }
 
-  debug('onBeforeExit handler: exiting (exit code %s)', process.exitCode ? process.exitCode : 0);
+    debug(
+      'onBeforeExit handler: exiting (exit code %s)',
+      process.exitCode ? process.exitCode : 0,
+    );
 
-  process.exit();
-});
+    process.exit();
+  });
 
 for (const signal of BEFORE_EXIT_SIGNALS) {
   process.on(signal, beforeExitHandlerWrapper(signal));

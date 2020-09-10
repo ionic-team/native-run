@@ -4,7 +4,9 @@ import * as net from 'net';
 import {
   ProtocolClient,
   ProtocolReader,
-  ProtocolReaderCallback, ProtocolReaderFactory, ProtocolWriter
+  ProtocolReaderCallback,
+  ProtocolReaderFactory,
+  ProtocolWriter,
 } from './protocol';
 
 const debug = Debug('native-run:ios:lib:protocol:gdb');
@@ -16,25 +18,24 @@ export interface GDBMessage {
 }
 
 export class GDBProtocolClient extends ProtocolClient<GDBMessage> {
-
   constructor(socket: net.Socket) {
     super(
       socket,
       new ProtocolReaderFactory(GDBProtocolReader),
-      new GDBProtocolWriter()
+      new GDBProtocolWriter(),
     );
   }
-
 }
 
 export class GDBProtocolReader extends ProtocolReader {
-
   constructor(callback: ProtocolReaderCallback) {
     super(1 /* "Header" is '+' or '-' */, callback);
   }
 
   parseHeader(data: Buffer) {
-    if (data[0] !== ACK_SUCCESS) { throw new Error('Unsuccessful debugserver response'); } // TODO: retry?
+    if (data[0] !== ACK_SUCCESS) {
+      throw new Error('Unsuccessful debugserver response');
+    } // TODO: retry?
     return -1;
   }
 
@@ -51,24 +52,24 @@ export class GDBProtocolReader extends ProtocolReader {
         throw new Error('Invalid checksum received from debugserver');
       }
     } else {
-      throw new Error('Didn\'t receive checksum');
+      throw new Error("Didn't receive checksum");
     }
   }
-
 }
 
 export class GDBProtocolWriter implements ProtocolWriter {
-
   write(socket: net.Socket, msg: GDBMessage) {
     const { cmd, args } = msg;
     debug(`Socket write: ${cmd}, args: ${args}`);
     // hex encode and concat all args
-    const encodedArgs = args.map(arg => Buffer.from(arg).toString('hex')).join().toUpperCase();
+    const encodedArgs = args
+      .map(arg => Buffer.from(arg).toString('hex'))
+      .join()
+      .toUpperCase();
     const checksumStr = calculateChecksum(cmd + encodedArgs);
     const formattedCmd = `$${cmd}${encodedArgs}#${checksumStr}`;
     socket.write(formattedCmd);
   }
-
 }
 
 // hex value of (sum of cmd chars mod 256)

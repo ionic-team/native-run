@@ -9,12 +9,12 @@ export async function run(args: readonly string[]): Promise<void> {
   }
 
   if (args.includes('--list')) {
-    cmd = await import ('./list');
+    cmd = await import('./list');
     return cmd.run(args);
   }
 
   if (args.includes('--sdk-info')) {
-    cmd = await import ('./sdk-info');
+    cmd = await import('./sdk-info');
     return cmd.run(args);
   }
 

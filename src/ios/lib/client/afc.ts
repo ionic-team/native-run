@@ -4,7 +4,13 @@ import * as net from 'net';
 import * as path from 'path';
 import { promisify } from 'util';
 
-import { AFCError, AFCProtocolClient, AFC_FILE_OPEN_FLAGS, AFC_OPS, AFC_STATUS } from '../protocol/afc';
+import {
+  AFCError,
+  AFCProtocolClient,
+  AFC_FILE_OPEN_FLAGS,
+  AFC_OPS,
+  AFC_STATUS,
+} from '../protocol/afc';
 
 import { ServiceClient } from './client';
 
@@ -57,11 +63,20 @@ export class AFCClient extends ServiceClient<AFCProtocolClient> {
     // then path to file
     toCString(path).copy(data, 8);
 
-    const resp = await this.protocolClient.sendMessage({ operation: AFC_OPS.FILE_OPEN, data });
+    const resp = await this.protocolClient.sendMessage({
+      operation: AFC_OPS.FILE_OPEN,
+      data,
+    });
+
     if (resp.operation === AFC_OPS.FILE_OPEN_RES) {
       return resp.data;
     }
-    throw new Error(`There was an unknown error opening file ${path}, response: ${Array.prototype.toString.call(resp.data)}`);
+
+    throw new Error(
+      `There was an unknown error opening file ${path}, response: ${Array.prototype.toString.call(
+        resp.data,
+      )}`,
+    );
   }
 
   async closeFile(fd: Buffer) {
@@ -76,7 +91,7 @@ export class AFCClient extends ServiceClient<AFCProtocolClient> {
     debug(`uploadFile: ${srcPath}`);
 
     // read local file and get fd of destination
-    const [ srcFile, destFile ] = await Promise.all([
+    const [srcFile, destFile] = await Promise.all([
       await promisify(fs.readFile)(srcPath),
       await this.openFile(destPath),
     ]);
@@ -114,10 +129,13 @@ export class AFCClient extends ServiceClient<AFCProtocolClient> {
       const promises: Promise<void>[] = [];
       for (const file of fs.readdirSync(dirPath)) {
         const filePath = path.join(dirPath, file);
-        const remotePath = path.join(destPath, path.relative(srcPath, filePath));
+        const remotePath = path.join(
+          destPath,
+          path.relative(srcPath, filePath),
+        );
         if (fs.lstatSync(filePath).isDirectory()) {
           promises.push(
-            _this.makeDirectory(remotePath).then(() => uploadDir(filePath))
+            _this.makeDirectory(remotePath).then(() => uploadDir(filePath)),
           );
         } else {
           // Create promise to add to promises array
@@ -133,7 +151,8 @@ export class AFCClient extends ServiceClient<AFCProtocolClient> {
           // wrap upload in a function in case we need to save it for later
           const uploadFile = (tries = 0) => {
             numOpenFiles++;
-            _this.uploadFile(filePath, remotePath)
+            _this
+              .uploadFile(filePath, remotePath)
               .then(() => {
                 resolve();
                 numOpenFiles--;
@@ -146,7 +165,9 @@ export class AFCClient extends ServiceClient<AFCProtocolClient> {
                 // Couldn't get fd for whatever reason, try again
                 // # of retries is arbitrary and can be adjusted
                 if (err.status === AFC_STATUS.NO_RESOURCES && tries < 10) {
-                  debug(`Received NO_RESOURCES from AFC, retrying ${filePath} upload. ${tries}`);
+                  debug(
+                    `Received NO_RESOURCES from AFC, retrying ${filePath} upload. ${tries}`,
+                  );
                   uploadFile(tries++);
                 } else {
                   numOpenFiles--;
@@ -158,7 +179,9 @@ export class AFCClient extends ServiceClient<AFCProtocolClient> {
           if (numOpenFiles < MAX_OPEN_FILES) {
             uploadFile();
           } else {
-            debug(`numOpenFiles >= ${MAX_OPEN_FILES}, adding to pending queue. Length: ${pendingFileUploads.length}`);
+            debug(
+              `numOpenFiles >= ${MAX_OPEN_FILES}, adding to pending queue. Length: ${pendingFileUploads.length}`,
+            );
             pendingFileUploads.push(uploadFile);
           }
         }
@@ -166,7 +189,6 @@ export class AFCClient extends ServiceClient<AFCProtocolClient> {
       await Promise.all(promises);
     }
   }
-
 }
 
 function toCString(s: string) {

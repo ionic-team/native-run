@@ -5,7 +5,8 @@ import * as plist from 'plist';
 import {
   PlistProtocolReader,
   ProtocolClient,
-  ProtocolReaderFactory, ProtocolWriter
+  ProtocolReaderFactory,
+  ProtocolWriter,
 } from './protocol';
 
 const debug = Debug('native-run:ios:lib:protocol:lockdown');
@@ -38,24 +39,25 @@ export function isLockdownResponse(resp: any): resp is LockdownResponse {
   return isDefined(resp.Status);
 }
 
-export function isLockdownErrorResponse(resp: any): resp is LockdownErrorResponse {
+export function isLockdownErrorResponse(
+  resp: any,
+): resp is LockdownErrorResponse {
   return isDefined(resp.Error);
 }
 
-export class LockdownProtocolClient<MessageType extends LockdownRequest | LockdownCommand = LockdownRequest> extends ProtocolClient<MessageType> {
-
+export class LockdownProtocolClient<
+  MessageType extends LockdownRequest | LockdownCommand = LockdownRequest
+> extends ProtocolClient<MessageType> {
   constructor(socket: net.Socket) {
     super(
       socket,
       new ProtocolReaderFactory(LockdownProtocolReader),
-      new LockdownProtocolWriter()
+      new LockdownProtocolWriter(),
     );
   }
-
 }
 
 export class LockdownProtocolReader extends PlistProtocolReader {
-
   constructor(callback: (data: any) => any) {
     super(LOCKDOWN_HEADER_SIZE, callback);
   }
@@ -75,7 +77,6 @@ export class LockdownProtocolReader extends PlistProtocolReader {
 }
 
 export class LockdownProtocolWriter implements ProtocolWriter {
-
   write(socket: net.Socket, plistData: any) {
     debug(`socket write: ${JSON.stringify(plistData)}`);
     const plistMessage = plist.build(plistData);
@@ -84,5 +85,4 @@ export class LockdownProtocolWriter implements ProtocolWriter {
     socket.write(header);
     socket.write(plistMessage);
   }
-
 }

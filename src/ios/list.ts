@@ -12,7 +12,7 @@ export async function run(args: readonly string[]): Promise<void> {
 
 export async function list(args: readonly string[]): Promise<Targets> {
   const errors: Exception<string>[] = [];
-  const [ devices, virtualDevices ] = await Promise.all([
+  const [devices, virtualDevices] = await Promise.all([
     (async () => {
       try {
         const devices = await getConnectedDevices();

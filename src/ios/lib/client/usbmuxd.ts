@@ -56,7 +56,9 @@ function isUsbmuxdDeviceResponse(resp: any): resp is UsbmuxdDeviceResponse {
   return resp.DeviceList !== undefined;
 }
 
-function isUsbmuxdPairRecordResponse(resp: any): resp is UsbmuxdPairRecordResponse {
+function isUsbmuxdPairRecordResponse(
+  resp: any,
+): resp is UsbmuxdPairRecordResponse {
   return resp.PairRecordData !== undefined;
 }
 
@@ -80,22 +82,27 @@ export class UsbmuxdClient extends ServiceClient<UsbmuxProtocolClient> {
     const resp = await this.protocolClient.sendMessage({
       messageType: 'Connect',
       extraFields: {
-        'DeviceID': device.DeviceID,
-        'PortNumber': htons(port),
+        DeviceID: device.DeviceID,
+        PortNumber: htons(port),
       },
     });
 
     if (isUsbmuxdConnectResponse(resp) && resp.Number === 0) {
       return this.protocolClient.socket;
     } else {
-      throw new ResponseError(`There was an error connecting to ${device.DeviceID} on port ${port}`, resp);
+      throw new ResponseError(
+        `There was an error connecting to ${device.DeviceID} on port ${port}`,
+        resp,
+      );
     }
   }
 
   async getDevices() {
     debug('getDevices');
 
-    const resp = await this.protocolClient.sendMessage({ messageType: 'ListDevices' });
+    const resp = await this.protocolClient.sendMessage({
+      messageType: 'ListDevices',
+    });
 
     if (isUsbmuxdDeviceResponse(resp)) {
       return resp.DeviceList;
@@ -130,7 +137,7 @@ export class UsbmuxdClient extends ServiceClient<UsbmuxProtocolClient> {
 
     const resp = await this.protocolClient.sendMessage({
       messageType: 'ReadPairRecord',
-      extraFields: { 'PairRecordID': udid },
+      extraFields: { PairRecordID: udid },
     });
 
     if (isUsbmuxdPairRecordResponse(resp)) {
@@ -144,10 +151,12 @@ export class UsbmuxdClient extends ServiceClient<UsbmuxProtocolClient> {
         return plist.parse(resp.PairRecordData.toString()) as any; // TODO: type guard
       }
     } else {
-      throw new ResponseError(`There was an error reading pair record for udid: ${udid}`, resp);
+      throw new ResponseError(
+        `There was an error reading pair record for udid: ${udid}`,
+        resp,
+      );
     }
   }
-
 }
 
 function htons(n: number) {

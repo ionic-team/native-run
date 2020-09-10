@@ -5,7 +5,15 @@ import { promisify } from 'util';
 
 import { Exception } from '../../errors';
 import { onBeforeExit } from '../../utils/process';
-import { AFCError, AFC_STATUS, ClientManager, DeviceValues, IPLookupResult, LockdowndClient, UsbmuxdClient } from '../lib';
+import {
+  AFCError,
+  AFC_STATUS,
+  ClientManager,
+  DeviceValues,
+  IPLookupResult,
+  LockdowndClient,
+  UsbmuxdClient,
+} from '../lib';
 
 import { getDeveloperDiskImagePath } from './xcode';
 
@@ -17,15 +25,26 @@ export async function getConnectedDevices() {
   const usbmuxDevices = await usbmuxClient.getDevices();
   usbmuxClient.socket.end();
 
-  return Promise.all(usbmuxDevices.map(async (d): Promise<DeviceValues> => {
-    const socket = await new UsbmuxdClient(UsbmuxdClient.connectUsbmuxdSocket()).connect(d, 62078);
-    const device = await new LockdowndClient(socket).getAllValues();
-    socket.end();
-    return device;
-  }));
+  return Promise.all(
+    usbmuxDevices.map(
+      async (d): Promise<DeviceValues> => {
+        const socket = await new UsbmuxdClient(
+          UsbmuxdClient.connectUsbmuxdSocket(),
+        ).connect(d, 62078);
+        const device = await new LockdowndClient(socket).getAllValues();
+        socket.end();
+        return device;
+      },
+    ),
+  );
 }
 
-export async function runOnDevice(udid: string, appPath: string, bundleId: string, waitForApp: boolean) {
+export async function runOnDevice(
+  udid: string,
+  appPath: string,
+  bundleId: string,
+  waitForApp: boolean,
+) {
   const clientManager = await ClientManager.create(udid);
 
   try {
@@ -70,15 +89,29 @@ async function mountDeveloperDiskImage(clientManager: ClientManager) {
   if (!(await imageMounter.lookupImage()).ImageSignature) {
     // verify DeveloperDiskImage exists (TODO: how does this work on Windows/Linux?)
     // TODO: if windows/linux, download?
-    const version = await (await clientManager.getLockdowndClient()).getValue('ProductVersion');
+    const version = await (await clientManager.getLockdowndClient()).getValue(
+      'ProductVersion',
+    );
     const developerDiskImagePath = await getDeveloperDiskImagePath(version);
-    const developerDiskImageSig = readFileSync(`${developerDiskImagePath}.signature`);
-    await imageMounter.uploadImage(developerDiskImagePath, developerDiskImageSig);
-    await imageMounter.mountImage(developerDiskImagePath, developerDiskImageSig);
+    const developerDiskImageSig = readFileSync(
+      `${developerDiskImagePath}.signature`,
+    );
+    await imageMounter.uploadImage(
+      developerDiskImagePath,
+      developerDiskImageSig,
+    );
+    await imageMounter.mountImage(
+      developerDiskImagePath,
+      developerDiskImageSig,
+    );
   }
 }
 
-async function uploadApp(clientManager: ClientManager, srcPath: string, destinationPath: string) {
+async function uploadApp(
+  clientManager: ClientManager,
+  srcPath: string,
+  destinationPath: string,
+) {
   const afcClient = await clientManager.getAFCClient();
   try {
     await afcClient.getFileInfo('PublicStaging');
@@ -92,7 +125,10 @@ async function uploadApp(clientManager: ClientManager, srcPath: string, destinat
   await afcClient.uploadDirectory(srcPath, destinationPath);
 }
 
-async function launchApp(clientManager: ClientManager, appInfo: IPLookupResult[string]) {
+async function launchApp(
+  clientManager: ClientManager,
+  appInfo: IPLookupResult[string],
+) {
   let tries = 0;
   while (tries < 3) {
     const debugServerClient = await clientManager.getDebugserverClient();

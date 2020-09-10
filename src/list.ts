@@ -2,7 +2,7 @@ import { stringify } from './utils/json';
 import { Targets, formatTargets } from './utils/list';
 
 export async function run(args: readonly string[]): Promise<void> {
-  const [ ios, android ] = await Promise.all([
+  const [ios, android] = await Promise.all([
     (async (): Promise<Targets> => {
       const cmd = await import('./ios/list');
       return cmd.list(args);

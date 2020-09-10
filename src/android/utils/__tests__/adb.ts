@@ -1,9 +1,7 @@
 import * as os from 'os';
 
 describe('android/utils/adb', () => {
-
   describe('parseAdbDevices', () => {
-
     let adbUtils: typeof import('../adb');
 
     beforeEach(async () => {
@@ -143,7 +141,6 @@ List of devices attached
     });
 
     describe('windows', () => {
-
       let adbUtils: typeof import('../adb');
 
       beforeEach(async () => {
@@ -173,9 +170,6 @@ List of devices attached
           },
         ]);
       });
-
     });
-
   });
-
 });

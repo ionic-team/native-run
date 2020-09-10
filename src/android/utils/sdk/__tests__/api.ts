@@ -1,7 +1,10 @@
-import { APISchemaPackage, findPackageBySchema, findUnsatisfiedPackages } from '../api';
+import {
+  APISchemaPackage,
+  findPackageBySchema,
+  findUnsatisfiedPackages,
+} from '../api';
 
 describe('android/utils/sdk/api', () => {
-
   const FooPackage = {
     path: 'foo',
     location: '/Users/me/Android/sdk/foo',
@@ -24,11 +27,17 @@ describe('android/utils/sdk/api', () => {
   };
 
   const FooPackageSchema = { name: 'Foo', path: 'foo', version: '1' };
-  const BarPackageSchema = { name: 'Bar', path: 'bar', version: /^1\.\d+\.\d+$/ };
+  const BarPackageSchema = {
+    name: 'Bar',
+    path: 'bar',
+    version: /^1\.\d+\.\d+$/,
+  };
 
   describe('findUnsatisfiedPackages', () => {
-
-    const schemaPackages: APISchemaPackage[] = [FooPackageSchema, BarPackageSchema];
+    const schemaPackages: APISchemaPackage[] = [
+      FooPackageSchema,
+      BarPackageSchema,
+    ];
 
     it('should return all package schemas for empty packages', () => {
       const result = findUnsatisfiedPackages([], schemaPackages);
@@ -52,26 +61,28 @@ describe('android/utils/sdk/api', () => {
       const result = findUnsatisfiedPackages(api, schemaPackages);
       expect(result).toEqual([]);
     });
-
   });
 
   describe('findPackageBySchema', () => {
-
     it('should not find package in empty api', () => {
       const pkg = findPackageBySchema([], FooPackageSchema);
       expect(pkg).toBeUndefined();
     });
 
     it('should not find package for invalid version', () => {
-      const pkg = findPackageBySchema([FooPackage, BarPackageInvalidVersion], BarPackageSchema);
+      const pkg = findPackageBySchema(
+        [FooPackage, BarPackageInvalidVersion],
+        BarPackageSchema,
+      );
       expect(pkg).toBeUndefined();
     });
 
     it('should find foo package by schema', () => {
-      const pkg = findPackageBySchema([FooPackage, BarPackage], FooPackageSchema);
+      const pkg = findPackageBySchema(
+        [FooPackage, BarPackage],
+        FooPackageSchema,
+      );
       expect(pkg).toBe(FooPackage);
     });
-
   });
-
 });

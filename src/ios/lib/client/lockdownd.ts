@@ -68,23 +68,39 @@ interface LockdowndQueryTypeResponse {
   Type: string;
 }
 
-function isLockdowndServiceResponse(resp: any): resp is LockdowndServiceResponse {
-  return resp.Request === 'StartService' && resp.Service !== undefined && resp.Port !== undefined;
+function isLockdowndServiceResponse(
+  resp: any,
+): resp is LockdowndServiceResponse {
+  return (
+    resp.Request === 'StartService' &&
+    resp.Service !== undefined &&
+    resp.Port !== undefined
+  );
 }
 
-function isLockdowndSessionResponse(resp: any): resp is LockdowndSessionResponse {
+function isLockdowndSessionResponse(
+  resp: any,
+): resp is LockdowndSessionResponse {
   return resp.Request === 'StartSession';
 }
 
-function isLockdowndAllValuesResponse(resp: any): resp is LockdowndAllValuesResponse {
+function isLockdowndAllValuesResponse(
+  resp: any,
+): resp is LockdowndAllValuesResponse {
   return resp.Request === 'GetValue' && resp.Value !== undefined;
 }
 
 function isLockdowndValueResponse(resp: any): resp is LockdowndValueResponse {
-  return resp.Request === 'GetValue' && resp.Key !== undefined && typeof resp.Value === 'string';
+  return (
+    resp.Request === 'GetValue' &&
+    resp.Key !== undefined &&
+    typeof resp.Value === 'string'
+  );
 }
 
-function isLockdowndQueryTypeResponse(resp: any): resp is LockdowndQueryTypeResponse {
+function isLockdowndQueryTypeResponse(
+  resp: any,
+): resp is LockdowndQueryTypeResponse {
   return resp.Request === 'QueryType' && resp.Type !== undefined;
 }
 
@@ -97,8 +113,8 @@ export class LockdowndClient extends ServiceClient<LockdownProtocolClient> {
     debug(`startService: ${name}`);
 
     const resp = await this.protocolClient.sendMessage({
-      'Request': 'StartService',
-      'Service': name,
+      Request: 'StartService',
+      Service: name,
     });
 
     if (isLockdowndServiceResponse(resp)) {
@@ -112,20 +128,23 @@ export class LockdowndClient extends ServiceClient<LockdownProtocolClient> {
     debug(`startSession: ${pairRecord}`);
 
     const resp = await this.protocolClient.sendMessage({
-      'Request': 'StartSession',
-      'HostID': pairRecord.HostID,
-      'SystemBUID': pairRecord.SystemBUID,
+      Request: 'StartSession',
+      HostID: pairRecord.HostID,
+      SystemBUID: pairRecord.SystemBUID,
     });
 
     if (isLockdowndSessionResponse(resp)) {
       if (resp.EnableSessionSSL) {
-        this.protocolClient.socket = new tls.TLSSocket(this.protocolClient.socket, {
-          secureContext: tls.createSecureContext({
-            secureProtocol: 'TLSv1_method',
-            cert: pairRecord.RootCertificate,
-            key: pairRecord.RootPrivateKey,
-          }),
-        });
+        this.protocolClient.socket = new tls.TLSSocket(
+          this.protocolClient.socket,
+          {
+            secureContext: tls.createSecureContext({
+              secureProtocol: 'TLSv1_method',
+              cert: pairRecord.RootCertificate,
+              key: pairRecord.RootPrivateKey,
+            }),
+          },
+        );
         debug(`Socket upgraded to TLS connection`);
       }
       // TODO: save sessionID for StopSession?
@@ -137,7 +156,7 @@ export class LockdowndClient extends ServiceClient<LockdownProtocolClient> {
   async getAllValues() {
     debug(`getAllValues`);
 
-    const resp = await this.protocolClient.sendMessage({ 'Request': 'GetValue' });
+    const resp = await this.protocolClient.sendMessage({ Request: 'GetValue' });
 
     if (isLockdowndAllValuesResponse(resp)) {
       return resp.Value;
@@ -150,8 +169,8 @@ export class LockdowndClient extends ServiceClient<LockdownProtocolClient> {
     debug(`getValue: ${val}`);
 
     const resp = await this.protocolClient.sendMessage({
-      'Request': 'GetValue',
-      'Key': val,
+      Request: 'GetValue',
+      Key: val,
     });
 
     if (isLockdowndValueResponse(resp)) {
@@ -164,7 +183,9 @@ export class LockdowndClient extends ServiceClient<LockdownProtocolClient> {
   async queryType() {
     debug('queryType');
 
-    const resp = await this.protocolClient.sendMessage({ 'Request': 'QueryType' });
+    const resp = await this.protocolClient.sendMessage({
+      Request: 'QueryType',
+    });
 
     if (isLockdowndQueryTypeResponse(resp)) {
       return resp.Type;
@@ -183,5 +204,4 @@ export class LockdowndClient extends ServiceClient<LockdownProtocolClient> {
     // TODO: validate pair and pair
     await this.startSession(pairRecord);
   }
-
 }

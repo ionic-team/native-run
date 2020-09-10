@@ -10,31 +10,44 @@ export interface APILevel {
   readonly missingPackages?: APISchemaPackage[];
 }
 
-export async function getAPILevels(packages: SDKPackage[]): Promise<APILevel[]> {
+export async function getAPILevels(
+  packages: SDKPackage[],
+): Promise<APILevel[]> {
   const debug = Debug(`${modulePrefix}:${getAPILevels.name}`);
   const levels = [
     ...new Set(
       packages
         .map(pkg => pkg.apiLevel)
-        .filter((apiLevel): apiLevel is string => typeof apiLevel !== 'undefined')
+        .filter(
+          (apiLevel): apiLevel is string => typeof apiLevel !== 'undefined',
+        ),
     ),
-  ].sort((a, b) => a <= b ? 1 : -1);
+  ].sort((a, b) => (a <= b ? 1 : -1));
 
   const apis = levels.map(apiLevel => ({
     apiLevel,
     packages: packages.filter(pkg => pkg.apiLevel === apiLevel),
   }));
 
-  debug('Discovered installed API Levels: %O', apis.map(api => ({ ...api, packages: api.packages.map(pkg => pkg.path) })));
+  debug(
+    'Discovered installed API Levels: %O',
+    apis.map(api => ({ ...api, packages: api.packages.map(pkg => pkg.path) })),
+  );
 
   return apis;
 }
 
-export function findUnsatisfiedPackages(packages: readonly SDKPackage[], schemas: readonly APISchemaPackage[]): APISchemaPackage[] {
+export function findUnsatisfiedPackages(
+  packages: readonly SDKPackage[],
+  schemas: readonly APISchemaPackage[],
+): APISchemaPackage[] {
   return schemas.filter(pkg => !findPackageBySchema(packages, pkg));
 }
 
-export function findPackageBySchema(packages: readonly SDKPackage[], pkg: APISchemaPackage): SDKPackage | undefined {
+export function findPackageBySchema(
+  packages: readonly SDKPackage[],
+  pkg: APISchemaPackage,
+): SDKPackage | undefined {
   const apiPkg = findPackageBySchemaPath(packages, pkg.path);
 
   if (apiPkg) {
@@ -50,7 +63,10 @@ export function findPackageBySchema(packages: readonly SDKPackage[], pkg: APISch
   }
 }
 
-export function findPackageBySchemaPath(packages: readonly SDKPackage[], path: string | RegExp): SDKPackage | undefined {
+export function findPackageBySchemaPath(
+  packages: readonly SDKPackage[],
+  path: string | RegExp,
+): SDKPackage | undefined {
   return packages.find(pkg => {
     if (typeof path !== 'string') {
       return !!pkg.path.match(path);
@@ -60,14 +76,13 @@ export function findPackageBySchemaPath(packages: readonly SDKPackage[], path: s
   });
 }
 
-export type PartialAVDSchematic = (
-  typeof import('../../data/avds/Pixel_3_API_29.json') |
-  typeof import('../../data/avds/Pixel_2_API_28.json') |
-  typeof import('../../data/avds/Pixel_2_API_27.json') |
-  typeof import('../../data/avds/Pixel_2_API_26.json') |
-  typeof import('../../data/avds/Pixel_API_25.json') |
-  typeof import('../../data/avds/Nexus_5X_API_24.json')
-);
+export type PartialAVDSchematic =
+  | typeof import('../../data/avds/Pixel_3_API_29.json')
+  | typeof import('../../data/avds/Pixel_2_API_28.json')
+  | typeof import('../../data/avds/Pixel_2_API_27.json')
+  | typeof import('../../data/avds/Pixel_2_API_26.json')
+  | typeof import('../../data/avds/Pixel_API_25.json')
+  | typeof import('../../data/avds/Nexus_5X_API_24.json');
 
 export interface APISchemaPackage {
   readonly name: string;
@@ -86,7 +101,11 @@ export const API_LEVEL_29: APISchema = Object.freeze({
   validate: (packages: readonly SDKPackage[]) => {
     const schemas: APISchemaPackage[] = [
       { name: 'Android Emulator', path: 'emulator', version: /.+/ },
-      { name: 'Android SDK Platform 29', path: 'platforms;android-29', version: /.+/ },
+      {
+        name: 'Android SDK Platform 29',
+        path: 'platforms;android-29',
+        version: /.+/,
+      },
     ];
 
     const missingPackages = findUnsatisfiedPackages(packages, schemas);
@@ -101,7 +120,8 @@ export const API_LEVEL_29: APISchema = Object.freeze({
 
     return missingPackages;
   },
-  loadPartialAVDSchematic: async () => import('../../data/avds/Pixel_3_API_29.json'),
+  loadPartialAVDSchematic: async () =>
+    import('../../data/avds/Pixel_3_API_29.json'),
 });
 
 export const API_LEVEL_28: APISchema = Object.freeze({
@@ -109,7 +129,11 @@ export const API_LEVEL_28: APISchema = Object.freeze({
   validate: (packages: readonly SDKPackage[]) => {
     const schemas: APISchemaPackage[] = [
       { name: 'Android Emulator', path: 'emulator', version: /.+/ },
-      { name: 'Android SDK Platform 28', path: 'platforms;android-28', version: /.+/ },
+      {
+        name: 'Android SDK Platform 28',
+        path: 'platforms;android-28',
+        version: /.+/,
+      },
     ];
 
     const missingPackages = findUnsatisfiedPackages(packages, schemas);
@@ -124,7 +148,8 @@ export const API_LEVEL_28: APISchema = Object.freeze({
 
     return missingPackages;
   },
-  loadPartialAVDSchematic: async () => import('../../data/avds/Pixel_2_API_28.json'),
+  loadPartialAVDSchematic: async () =>
+    import('../../data/avds/Pixel_2_API_28.json'),
 });
 
 export const API_LEVEL_27: APISchema = Object.freeze({
@@ -132,7 +157,11 @@ export const API_LEVEL_27: APISchema = Object.freeze({
   validate: (packages: readonly SDKPackage[]) => {
     const schemas: APISchemaPackage[] = [
       { name: 'Android Emulator', path: 'emulator', version: /.+/ },
-      { name: 'Android SDK Platform 27', path: 'platforms;android-27', version: /.+/ },
+      {
+        name: 'Android SDK Platform 27',
+        path: 'platforms;android-27',
+        version: /.+/,
+      },
     ];
 
     const missingPackages = findUnsatisfiedPackages(packages, schemas);
@@ -147,7 +176,8 @@ export const API_LEVEL_27: APISchema = Object.freeze({
 
     return missingPackages;
   },
-  loadPartialAVDSchematic: async () => import('../../data/avds/Pixel_2_API_27.json'),
+  loadPartialAVDSchematic: async () =>
+    import('../../data/avds/Pixel_2_API_27.json'),
 });
 
 export const API_LEVEL_26: APISchema = Object.freeze({
@@ -155,7 +185,11 @@ export const API_LEVEL_26: APISchema = Object.freeze({
   validate: (packages: readonly SDKPackage[]) => {
     const schemas: APISchemaPackage[] = [
       { name: 'Android Emulator', path: 'emulator', version: /.+/ },
-      { name: 'Android SDK Platform 26', path: 'platforms;android-26', version: /.+/ },
+      {
+        name: 'Android SDK Platform 26',
+        path: 'platforms;android-26',
+        version: /.+/,
+      },
     ];
 
     const missingPackages = findUnsatisfiedPackages(packages, schemas);
@@ -170,7 +204,8 @@ export const API_LEVEL_26: APISchema = Object.freeze({
 
     return missingPackages;
   },
-  loadPartialAVDSchematic: async () => import('../../data/avds/Pixel_2_API_26.json'),
+  loadPartialAVDSchematic: async () =>
+    import('../../data/avds/Pixel_2_API_26.json'),
 });
 
 export const API_LEVEL_25: APISchema = Object.freeze({
@@ -178,7 +213,11 @@ export const API_LEVEL_25: APISchema = Object.freeze({
   validate: (packages: readonly SDKPackage[]) => {
     const schemas: APISchemaPackage[] = [
       { name: 'Android Emulator', path: 'emulator', version: /.+/ },
-      { name: 'Android SDK Platform 25', path: 'platforms;android-25', version: /.+/ },
+      {
+        name: 'Android SDK Platform 25',
+        path: 'platforms;android-25',
+        version: /.+/,
+      },
     ];
 
     const missingPackages = findUnsatisfiedPackages(packages, schemas);
@@ -193,7 +232,8 @@ export const API_LEVEL_25: APISchema = Object.freeze({
 
     return missingPackages;
   },
-  loadPartialAVDSchematic: async () => import('../../data/avds/Pixel_API_25.json'),
+  loadPartialAVDSchematic: async () =>
+    import('../../data/avds/Pixel_API_25.json'),
 });
 
 export const API_LEVEL_24: APISchema = Object.freeze({
@@ -201,7 +241,11 @@ export const API_LEVEL_24: APISchema = Object.freeze({
   validate: (packages: readonly SDKPackage[]) => {
     const schemas: APISchemaPackage[] = [
       { name: 'Android Emulator', path: 'emulator', version: /.+/ },
-      { name: 'Android SDK Platform 24', path: 'platforms;android-24', version: /.+/ },
+      {
+        name: 'Android SDK Platform 24',
+        path: 'platforms;android-24',
+        version: /.+/,
+      },
     ];
 
     const missingPackages = findUnsatisfiedPackages(packages, schemas);
@@ -216,7 +260,8 @@ export const API_LEVEL_24: APISchema = Object.freeze({
 
     return missingPackages;
   },
-  loadPartialAVDSchematic: async () => import('../../data/avds/Nexus_5X_API_24.json'),
+  loadPartialAVDSchematic: async () =>
+    import('../../data/avds/Nexus_5X_API_24.json'),
 });
 
 export const API_LEVEL_SCHEMAS: readonly APISchema[] = [

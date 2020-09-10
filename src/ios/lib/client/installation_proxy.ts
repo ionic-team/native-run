@@ -1,18 +1,27 @@
 import * as Debug from 'debug';
 import * as net from 'net';
 
-import { LockdownCommand, LockdownProtocolClient, LockdownResponse } from '../protocol/lockdown';
+import {
+  LockdownCommand,
+  LockdownProtocolClient,
+  LockdownResponse,
+} from '../protocol/lockdown';
 
 import { ResponseError, ServiceClient } from './client';
 
 const debug = Debug('native-run:ios:lib:client:installation_proxy');
 
 interface IPOptions {
-  'ApplicationsType'?: 'Any';
-  'PackageType'?: 'Developer';
-  'CFBundleIdentifier'?: string;
-  'ReturnAttributes'?: ('CFBundleIdentifier' | 'CFBundleExecutable' | 'Container' | 'Path')[];
-  'BundleIDs'?: string[];
+  ApplicationsType?: 'Any';
+  PackageType?: 'Developer';
+  CFBundleIdentifier?: string;
+  ReturnAttributes?: (
+    | 'CFBundleIdentifier'
+    | 'CFBundleExecutable'
+    | 'Container'
+    | 'Path'
+  )[];
+  BundleIDs?: string[];
 }
 
 interface IPInstallPercentCompleteResponseItem extends LockdownResponse {
@@ -54,7 +63,8 @@ interface IPLookupResponseItem extends LockdownResponse {
 type IPLookupResponse = IPLookupResponseItem[];
 
 export interface IPLookupResult {
-  [key: string]: { // BundleId
+  // BundleId
+  [key: string]: {
     Container: string;
     CFBundleIdentifier: string;
     CFBundleExecutable: string;
@@ -66,33 +76,49 @@ function isIPLookupResponse(resp: any): resp is IPLookupResponse {
   return resp.length && resp[0].LookupResult !== undefined;
 }
 
-function isIPInstallPercentCompleteResponse(resp: any): resp is IPInstallPercentCompleteResponse {
+function isIPInstallPercentCompleteResponse(
+  resp: any,
+): resp is IPInstallPercentCompleteResponse {
   return resp.length && resp[0].PercentComplete !== undefined;
 }
 
-function isIPInstallCFBundleIdentifierResponse(resp: any): resp is IPInstallCFBundleIdentifierResponse {
+function isIPInstallCFBundleIdentifierResponse(
+  resp: any,
+): resp is IPInstallCFBundleIdentifierResponse {
   return resp.length && resp[0].CFBundleIdentifier !== undefined;
 }
 
-function isIPInstallCompleteResponse(resp: any): resp is IPInstallCompleteResponse {
+function isIPInstallCompleteResponse(
+  resp: any,
+): resp is IPInstallCompleteResponse {
   return resp.length && resp[0].Status === 'Complete';
 }
 
-export class InstallationProxyClient extends ServiceClient<LockdownProtocolClient<IPMessage>> {
+export class InstallationProxyClient extends ServiceClient<
+  LockdownProtocolClient<IPMessage>
+> {
   constructor(public socket: net.Socket) {
     super(socket, new LockdownProtocolClient(socket));
   }
 
-  async lookupApp(bundleIds: string[], options: IPOptions = {
-    'ReturnAttributes': ['Path', 'Container', 'CFBundleExecutable', 'CFBundleIdentifier'],
-    'ApplicationsType': 'Any',
-  }) {
+  async lookupApp(
+    bundleIds: string[],
+    options: IPOptions = {
+      ReturnAttributes: [
+        'Path',
+        'Container',
+        'CFBundleExecutable',
+        'CFBundleIdentifier',
+      ],
+      ApplicationsType: 'Any',
+    },
+  ) {
     debug(`lookupApp, options: ${JSON.stringify(options)}`);
 
     const resp = await this.protocolClient.sendMessage({
-      'Command': 'Lookup',
-      'ClientOptions': {
-        'BundleIDs': bundleIds,
+      Command: 'Lookup',
+      ClientOptions: {
+        BundleIDs: bundleIds,
         ...options,
       },
     });
@@ -103,29 +129,38 @@ export class InstallationProxyClient extends ServiceClient<LockdownProtocolClien
     }
   }
 
-  async installApp(packagePath: string, bundleId: string, options: IPOptions = {
-    'ApplicationsType': 'Any',
-    'PackageType': 'Developer',
-  }) {
+  async installApp(
+    packagePath: string,
+    bundleId: string,
+    options: IPOptions = {
+      ApplicationsType: 'Any',
+      PackageType: 'Developer',
+    },
+  ) {
     debug(`installApp, packagePath: ${packagePath}, bundleId: ${bundleId}`);
 
-    return this.protocolClient.sendMessage({
-      'Command': 'Install',
-      'PackagePath': packagePath,
-      'ClientOptions': {
-        'CFBundleIdentifier': bundleId,
-        ...options,
+    return this.protocolClient.sendMessage(
+      {
+        Command: 'Install',
+        PackagePath: packagePath,
+        ClientOptions: {
+          CFBundleIdentifier: bundleId,
+          ...options,
+        },
       },
-    }, (resp: any, resolve, reject) => {
-      if (isIPInstallCompleteResponse(resp)) {
-        resolve();
-      } else if (isIPInstallPercentCompleteResponse(resp)) {
-        debug(`Installation status: ${resp[0].Status}, %${resp[0].PercentComplete}`);
-      } else if (isIPInstallCFBundleIdentifierResponse(resp)) {
-        debug(`Installed app: ${resp[0].CFBundleIdentifier}`);
-      } else {
-        reject(new ResponseError('There was an error installing app', resp));
-      }
-    });
+      (resp: any, resolve, reject) => {
+        if (isIPInstallCompleteResponse(resp)) {
+          resolve();
+        } else if (isIPInstallPercentCompleteResponse(resp)) {
+          debug(
+            `Installation status: ${resp[0].Status}, %${resp[0].PercentComplete}`,
+          );
+        } else if (isIPInstallCFBundleIdentifierResponse(resp)) {
+          debug(`Installed app: ${resp[0].CFBundleIdentifier}`);
+        } else {
+          reject(new ResponseError('There was an error installing app', resp));
+        }
+      },
+    );
   }
 }

@@ -42,16 +42,19 @@ export class DebugserverClient extends ServiceClient<GDBProtocolClient> {
 
   async kill() {
     const msg: any = { cmd: 'k', args: [] };
-    return this.protocolClient.sendMessage(msg, (resp: string, resolve: any, reject: any) => {
-      this.protocolClient.socket.write('+');
-      const parts = resp.split(';');
-      for (const part of parts) {
-        if (part.includes('description')) {
-          // description:{hex encoded message like: "Terminated with signal 9"}
-          resolve(Buffer.from(part.split(':')[1], 'hex').toString('ascii'));
+    return this.protocolClient.sendMessage(
+      msg,
+      (resp: string, resolve: any, reject: any) => {
+        this.protocolClient.socket.write('+');
+        const parts = resp.split(';');
+        for (const part of parts) {
+          if (part.includes('description')) {
+            // description:{hex encoded message like: "Terminated with signal 9"}
+            resolve(Buffer.from(part.split(':')[1], 'hex').toString('ascii'));
+          }
         }
-      }
-    });
+      },
+    );
   }
 
   // TODO support app args
@@ -72,5 +75,4 @@ export class DebugserverClient extends ServiceClient<GDBProtocolClient> {
     this.protocolClient.socket.write('+');
     return resp;
   }
-
 }

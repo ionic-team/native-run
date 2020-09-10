@@ -8,9 +8,7 @@ OK
 `;
 
 describe('android/utils/emulator', () => {
-
   describe('parseAndroidConsoleResponse', () => {
-
     it('should not parse an event from whitespace', () => {
       for (const output of ['', '\n', '        \n']) {
         const event = parseAndroidConsoleResponse(output);
@@ -29,11 +27,10 @@ describe('android/utils/emulator', () => {
     });
 
     it('should parse response from output', () => {
-      const expected = authRequiredOutput.split('\n').slice(0, -2).join('\n') + '\n';
+      const expected =
+        authRequiredOutput.split('\n').slice(0, -2).join('\n') + '\n';
       const event = parseAndroidConsoleResponse(authRequiredOutput);
       expect(event).toBe(expected);
     });
-
   });
-
 });

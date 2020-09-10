@@ -7,7 +7,9 @@ const BPLIST_MAGIC = Buffer.from('bplist00');
 export type ProtocolReaderCallback = (resp: any, err?: Error) => void;
 
 export class ProtocolReaderFactory<T> {
-  constructor(private ProtocolReader: new (callback: ProtocolReaderCallback) => T) {}
+  constructor(
+    private ProtocolReader: new (callback: ProtocolReaderCallback) => T,
+  ) {}
 
   create(callback: (resp: any, err?: Error) => void): T {
     return new this.ProtocolReader(callback);
@@ -20,7 +22,7 @@ export abstract class ProtocolReader {
   private buffer = Buffer.alloc(0);
   constructor(
     private headerSize: number,
-    protected callback: ProtocolReaderCallback
+    protected callback: ProtocolReaderCallback,
   ) {
     this.onData = this.onData.bind(this);
   }
@@ -63,7 +65,9 @@ export abstract class ProtocolReader {
         }
         this.buffer = this.buffer.slice(this.body.length);
         // There are multiple messages here, call parse again
-        if (this.buffer.length) { this.onData(); }
+        if (this.buffer.length) {
+          this.onData();
+        }
       }
     } catch (err) {
       this.callback(null, err);
@@ -89,25 +93,40 @@ export abstract class ProtocolClient<MessageType = any> {
   constructor(
     public socket: net.Socket,
     protected readerFactory: ProtocolReaderFactory<ProtocolReader>,
-    protected writer: ProtocolWriter
+    protected writer: ProtocolWriter,
   ) {}
 
   sendMessage<ResponseType = any>(msg: MessageType): Promise<ResponseType>;
-  sendMessage<CallbackType = void, ResponseType = any>(msg: MessageType, callback: (response: ResponseType, resolve: any, reject: any) => void): Promise<CallbackType>;
-  sendMessage<CallbackType = void, ResponseType = any>(msg: MessageType, callback?: (response: ResponseType, resolve: any, reject: any) => void): Promise<CallbackType | ResponseType> {
+  sendMessage<CallbackType = void, ResponseType = any>(
+    msg: MessageType,
+    callback: (response: ResponseType, resolve: any, reject: any) => void,
+  ): Promise<CallbackType>;
+  sendMessage<CallbackType = void, ResponseType = any>(
+    msg: MessageType,
+    callback?: (response: ResponseType, resolve: any, reject: any) => void,
+  ): Promise<CallbackType | ResponseType> {
     return new Promise<ResponseType | CallbackType>((resolve, reject) => {
-      const reader = this.readerFactory.create(async (resp: ResponseType, err?: Error) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-        if (callback) {
-          callback(resp, (...args: any[]) => { this.socket.removeListener('data', reader.onData); resolve(...args); }, reject);
-        } else {
-          this.socket.removeListener('data', reader.onData);
-          resolve(resp);
-        }
-      });
+      const reader = this.readerFactory.create(
+        async (resp: ResponseType, err?: Error) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+          if (callback) {
+            callback(
+              resp,
+              (...args: any[]) => {
+                this.socket.removeListener('data', reader.onData);
+                resolve(...args);
+              },
+              reject,
+            );
+          } else {
+            this.socket.removeListener('data', reader.onData);
+            resolve(resp);
+          }
+        },
+      );
       this.socket.on('data', reader.onData);
       this.writer.write(this.socket, msg);
     });

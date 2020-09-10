@@ -1,14 +1,38 @@
 import * as Debug from 'debug';
 
-import { AVDException, AndroidRunException, CLIException, ERR_BAD_INPUT, ERR_NO_DEVICE, ERR_NO_TARGET, ERR_TARGET_NOT_FOUND, ERR_UNSUITABLE_API_INSTALLATION } from '../errors';
+import {
+  AVDException,
+  AndroidRunException,
+  CLIException,
+  ERR_BAD_INPUT,
+  ERR_NO_DEVICE,
+  ERR_NO_TARGET,
+  ERR_TARGET_NOT_FOUND,
+  ERR_UNSUITABLE_API_INSTALLATION,
+} from '../errors';
 import { getOptionValue, getOptionValues } from '../utils/cli';
 import { log } from '../utils/log';
 import { onBeforeExit } from '../utils/process';
 
-import { Device, Ports, closeApp, forwardPorts, getDevices, startActivity, unforwardPorts, waitForBoot, waitForClose } from './utils/adb';
+import {
+  Device,
+  Ports,
+  closeApp,
+  forwardPorts,
+  getDevices,
+  startActivity,
+  unforwardPorts,
+  waitForBoot,
+  waitForClose,
+} from './utils/adb';
 import { getApkInfo } from './utils/apk';
 import { getInstalledAVDs } from './utils/avd';
-import { installApkToDevice, selectDeviceByTarget, selectHardwareDevice, selectVirtualDevice } from './utils/run';
+import {
+  installApkToDevice,
+  selectDeviceByTarget,
+  selectHardwareDevice,
+  selectVirtualDevice,
+} from './utils/run';
 import { SDK, getSDK } from './utils/sdk';
 
 const modulePrefix = 'native-run:android:run';
@@ -22,10 +46,12 @@ export async function run(args: readonly string[]): Promise<void> {
 
   if (forwardedPorts && forwardedPorts.length > 0) {
     forwardedPorts.forEach((port: string) => {
-      const [ device, host ] = port.split(':');
+      const [device, host] = port.split(':');
 
       if (!device || !host) {
-        throw new CLIException(`Invalid --forward value "${port}": expecting <device port:host port>, e.g. 8080:8080`);
+        throw new CLIException(
+          `Invalid --forward value "${port}": expecting <device port:host port>, e.g. 8080:8080`,
+        );
       }
 
       ports.push({ device, host });
@@ -38,16 +64,22 @@ export async function run(args: readonly string[]): Promise<void> {
 
   const device = await selectDevice(sdk, args);
 
-  log(`Selected ${device.type === 'hardware' ? 'hardware device' : 'emulator'} ${device.serial}\n`);
+  log(
+    `Selected ${device.type === 'hardware' ? 'hardware device' : 'emulator'} ${
+      device.serial
+    }\n`,
+  );
 
   const { appId, activityName } = await getApkInfo(apkPath);
   await waitForBoot(sdk, device);
 
   if (ports) {
-    await Promise.all(ports.map(async (port: Ports) => {
-      await forwardPorts(sdk, device, port);
-      log(`Forwarded device port ${port.device} to host port ${port.host}\n`);
-    }));
+    await Promise.all(
+      ports.map(async (port: Ports) => {
+        await forwardPorts(sdk, device, port);
+        log(`Forwarded device port ${port.device} to host port ${port.host}\n`);
+      }),
+    );
   }
 
   await installApkToDevice(sdk, device, apkPath, appId);
@@ -59,9 +91,11 @@ export async function run(args: readonly string[]): Promise<void> {
 
   onBeforeExit(async () => {
     if (ports) {
-      await Promise.all(ports.map(async (port: Ports) => {
-        await unforwardPorts(sdk, device, port);
-      }));
+      await Promise.all(
+        ports.map(async (port: Ports) => {
+          await unforwardPorts(sdk, device, port);
+        }),
+      );
     }
   });
 
@@ -75,7 +109,10 @@ export async function run(args: readonly string[]): Promise<void> {
   }
 }
 
-export async function selectDevice(sdk: SDK, args: readonly string[]): Promise<Device> {
+export async function selectDevice(
+  sdk: SDK,
+  args: readonly string[],
+): Promise<Device> {
   const debug = Debug(`${modulePrefix}:${selectDevice.name}`);
 
   const devices = await getDevices(sdk);
@@ -90,7 +127,10 @@ export async function selectDevice(sdk: SDK, args: readonly string[]): Promise<D
     if (targetDevice) {
       return targetDevice;
     } else {
-      throw new AndroidRunException(`Target not found: ${target}`, ERR_TARGET_NOT_FOUND);
+      throw new AndroidRunException(
+        `Target not found: ${target}`,
+        ERR_TARGET_NOT_FOUND,
+      );
     }
   }
 
@@ -100,7 +140,10 @@ export async function selectDevice(sdk: SDK, args: readonly string[]): Promise<D
     if (selectedDevice) {
       return selectedDevice;
     } else if (args.includes('--device')) {
-      throw new AndroidRunException(`No hardware devices found. Not attempting emulator because --device was specified.`, ERR_NO_DEVICE);
+      throw new AndroidRunException(
+        `No hardware devices found. Not attempting emulator because --device was specified.`,
+        ERR_NO_DEVICE,
+      );
     } else {
       log('No hardware devices found, attempting emulator...\n');
     }
@@ -116,9 +159,15 @@ export async function selectDevice(sdk: SDK, args: readonly string[]): Promise<D
     debug('Issue with AVDs: %s', e.message);
 
     if (e.code === ERR_UNSUITABLE_API_INSTALLATION) {
-      throw new AndroidRunException('No targets devices/emulators available. Cannot create AVD because there is no suitable API installation. Use --sdk-info to reveal missing packages and other issues.', ERR_NO_TARGET);
+      throw new AndroidRunException(
+        'No targets devices/emulators available. Cannot create AVD because there is no suitable API installation. Use --sdk-info to reveal missing packages and other issues.',
+        ERR_NO_TARGET,
+      );
     }
   }
 
-  throw new AndroidRunException('No target devices/emulators available.', ERR_NO_TARGET);
+  throw new AndroidRunException(
+    'No target devices/emulators available.',
+    ERR_NO_TARGET,
+  );
 }
