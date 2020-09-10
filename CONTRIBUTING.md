@@ -16,22 +16,22 @@ npm run watch
 
 ## Publishing
 
-CI automatically publishes the next version semantically from analyzing commits in `stable`. To maintain a shared history between `master` and `stable`, the branches must be rebased with each other locally.
+CI automatically publishes the next version semantically from analyzing commits in `stable`. To maintain a shared history between `develop` and `stable`, the branches must be rebased with each other locally.
 
-* When it's time to cut a release from `master`:
+* When it's time to cut a release from `develop`:
 
     ```
     git checkout stable
-    git merge --ff-only master
+    git merge --ff-only develop
     git push origin stable
     ```
 
 * Await successful publish in CI. Ionitron will push the updated versions and tags to `stable`.
-* Sync `master` with `stable`.
+* Sync `develop` with `stable`.
 
     ```
     git pull origin stable
-    git checkout master
+    git checkout develop
     git merge --ff-only stable
-    git push origin master
+    git push origin develop
     ```
