@@ -104,7 +104,6 @@ export type AndroidRunExceptionCode = (
 export class AndroidRunException extends AndroidException<AndroidRunExceptionCode> {}
 
 export type SDKExceptionCode = (
-  typeof ERR_AVD_HOME_NOT_FOUND |
   typeof ERR_EMULATOR_HOME_NOT_FOUND |
   typeof ERR_INVALID_SDK_PACKAGE |
   typeof ERR_SDK_NOT_FOUND |

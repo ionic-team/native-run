@@ -1,4 +1,4 @@
-import { readdirp } from '@ionic/utils-fs';
+import { mkdirp, readdirp } from '@ionic/utils-fs';
 import * as Debug from 'debug';
 import * as os from 'os';
 import * as pathlib from 'path';
@@ -20,7 +20,7 @@ export const SDK_DIRECTORIES: ReadonlyMap<NodeJS.Platform, string[] | undefined>
 export interface SDK {
   readonly root: string;
   readonly emulatorHome: string;
-  readonly avdHome?: string;
+  readonly avdHome: string;
   packages?: SDKPackage[];
 }
 
@@ -190,7 +190,7 @@ export async function resolveEmulatorHome(): Promise<string> {
   throw new SDKException(`No valid Android Emulator home found.`, ERR_EMULATOR_HOME_NOT_FOUND);
 }
 
-export async function resolveAVDHome(): Promise<string | undefined> {
+export async function resolveAVDHome(): Promise<string> {
   const debug = Debug(`${modulePrefix}:${resolveAVDHome.name}`);
 
   debug('Looking for $ANDROID_AVD_HOME');
@@ -204,12 +204,13 @@ export async function resolveAVDHome(): Promise<string | undefined> {
 
   const homeAvdHome = pathlib.join(homedir, '.android', 'avd');
 
-  if (await isDir(homeAvdHome)) {
-    debug('Using $HOME/.android/avd/ at %s', homeAvdHome);
-    return homeAvdHome;
+  if (!(await isDir(homeAvdHome))) {
+    debug('Creating directory: %s', homeAvdHome);
+    await mkdirp(homeAvdHome);
   }
 
-  debug('No valid AVD home found.');
+  debug('Using $HOME/.android/avd/ at %s', homeAvdHome);
+  return homeAvdHome;
 }
 
 export function supplementProcessEnv(sdk: SDK): NodeJS.ProcessEnv {
