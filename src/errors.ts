@@ -4,7 +4,7 @@ export const enum ExitCode {
   GENERAL = 1,
 }
 
-export class Exception<T extends string, D = object>
+export class Exception<T extends string, D = { [key: string]: string }>
   extends Error
   implements NodeJS.ErrnoException {
   constructor(
@@ -29,10 +29,10 @@ export class Exception<T extends string, D = object>
   }
 }
 
-export class AndroidException<T extends string, D = object> extends Exception<
-  T,
-  D
-> {
+export class AndroidException<
+  T extends string,
+  D = { [key: string]: string }
+> extends Exception<T, D> {
   serialize() {
     return (
       `${super.serialize()}\n\n` +

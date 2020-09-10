@@ -1,17 +1,12 @@
 import { Readable } from 'stream';
 import { promisify } from 'util';
-import { Entry, Options, ZipFile, ZipFileOptions } from 'yauzl';
+import { Entry, ZipFile, ZipFileOptions } from 'yauzl';
 
 // Specify which of possible overloads is being promisified
 type YauzlOpenReadStream = (
   entry: Entry,
   options?: ZipFileOptions,
   callback?: (err: Error, stream: Readable) => void,
-) => void;
-type YauzlOpen = (
-  path: string,
-  options?: Options,
-  callback?: (err: Error, zipfile: ZipFile) => void,
 ) => void;
 type UnzipOnEntry = (
   entry: Entry,
@@ -21,11 +16,13 @@ type UnzipOnEntry = (
 
 export async function unzip(srcPath: string, onEntry: UnzipOnEntry) {
   const yauzl = await import('yauzl');
-  const open = promisify(yauzl.open.bind(yauzl) as YauzlOpen);
 
-  return new Promise<void>(async (resolve, reject) => {
-    try {
-      const zipfile = await open(srcPath, { lazyEntries: true });
+  return new Promise<void>((resolve, reject) => {
+    yauzl.open(srcPath, { lazyEntries: true }, (err, zipfile) => {
+      if (!zipfile || err) {
+        return reject(err);
+      }
+
       const openReadStream = promisify(
         zipfile.openReadStream.bind(zipfile) as YauzlOpenReadStream,
       );
@@ -35,8 +32,6 @@ export async function unzip(srcPath: string, onEntry: UnzipOnEntry) {
       zipfile.once('end', resolve); // last entry read
       zipfile.on('entry', entry => onEntry(entry, zipfile, openReadStream));
       zipfile.readEntry();
-    } catch (error) {
-      reject(error);
-    }
+    });
   });
 }

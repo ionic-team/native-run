@@ -111,7 +111,7 @@ export async function getDeviceProperties(
   device: Device,
 ): Promise<DeviceProperties> {
   const debug = Debug(`${modulePrefix}:${getDeviceProperties.name}`);
-  const re = /^\[([a-z0-9\.]+)\]: \[(.*)\]$/;
+  const re = /^\[([a-z0-9.]+)\]: \[(.*)\]$/;
   const platformTools = await getSDKPackage(
     path.join(sdk.root, 'platform-tools'),
   );

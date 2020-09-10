@@ -4,9 +4,9 @@ import * as util from 'util';
 
 const debug = Debug('native-run:android:utils:ini');
 
-export type INIGuard<T extends object> = (o: any) => o is T;
+export type INIGuard<T> = (o: any) => o is T;
 
-export async function readINI<T extends object>(
+export async function readINI<T>(
   p: string,
   guard: INIGuard<T> = (o: any): o is T => true,
 ): Promise<T | undefined> {
@@ -30,10 +30,7 @@ export async function readINI<T extends object>(
   }
 }
 
-export async function writeINI<T extends object>(
-  p: string,
-  o: T,
-): Promise<void> {
+export async function writeINI<T>(p: string, o: T): Promise<void> {
   const ini = await import('ini');
   const contents = ini.encode(o);
 

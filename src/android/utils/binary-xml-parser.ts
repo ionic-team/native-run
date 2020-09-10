@@ -273,16 +273,18 @@ export class BinaryXmlParser {
         typedValue.value = this.readS32();
         typedValue.type = 'int_hex';
         break;
-      case TypedValue.TYPE_STRING:
+      case TypedValue.TYPE_STRING: {
         const ref = this.readS32();
         typedValue.value = ref > 0 ? this.strings[ref] : '';
         typedValue.type = 'string';
         break;
-      case TypedValue.TYPE_REFERENCE:
+      }
+      case TypedValue.TYPE_REFERENCE: {
         const id = this.readU32();
         typedValue.value = `resourceId:0x${id.toString(16)}`;
         typedValue.type = 'reference';
         break;
+      }
       case TypedValue.TYPE_INT_BOOLEAN:
         typedValue.value = this.readS32() !== 0;
         typedValue.type = 'boolean';

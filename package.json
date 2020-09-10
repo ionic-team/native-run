@@ -10,8 +10,10 @@
     "build": "npm run clean && tsc",
     "watch": "tsc -w",
     "test": "jest --maxWorkers=4",
-    "lint": "npm run prettier -- --check",
+    "lint": "npm run prettier -- --check && npm run eslint",
+    "fmt": "npm run prettier -- --write && npm run eslint -- --fix",
     "prettier": "prettier \"**/*.ts\"",
+    "eslint": "eslint . --ext .ts",
     "publish:ci": "semantic-release",
     "publish:testing": "npm version prerelease --preid=testing --no-git-tag-version && npm publish --tag=testing && git stash",
     "prepublishOnly": "npm run build"
@@ -47,6 +49,7 @@
     "yauzl": "^2.10.0"
   },
   "devDependencies": {
+    "@ionic/eslint-config": "^0.1.0",
     "@ionic/prettier-config": "^1.0.0",
     "@semantic-release/changelog": "^5.0.0",
     "@semantic-release/git": "^9.0.0",
@@ -60,6 +63,7 @@
     "@types/split2": "^2.1.6",
     "@types/through2": "^2.0.34",
     "@types/yauzl": "^2.9.1",
+    "eslint": "^7.8.1",
     "husky": "^4.0.9",
     "jest": "^26.4.2",
     "prettier": "^2.1.1",
@@ -68,6 +72,9 @@
     "typescript": "~4.0.2"
   },
   "prettier": "@ionic/prettier-config",
+  "eslintConfig": {
+    "extends": "@ionic"
+  },
   "release": {
     "branches": "stable",
     "plugins": [
