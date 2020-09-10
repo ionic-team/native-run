@@ -3,7 +3,7 @@ import * as Debug from 'debug';
 import { existsSync, mkdtempSync } from 'fs';
 import * as path from 'path';
 
-import { CLIException, ERR_BAD_INPUT, ERR_TARGET_NOT_FOUND, RunException } from '../errors';
+import { CLIException, ERR_BAD_INPUT, ERR_TARGET_NOT_FOUND, IOSRunException } from '../errors';
 import { getOptionValue } from '../utils/cli';
 
 import { getBundleId, unzipIPA } from './utils/app';
@@ -23,7 +23,7 @@ export async function run(args: readonly string[]): Promise<void> {
   const isIPA = appPath.endsWith('.ipa');
 
   if (!existsSync(appPath)) {
-    throw new RunException(`Path '${appPath}' not found`);
+    throw new IOSRunException(`Path '${appPath}' not found`);
   }
 
   try {
@@ -48,7 +48,7 @@ export async function run(args: readonly string[]): Promise<void> {
       } else if (simulators.find(s => s.udid === udid)) {
         await runOnSimulator(udid, appPath, bundleId, waitForApp);
       } else {
-        throw new RunException(`No device or simulator with UDID "${udid}" found`, ERR_TARGET_NOT_FOUND);
+        throw new IOSRunException(`No device or simulator with UDID "${udid}" found`, ERR_TARGET_NOT_FOUND);
       }
     } else if (devices.length && !preferSimulator) {
       // no udid, use first connected device

@@ -1,6 +1,6 @@
 import * as Debug from 'debug';
 
-import { AVDException, CLIException, ERR_BAD_INPUT, ERR_NO_DEVICE, ERR_NO_TARGET, ERR_TARGET_NOT_FOUND, ERR_UNSUITABLE_API_INSTALLATION, RunException } from '../errors';
+import { AVDException, AndroidRunException, CLIException, ERR_BAD_INPUT, ERR_NO_DEVICE, ERR_NO_TARGET, ERR_TARGET_NOT_FOUND, ERR_UNSUITABLE_API_INSTALLATION } from '../errors';
 import { getOptionValue, getOptionValues } from '../utils/cli';
 import { log } from '../utils/log';
 import { onBeforeExit } from '../utils/process';
@@ -90,7 +90,7 @@ export async function selectDevice(sdk: SDK, args: readonly string[]): Promise<D
     if (targetDevice) {
       return targetDevice;
     } else {
-      throw new RunException(`Target not found: ${target}`, ERR_TARGET_NOT_FOUND);
+      throw new AndroidRunException(`Target not found: ${target}`, ERR_TARGET_NOT_FOUND);
     }
   }
 
@@ -100,7 +100,7 @@ export async function selectDevice(sdk: SDK, args: readonly string[]): Promise<D
     if (selectedDevice) {
       return selectedDevice;
     } else if (args.includes('--device')) {
-      throw new RunException(`No hardware devices found. Not attempting emulator because --device was specified.`, ERR_NO_DEVICE);
+      throw new AndroidRunException(`No hardware devices found. Not attempting emulator because --device was specified.`, ERR_NO_DEVICE);
     } else {
       log('No hardware devices found, attempting emulator...\n');
     }
@@ -116,9 +116,9 @@ export async function selectDevice(sdk: SDK, args: readonly string[]): Promise<D
     debug('Issue with AVDs: %s', e.message);
 
     if (e.code === ERR_UNSUITABLE_API_INSTALLATION) {
-      throw new RunException('No targets devices/emulators available. Cannot create AVD because there is no suitable API installation. Use --sdk-info to reveal missing packages and other issues.', ERR_NO_TARGET);
+      throw new AndroidRunException('No targets devices/emulators available. Cannot create AVD because there is no suitable API installation. Use --sdk-info to reveal missing packages and other issues.', ERR_NO_TARGET);
     }
   }
 
-  throw new RunException('No target devices/emulators available.', ERR_NO_TARGET);
+  throw new AndroidRunException('No target devices/emulators available.', ERR_NO_TARGET);
 }

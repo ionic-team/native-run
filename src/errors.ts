@@ -94,14 +94,14 @@ export type EmulatorExceptionCode = (
 
 export class EmulatorException extends AndroidException<EmulatorExceptionCode> {}
 
-export type RunExceptionCode = (
+export type AndroidRunExceptionCode = (
   typeof ERR_NO_AVDS_FOUND |
   typeof ERR_TARGET_NOT_FOUND |
   typeof ERR_NO_DEVICE |
   typeof ERR_NO_TARGET
 );
 
-export class RunException extends AndroidException<RunExceptionCode> {}
+export class AndroidRunException extends AndroidException<AndroidRunExceptionCode> {}
 
 export type SDKExceptionCode = (
   typeof ERR_AVD_HOME_NOT_FOUND |
@@ -112,6 +112,14 @@ export type SDKExceptionCode = (
 );
 
 export class SDKException extends AndroidException<SDKExceptionCode> {}
+
+export type IOSRunExceptionCode = (
+  typeof ERR_TARGET_NOT_FOUND |
+  typeof ERR_NO_DEVICE |
+  typeof ERR_NO_TARGET
+);
+
+export class IOSRunException extends Exception<IOSRunExceptionCode> {}
 
 export function serializeError(e = new Error()): string {
   const stack = String(e.stack ? e.stack : e);
