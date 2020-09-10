@@ -38,7 +38,6 @@ export interface AFCStatusResponse {
   data: number;
 }
 
-/* tslint:disable */
 /**
  * AFC Operations
  */
@@ -131,10 +130,8 @@ export enum AFC_FILE_OPEN_FLAGS {
   APPEND   = 0x00000005,  // a   O_WRONLY | O_APPEND | O_CREAT
   RDAPPEND = 0x00000006,  // a+  O_RDWR   | O_APPEND | O_CREAT
 }
-/* tslint:enable */
 
 function isAFCResponse(resp: any): resp is AFCResponse {
-  // tslint:disable-next-line
   return AFC_OPS[resp.operation] !== undefined && resp.id !== undefined && resp.data !== undefined;
 }
 

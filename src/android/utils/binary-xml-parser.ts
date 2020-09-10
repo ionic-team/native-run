@@ -254,7 +254,7 @@ export class BinaryXmlParser {
     const start = this.cursor;
 
     let size = this.readU16();
-    /* const zero = */ this.readU8(); // tslint:disable-line
+    /* const zero = */ this.readU8();
     const dataType = this.readU8();
 
     // Yes, there has been a real world APK where the size is malformed.
@@ -408,7 +408,7 @@ export class BinaryXmlParser {
     }
 
     const offsets = [];
-    for (let i = 0, l = header.stringCount; i < l; ++i) { // tslint:disable-line
+    for (let i = 0, l = header.stringCount; i < l; ++i) {
       // debug('offset:', i);
       offsets.push(this.readU32());
     }
@@ -422,7 +422,7 @@ export class BinaryXmlParser {
 
     const stringsStart = header.startOffset + header.stringsStart;
     this.cursor = stringsStart;
-    for (let i = 0, l = header.stringCount; i < l; ++i) { // tslint:disable-line
+    for (let i = 0, l = header.stringCount; i < l; ++i) {
       // debug('string:', i);
       // debug('offset:', offsets[i]);
       this.cursor = stringsStart + offsets[i];

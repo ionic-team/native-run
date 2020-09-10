@@ -19,7 +19,9 @@ export async function getBundleId(appPath: string) {
     if (stdout) {
       return stdout.trim();
     }
-  } catch { } // tslint:disable-line
+  } catch {
+    // ignore
+  }
   throw new Exception('Unable to get app bundle identifier');
 }
 

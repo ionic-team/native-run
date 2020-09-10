@@ -13,8 +13,7 @@
     "target": "es2019",
     "lib": [
       "es2019"
-    ],
-    "plugins": [{ "name": "typescript-tslint-plugin" }]
+    ]
   },
   "include": [
     "src/**/*",

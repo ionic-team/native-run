@@ -27,7 +27,9 @@ export async function getXCodePath() {
     if (stdout) {
       return stdout.trim();
     }
-  } catch { } // tslint:disable-line
+  } catch {
+    // ignore
+  }
   throw new Exception('Unable to get Xcode location. Is Xcode installed?');
 }
 
