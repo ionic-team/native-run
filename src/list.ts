@@ -1,5 +1,6 @@
 import { stringify } from './utils/json';
-import { Targets, formatTargets } from './utils/list';
+import type { Targets } from './utils/list';
+import { formatTargets } from './utils/list';
 
 export async function run(args: readonly string[]): Promise<void> {
   const [ios, android] = await Promise.all([

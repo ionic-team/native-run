@@ -1,8 +1,10 @@
-import { Target } from '../../utils/list';
+import type { Target } from '../../utils/list';
 
-import { Device, getDevices } from './adb';
-import { AVD, getDefaultAVD, getInstalledAVDs } from './avd';
-import { SDK } from './sdk';
+import type { Device } from './adb';
+import { getDevices } from './adb';
+import type { AVD } from './avd';
+import { getDefaultAVD, getInstalledAVDs } from './avd';
+import type { SDK } from './sdk';
 
 export async function getDeviceTargets(sdk: SDK): Promise<Target[]> {
   return (await getDevices(sdk))

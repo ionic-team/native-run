@@ -1,7 +1,9 @@
 import { stringify } from '../utils/json';
 
-import { SDKPackage, findAllSDKPackages, getSDK } from './utils/sdk';
-import { APILevel, API_LEVEL_SCHEMAS, getAPILevels } from './utils/sdk/api';
+import type { SDKPackage } from './utils/sdk';
+import { findAllSDKPackages, getSDK } from './utils/sdk';
+import type { APILevel } from './utils/sdk/api';
+import { API_LEVEL_SCHEMAS, getAPILevels } from './utils/sdk/api';
 
 type Platform = Required<APILevel>;
 

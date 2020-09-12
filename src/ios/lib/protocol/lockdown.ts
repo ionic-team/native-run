@@ -1,12 +1,12 @@
 import * as Debug from 'debug';
-import * as net from 'net';
+import type * as net from 'net';
 import * as plist from 'plist';
 
+import type { ProtocolWriter } from './protocol';
 import {
   PlistProtocolReader,
   ProtocolClient,
   ProtocolReaderFactory,
-  ProtocolWriter,
 } from './protocol';
 
 const debug = Debug('native-run:ios:lib:protocol:lockdown');

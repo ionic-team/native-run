@@ -106,7 +106,7 @@ export class BinaryXmlParser {
     this.debug = options.debug || false;
   }
 
-  readU8() {
+  readU8(): number {
     // debug('readU8');
     // debug('cursor:', this.cursor);
     const val = this.buffer[this.cursor];
@@ -115,7 +115,7 @@ export class BinaryXmlParser {
     return val;
   }
 
-  readU16() {
+  readU16(): number {
     // debug('readU16');
     // debug('cursor:', this.cursor);
     const val = this.buffer.readUInt16LE(this.cursor);
@@ -124,7 +124,7 @@ export class BinaryXmlParser {
     return val;
   }
 
-  readS32() {
+  readS32(): number {
     // debug('readS32');
     // debug('cursor:', this.cursor);
     const val = this.buffer.readInt32LE(this.cursor);
@@ -133,7 +133,7 @@ export class BinaryXmlParser {
     return val;
   }
 
-  readU32() {
+  readU32(): number {
     // debug('readU32');
     // debug('cursor:', this.cursor);
     const val = this.buffer.readUInt32LE(this.cursor);
@@ -142,7 +142,7 @@ export class BinaryXmlParser {
     return val;
   }
 
-  readLength8() {
+  readLength8(): number {
     // debug('readLength8');
     let len = this.readU8();
     if (len & 0x80) {
@@ -153,7 +153,7 @@ export class BinaryXmlParser {
     return len;
   }
 
-  readLength16() {
+  readLength16(): number {
     // debug('readLength16');
     let len = this.readU16();
     if (len & 0x8000) {
@@ -164,7 +164,7 @@ export class BinaryXmlParser {
     return len;
   }
 
-  readDimension() {
+  readDimension(): any {
     // debug('readDimension');
 
     const dimension: any = {
@@ -203,7 +203,7 @@ export class BinaryXmlParser {
     return dimension;
   }
 
-  readFraction() {
+  readFraction(): any {
     // debug('readFraction');
 
     const fraction: any = {
@@ -230,19 +230,19 @@ export class BinaryXmlParser {
     return fraction;
   }
 
-  readHex24() {
+  readHex24(): string {
     // debug('readHex24');
     const val = (this.readU32() & 0xffffff).toString(16);
     return val;
   }
 
-  readHex32() {
+  readHex32(): string {
     // debug('readHex32');
     const val = this.readU32().toString(16);
     return val;
   }
 
-  readTypedValue() {
+  readTypedValue(): any {
     // debug('readTypedValue');
 
     const typedValue: any = {
@@ -341,13 +341,13 @@ export class BinaryXmlParser {
   }
 
   // https://twitter.com/kawasima/status/427730289201139712
-  convertIntToFloat(int: number) {
+  convertIntToFloat(int: number): number {
     const buf = new ArrayBuffer(4);
     new Int32Array(buf)[0] = int;
     return new Float32Array(buf)[0];
   }
 
-  readString(encoding: string) {
+  readString(encoding: string): string {
     // debug('readString', encoding);
     let stringLength;
     let byteLength;
@@ -384,7 +384,12 @@ export class BinaryXmlParser {
     }
   }
 
-  readChunkHeader() {
+  readChunkHeader(): {
+    startOffset: number;
+    chunkType: number;
+    headerSize: number;
+    chunkSize: number;
+  } {
     // debug('readChunkHeader');
     const header = {
       startOffset: this.cursor,
@@ -399,7 +404,7 @@ export class BinaryXmlParser {
     return header;
   }
 
-  readStringPool(header: any) {
+  readStringPool(header: any): null {
     // debug('readStringPool');
 
     header.stringCount = this.readU32();
@@ -444,7 +449,7 @@ export class BinaryXmlParser {
     return null;
   }
 
-  readResourceMap(header: any) {
+  readResourceMap(header: any): null {
     // debug('readResourceMap');
     const count = Math.floor((header.chunkSize - header.headerSize) / 4);
     for (let i = 0; i < count; ++i) {
@@ -453,7 +458,7 @@ export class BinaryXmlParser {
     return null;
   }
 
-  readXmlNamespaceStart(/* header */) {
+  readXmlNamespaceStart(/* header */): null {
     // debug('readXmlNamespaceStart');
 
     this.readU32();
@@ -475,7 +480,7 @@ export class BinaryXmlParser {
     return null;
   }
 
-  readXmlNamespaceEnd(/* header */) {
+  readXmlNamespaceEnd(/* header */): null {
     // debug('readXmlNamespaceEnd');
 
     this.readU32();
@@ -497,7 +502,7 @@ export class BinaryXmlParser {
     return null;
   }
 
-  readXmlElementStart(/* header */) {
+  readXmlElementStart(/* header */): any {
     // debug('readXmlElementStart');
 
     const node: any = {
@@ -549,7 +554,7 @@ export class BinaryXmlParser {
     return node;
   }
 
-  readXmlAttribute() {
+  readXmlAttribute(): any {
     // debug('readXmlAttribute');
 
     const attr: any = {
@@ -580,7 +585,7 @@ export class BinaryXmlParser {
     return attr;
   }
 
-  readXmlElementEnd(/* header */) {
+  readXmlElementEnd(/* header */): null {
     // debug('readXmlCData');
 
     this.readU32();
@@ -598,7 +603,7 @@ export class BinaryXmlParser {
     return null;
   }
 
-  readXmlCData(/* header */) {
+  readXmlCData(/* header */): any {
     // debug('readXmlCData');
 
     const cdata: any = {
@@ -626,13 +631,13 @@ export class BinaryXmlParser {
     return cdata;
   }
 
-  readNull(header: any) {
+  readNull(header: any): null {
     // debug('readNull');
     this.cursor += header.chunkSize - header.headerSize;
     return null;
   }
 
-  parse() {
+  parse(): any {
     // debug('parse');
 
     const xmlHeader = this.readChunkHeader();

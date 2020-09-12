@@ -1,11 +1,11 @@
 import * as Debug from 'debug';
-import * as net from 'net';
+import type * as net from 'net';
 import * as tls from 'tls';
 
 import { LockdownProtocolClient } from '../protocol/lockdown';
 
 import { ResponseError, ServiceClient } from './client';
-import { UsbmuxdPairRecord } from './usbmuxd';
+import type { UsbmuxdPairRecord } from './usbmuxd';
 
 const debug = Debug('native-run:ios:lib:client:lockdownd');
 

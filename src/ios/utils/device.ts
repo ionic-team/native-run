@@ -5,12 +5,11 @@ import { promisify } from 'util';
 
 import { Exception } from '../../errors';
 import { onBeforeExit } from '../../utils/process';
+import type { DeviceValues, IPLookupResult } from '../lib';
 import {
   AFCError,
   AFC_STATUS,
   ClientManager,
-  DeviceValues,
-  IPLookupResult,
   LockdowndClient,
   UsbmuxdClient,
 } from '../lib';

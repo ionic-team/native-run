@@ -1,18 +1,15 @@
-import * as net from 'net';
+import type * as net from 'net';
 import { Duplex } from 'stream';
 import * as tls from 'tls';
 
-import { ServiceClient } from './client';
+import type { ServiceClient } from './client';
 import { AFCClient } from './client/afc';
 import { DebugserverClient } from './client/debugserver';
 import { InstallationProxyClient } from './client/installation_proxy';
 import { LockdowndClient } from './client/lockdownd';
 import { MobileImageMounterClient } from './client/mobile_image_mounter';
-import {
-  UsbmuxdClient,
-  UsbmuxdDevice,
-  UsbmuxdPairRecord,
-} from './client/usbmuxd';
+import type { UsbmuxdDevice, UsbmuxdPairRecord } from './client/usbmuxd';
+import { UsbmuxdClient } from './client/usbmuxd';
 
 export class ClientManager {
   private connections: net.Socket[];

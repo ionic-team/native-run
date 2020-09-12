@@ -1,5 +1,6 @@
-import { Exception } from '../errors';
-import { Targets, formatTargets } from '../utils/list';
+import type { Exception } from '../errors';
+import type { Targets } from '../utils/list';
+import { formatTargets } from '../utils/list';
 
 import { getDeviceTargets, getVirtualTargets } from './utils/list';
 import { getSDK } from './utils/sdk';

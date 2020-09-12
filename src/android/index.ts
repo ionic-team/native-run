@@ -1,4 +1,4 @@
-import { Command } from '../';
+import type { Command } from '../';
 
 export async function run(args: readonly string[]): Promise<void> {
   let cmd: Command;

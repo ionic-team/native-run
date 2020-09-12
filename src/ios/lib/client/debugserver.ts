@@ -1,5 +1,5 @@
 import * as Debug from 'debug';
-import * as net from 'net';
+import type * as net from 'net';
 import * as path from 'path';
 
 import { GDBProtocolClient } from '../protocol/gdb';

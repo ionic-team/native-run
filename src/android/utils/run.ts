@@ -6,10 +6,12 @@ import {
   ERR_VERSION_DOWNGRADE,
 } from '../../errors';
 
-import { Device, installApk, uninstallApp } from './adb';
-import { AVD, getDefaultAVD } from './avd';
+import type { Device } from './adb';
+import { installApk, uninstallApp } from './adb';
+import type { AVD } from './avd';
+import { getDefaultAVD } from './avd';
 import { getAVDFromEmulator, runEmulator } from './emulator';
-import { SDK } from './sdk';
+import type { SDK } from './sdk';
 
 const modulePrefix = 'native-run:android:utils:run';
 

@@ -15,11 +15,11 @@ import {
 import { readINI, writeINI } from '../../utils/ini';
 import { sort } from '../../utils/object';
 
-import { SDK, SDKPackage, findAllSDKPackages } from './sdk';
+import type { SDK, SDKPackage } from './sdk';
+import { findAllSDKPackages } from './sdk';
+import type { APILevel, PartialAVDSchematic } from './sdk/api';
 import {
-  APILevel,
   API_LEVEL_SCHEMAS,
-  PartialAVDSchematic,
   findPackageBySchemaPath,
   getAPILevels,
 } from './sdk/api';
@@ -370,7 +370,7 @@ export async function validateSkin(
 
   const stat = await statSafe(p);
 
-  if (stat && stat.isFile()) {
+  if (stat?.isFile()) {
     return;
   }
 
@@ -387,7 +387,7 @@ export async function copySkin(
 
   const stat = await statSafe(skinsrc);
 
-  if (stat && stat.isDirectory()) {
+  if (stat?.isDirectory()) {
     debug('Copying skin from %s to %s', skinsrc, skinpath);
 
     try {

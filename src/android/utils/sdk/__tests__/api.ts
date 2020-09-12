@@ -1,8 +1,5 @@
-import {
-  APISchemaPackage,
-  findPackageBySchema,
-  findUnsatisfiedPackages,
-} from '../api';
+import type { APISchemaPackage } from '../api';
+import { findPackageBySchema, findUnsatisfiedPackages } from '../api';
 
 describe('android/utils/sdk/api', () => {
   const FooPackage = {

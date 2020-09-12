@@ -1,6 +1,13 @@
 import * as Debug from 'debug';
 
-import { SDKPackage } from './';
+import type * as Nexus_5X_API_24 from '../../data/avds/Nexus_5X_API_24.json';
+import type * as Pixel_2_API_26 from '../../data/avds/Pixel_2_API_26.json';
+import type * as Pixel_2_API_27 from '../../data/avds/Pixel_2_API_27.json';
+import type * as Pixel_2_API_28 from '../../data/avds/Pixel_2_API_28.json';
+import type * as Pixel_3_API_29 from '../../data/avds/Pixel_3_API_29.json';
+import type * as Pixel_API_25 from '../../data/avds/Pixel_API_25.json';
+
+import type { SDKPackage } from './';
 
 const modulePrefix = 'native-run:android:utils:sdk:api';
 
@@ -77,12 +84,12 @@ export function findPackageBySchemaPath(
 }
 
 export type PartialAVDSchematic =
-  | typeof import('../../data/avds/Pixel_3_API_29.json')
-  | typeof import('../../data/avds/Pixel_2_API_28.json')
-  | typeof import('../../data/avds/Pixel_2_API_27.json')
-  | typeof import('../../data/avds/Pixel_2_API_26.json')
-  | typeof import('../../data/avds/Pixel_API_25.json')
-  | typeof import('../../data/avds/Nexus_5X_API_24.json');
+  | typeof Pixel_3_API_29
+  | typeof Pixel_2_API_28
+  | typeof Pixel_2_API_27
+  | typeof Pixel_2_API_26
+  | typeof Pixel_API_25
+  | typeof Nexus_5X_API_24;
 
 export interface APISchemaPackage {
   readonly name: string;

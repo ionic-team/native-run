@@ -14,9 +14,8 @@ import { getOptionValue, getOptionValues } from '../utils/cli';
 import { log } from '../utils/log';
 import { onBeforeExit } from '../utils/process';
 
+import type { Device, Ports } from './utils/adb';
 import {
-  Device,
-  Ports,
   closeApp,
   forwardPorts,
   getDevices,
@@ -33,7 +32,8 @@ import {
   selectHardwareDevice,
   selectVirtualDevice,
 } from './utils/run';
-import { SDK, getSDK } from './utils/sdk';
+import type { SDK } from './utils/sdk';
+import { getSDK } from './utils/sdk';
 
 const modulePrefix = 'native-run:android:run';
 

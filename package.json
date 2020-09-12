@@ -10,8 +10,8 @@
     "build": "npm run clean && tsc",
     "watch": "tsc -w",
     "test": "jest --maxWorkers=4",
-    "lint": "npm run prettier -- --check && npm run eslint",
-    "fmt": "npm run prettier -- --write && npm run eslint -- --fix",
+    "lint": "npm run eslint && npm run prettier -- --check",
+    "fmt": "npm run eslint -- --fix && npm run prettier -- --write",
     "prettier": "prettier \"**/*.ts\"",
     "eslint": "eslint . --ext .ts",
     "publish:ci": "semantic-release",
@@ -49,7 +49,7 @@
     "yauzl": "^2.10.0"
   },
   "devDependencies": {
-    "@ionic/eslint-config": "^0.1.0",
+    "@ionic/eslint-config": "^0.2.0",
     "@ionic/prettier-config": "^1.0.0",
     "@semantic-release/changelog": "^5.0.0",
     "@semantic-release/git": "^9.0.0",
@@ -73,7 +73,14 @@
   },
   "prettier": "@ionic/prettier-config",
   "eslintConfig": {
-    "extends": "@ionic"
+    "extends": "@ionic/eslint-config/recommended",
+    "rules": {
+      "@typescript-eslint/explicit-module-boundary-types": [
+        "warn", {
+          "allowArgumentsExplicitlyTypedAsAny": true
+        }
+      ]
+    }
   },
   "release": {
     "branches": "stable",

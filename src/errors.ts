@@ -16,11 +16,11 @@ export class Exception<T extends string, D = { [key: string]: string }>
     super(message);
   }
 
-  serialize() {
+  serialize(): string {
     return `${this.code ? this.code : 'ERR_UNKNOWN'}: ${this.message}`;
   }
 
-  toJSON() {
+  toJSON(): any {
     return {
       error: this.message,
       code: this.code,
@@ -33,7 +33,7 @@ export class AndroidException<
   T extends string,
   D = { [key: string]: string }
 > extends Exception<T, D> {
-  serialize() {
+  serialize(): string {
     return (
       `${super.serialize()}\n\n` +
       `\tMore details for this error may be available online:\n\n` +

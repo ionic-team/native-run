@@ -14,7 +14,8 @@ import {
 } from '../../errors';
 import { execFile } from '../../utils/process';
 
-import { SDK, getSDKPackage, supplementProcessEnv } from './sdk';
+import type { SDK } from './sdk';
+import { getSDKPackage, supplementProcessEnv } from './sdk';
 
 const modulePrefix = 'native-run:android:utils:adb';
 

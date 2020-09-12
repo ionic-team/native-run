@@ -16,9 +16,11 @@ import {
 } from '../../errors';
 import { once } from '../../utils/fn';
 
-import { Device, getDevices, waitForDevice } from './adb';
-import { AVD } from './avd';
-import { SDK, getSDKPackage, supplementProcessEnv } from './sdk';
+import type { Device } from './adb';
+import { getDevices, waitForDevice } from './adb';
+import type { AVD } from './avd';
+import type { SDK } from './sdk';
+import { getSDKPackage, supplementProcessEnv } from './sdk';
 
 const modulePrefix = 'native-run:android:utils:emulator';
 

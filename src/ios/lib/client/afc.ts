@@ -1,11 +1,11 @@
 import * as Debug from 'debug';
 import * as fs from 'fs';
-import * as net from 'net';
+import type * as net from 'net';
 import * as path from 'path';
 import { promisify } from 'util';
 
+import type { AFCError, AFCResponse } from '../protocol/afc';
 import {
-  AFCError,
   AFCProtocolClient,
   AFC_FILE_OPEN_FLAGS,
   AFC_OPS,
@@ -22,7 +22,7 @@ export class AFCClient extends ServiceClient<AFCProtocolClient> {
     super(socket, new AFCProtocolClient(socket));
   }
 
-  async getFileInfo(path: string) {
+  async getFileInfo(path: string): Promise<string[]> {
     debug(`getFileInfo: ${path}`);
 
     const resp = await this.protocolClient.sendMessage({
@@ -44,7 +44,7 @@ export class AFCClient extends ServiceClient<AFCProtocolClient> {
     return strings;
   }
 
-  async writeFile(fd: Buffer, data: Buffer) {
+  async writeFile(fd: Buffer, data: Buffer): Promise<AFCResponse> {
     debug(`writeFile: ${Array.prototype.toString.call(fd)}`);
 
     return this.protocolClient.sendMessage({
@@ -54,7 +54,7 @@ export class AFCClient extends ServiceClient<AFCProtocolClient> {
     });
   }
 
-  async openFile(path: string) {
+  async openFile(path: string): Promise<Buffer> {
     debug(`openFile: ${path}`);
     // mode + path + null terminator
     const data = Buffer.alloc(8 + path.length + 1);
@@ -79,7 +79,7 @@ export class AFCClient extends ServiceClient<AFCProtocolClient> {
     );
   }
 
-  async closeFile(fd: Buffer) {
+  async closeFile(fd: Buffer): Promise<AFCResponse> {
     debug(`closeFile fd: ${Array.prototype.toString.call(fd)}`);
     return this.protocolClient.sendMessage({
       operation: AFC_OPS.FILE_CLOSE,
@@ -87,7 +87,7 @@ export class AFCClient extends ServiceClient<AFCProtocolClient> {
     });
   }
 
-  async uploadFile(srcPath: string, destPath: string) {
+  async uploadFile(srcPath: string, destPath: string): Promise<void> {
     debug(`uploadFile: ${srcPath}`);
 
     // read local file and get fd of destination
@@ -105,7 +105,7 @@ export class AFCClient extends ServiceClient<AFCProtocolClient> {
     }
   }
 
-  async makeDirectory(path: string) {
+  async makeDirectory(path: string): Promise<AFCResponse> {
     debug(`makeDirectory: ${path}`);
 
     return this.protocolClient.sendMessage({
@@ -114,7 +114,7 @@ export class AFCClient extends ServiceClient<AFCProtocolClient> {
     });
   }
 
-  async uploadDirectory(srcPath: string, destPath: string) {
+  async uploadDirectory(srcPath: string, destPath: string): Promise<void> {
     debug(`uploadDirectory: ${srcPath}`);
     await this.makeDirectory(destPath);
 

@@ -2,7 +2,7 @@ import { unzip } from '../../utils/unzip';
 
 import { BinaryXmlParser } from './binary-xml-parser';
 
-export async function readAndroidManifest(apkPath: string) {
+export async function readAndroidManifest(apkPath: string): Promise<any> {
   let error: Error | undefined;
   const chunks: Buffer[] = [];
 
@@ -27,7 +27,9 @@ export async function readAndroidManifest(apkPath: string) {
   return new BinaryXmlParser(manifestBuffer).parse();
 }
 
-export async function getApkInfo(apkPath: string) {
+export async function getApkInfo(
+  apkPath: string,
+): Promise<{ appId: any; activityName: any }> {
   const doc = await readAndroidManifest(apkPath);
   const appId = doc.attributes.find((a: any) => a.name === 'package').value;
   const application = doc.childNodes.find(
@@ -38,5 +40,6 @@ export async function getApkInfo(apkPath: string) {
   );
   const activityName = activity.attributes.find((a: any) => a.name === 'name')
     .value;
+
   return { appId, activityName };
 }

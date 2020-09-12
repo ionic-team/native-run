@@ -1,8 +1,10 @@
 import * as os from 'os';
 
+import type * as adb from '../adb';
+
 describe('android/utils/adb', () => {
   describe('parseAdbDevices', () => {
-    let adbUtils: typeof import('../adb');
+    let adbUtils: typeof adb;
 
     beforeEach(async () => {
       jest.resetModules();
@@ -13,7 +15,7 @@ describe('android/utils/adb', () => {
       const output = `
 List of devices attached
 emulator-5554          device product:sdk_gphone_x86 model:Android_SDK_built_for_x86 device:generic_x86 transport_id:88\n\n`;
-      const devices = await adbUtils.parseAdbDevices(output);
+      const devices = adbUtils.parseAdbDevices(output);
 
       expect(devices).toEqual([
         {
@@ -39,7 +41,7 @@ emulator-5554          device product:sdk_gphone_x86 model:Android_SDK_built_for
       const output = `
 List of devices attached
 LGUS996e5ef677         device usb:341835776X product:elsa_nao_us model:LG_US996 device:elsa transport_id:85\n\n`;
-      const devices = await adbUtils.parseAdbDevices(output);
+      const devices = adbUtils.parseAdbDevices(output);
 
       expect(devices).toEqual([
         {
@@ -66,7 +68,7 @@ LGUS996e5ef677         device usb:341835776X product:elsa_nao_us model:LG_US996 
       const output = `
 List of devices attached
 0a388e93      device usb:1-1 product:razor model:Nexus_7 device:flo\n\n`;
-      const devices = await adbUtils.parseAdbDevices(output);
+      const devices = adbUtils.parseAdbDevices(output);
 
       expect(devices).toEqual([
         {
@@ -141,7 +143,7 @@ List of devices attached
     });
 
     describe('windows', () => {
-      let adbUtils: typeof import('../adb');
+      let adbUtils: typeof adb;
 
       beforeEach(async () => {
         jest.resetModules();
@@ -152,7 +154,7 @@ List of devices attached
 
       it('should parse hardware device (MWS0216B24001482)', async () => {
         const output = `\r\nList of devices attached\r\nMWS0216B24001482       offline transport_id:3\r\n\r\n`;
-        const devices = await adbUtils.parseAdbDevices(output);
+        const devices = adbUtils.parseAdbDevices(output);
 
         expect(devices).toEqual([
           {

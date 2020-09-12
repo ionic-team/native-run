@@ -1,5 +1,5 @@
 import * as bplistParser from 'bplist-parser';
-import * as net from 'net';
+import type * as net from 'net';
 import * as plist from 'plist';
 
 const BPLIST_MAGIC = Buffer.from('bplist00');

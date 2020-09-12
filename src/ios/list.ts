@@ -1,9 +1,11 @@
-import { Exception } from '../errors';
-import { Target, Targets, formatTargets } from '../utils/list';
+import type { Exception } from '../errors';
+import type { Target, Targets } from '../utils/list';
+import { formatTargets } from '../utils/list';
 
-import { DeviceValues } from './lib';
+import type { DeviceValues } from './lib';
 import { getConnectedDevices } from './utils/device';
-import { Simulator, getSimulators } from './utils/simulator';
+import type { Simulator } from './utils/simulator';
+import { getSimulators } from './utils/simulator';
 
 export async function run(args: readonly string[]): Promise<void> {
   const targets = await list(args);

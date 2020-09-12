@@ -18,7 +18,6 @@ const help = `
     --list ............... Print available targets, then quit
     --json ............... Output JSON
 
-
     --app <path> ......... Deploy specified .app or .ipa file
     --device ............. Use a device if available
                            With --list prints connected devices
@@ -28,6 +27,6 @@ const help = `
     --connect ............ Tie process to app process
 `;
 
-export async function run() {
+export async function run(): Promise<void> {
   process.stdout.write(`${help}\n`);
 }

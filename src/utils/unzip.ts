@@ -1,6 +1,6 @@
-import { Readable } from 'stream';
+import type { Readable } from 'stream';
 import { promisify } from 'util';
-import { Entry, ZipFile, ZipFileOptions } from 'yauzl';
+import type { Entry, ZipFile, ZipFileOptions } from 'yauzl';
 
 // Specify which of possible overloads is being promisified
 type YauzlOpenReadStream = (

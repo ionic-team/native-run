@@ -1,11 +1,8 @@
 import * as Debug from 'debug';
-import * as net from 'net';
+import type * as net from 'net';
 
-import {
-  LockdownCommand,
-  LockdownProtocolClient,
-  LockdownResponse,
-} from '../protocol/lockdown';
+import type { LockdownCommand, LockdownResponse } from '../protocol/lockdown';
+import { LockdownProtocolClient } from '../protocol/lockdown';
 
 import { ResponseError, ServiceClient } from './client';
 

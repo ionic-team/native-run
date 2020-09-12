@@ -1,12 +1,11 @@
 import * as Debug from 'debug';
-import * as net from 'net';
+import type * as net from 'net';
 
+import type { ProtocolReaderCallback, ProtocolWriter } from './protocol';
 import {
   ProtocolClient,
   ProtocolReader,
-  ProtocolReaderCallback,
   ProtocolReaderFactory,
-  ProtocolWriter,
 } from './protocol';
 
 const debug = Debug('native-run:ios:lib:protocol:gdb');

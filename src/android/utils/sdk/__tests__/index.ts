@@ -1,7 +1,9 @@
 import * as path from 'path';
 
+import type * as index from '../';
+
 describe('android/utils/sdk', () => {
-  let sdkUtils: typeof import('../');
+  let sdkUtils: typeof index;
   let mockIsDir: jest.Mock;
   let mockHomedir: jest.Mock;
   let originalPlatform: string;

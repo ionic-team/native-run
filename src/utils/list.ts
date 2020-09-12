@@ -1,9 +1,5 @@
-import {
-  CLIException,
-  ERR_BAD_INPUT,
-  Exception,
-  serializeError,
-} from '../errors';
+import type { Exception } from '../errors';
+import { CLIException, ERR_BAD_INPUT, serializeError } from '../errors';
 
 import { stringify } from './json';
 
