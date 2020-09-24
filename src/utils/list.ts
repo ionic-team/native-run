@@ -69,7 +69,7 @@ function printTargets(name: string, targets: readonly Target[]) {
   if (targets.length === 0) {
     output += `  No ${name.toLowerCase()}s found\n`;
   } else {
-    output += formatTargetTable(targets);
+    output += formatTargetTable(targets) + '\n';
   }
   return output;
 }
@@ -90,8 +90,8 @@ function formatTargetTable(targets: readonly Target[]): string {
 
 function targetToRow(target: Target): string[] {
   return [
-    target.name ?? '(none)',
+    target.name ?? '?',
     `${target.platform === 'ios' ? 'iOS' : 'API'} ${target.sdkVersion}`,
-    target.id,
+    target.id ?? '?',
   ];
 }
