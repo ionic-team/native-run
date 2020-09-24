@@ -44,13 +44,13 @@ export interface AVDSchematic {
 
 export interface AVDINI {
   readonly 'avd.ini.encoding': string;
-  readonly path: string;
+  readonly 'path': string;
   readonly 'path.rel': string;
-  readonly target: string;
+  readonly 'target': string;
 }
 
 export interface AVDConfigINI {
-  readonly AvdId?: string;
+  readonly 'AvdId'?: string;
   readonly 'abi.type'?: string;
   readonly 'avd.ini.displayname'?: string;
   readonly 'avd.ini.encoding'?: string;
@@ -78,7 +78,7 @@ export interface AVDConfigINI {
   readonly 'hw.sensors.proximity'?: string;
   readonly 'image.sysdir.1'?: string;
   readonly 'sdcard.size'?: string;
-  readonly showDeviceFrame?: string;
+  readonly 'showDeviceFrame'?: string;
   readonly 'skin.dynamic'?: string;
   readonly 'skin.name'?: string;
   readonly 'skin.path'?: string;
@@ -315,7 +315,7 @@ export async function createAVDSchematic(
     id: partialSchematic.id,
     ini: sort({
       ...partialSchematic.ini,
-      path: avdpath,
+      'path': avdpath,
       'path.rel': `avd/${partialSchematic.id}.avd`,
     }),
     configini: sort({
