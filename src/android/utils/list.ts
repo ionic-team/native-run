@@ -29,9 +29,6 @@ export function deviceToTarget(device: Device): Target {
     model: `${device.manufacturer} ${device.model}`,
     sdkVersion: device.sdkVersion,
     id: device.serial,
-    format() {
-      return `${this.model} (API ${this.sdkVersion}) ${this.id}`;
-    },
   };
 }
 
@@ -41,8 +38,5 @@ export function avdToTarget(avd: AVD): Target {
     name: avd.name,
     sdkVersion: avd.sdkVersion,
     id: avd.id,
-    format() {
-      return `${this.name} (API ${this.sdkVersion}) ${this.id}`;
-    },
   };
 }

@@ -1,3 +1,5 @@
+import { columnar, indent } from '@ionic/utils-terminal';
+
 import type { Exception } from '../errors';
 import { CLIException, ERR_BAD_INPUT, serializeError } from '../errors';
 
@@ -15,7 +17,6 @@ export interface Target {
   readonly name?: string;
   readonly sdkVersion: string;
   readonly id: string;
-  readonly format: () => string;
 }
 
 export function formatTargets(
@@ -68,9 +69,29 @@ function printTargets(name: string, targets: readonly Target[]) {
   if (targets.length === 0) {
     output += `  No ${name.toLowerCase()}s found\n`;
   } else {
-    for (const target of targets) {
-      output += `  ${target.format()}\n`;
-    }
+    output += formatTargetTable(targets);
   }
   return output;
+}
+
+function formatTargetTable(targets: readonly Target[]): string {
+  const spacer = indent(2);
+
+  return (
+    spacer +
+    columnar(targets.map(targetToRow), {
+      headers: ['Name', 'API', 'Target ID'],
+      vsep: ' ',
+    })
+      .split('\n')
+      .join(`\n${spacer}`)
+  );
+}
+
+function targetToRow(target: Target): string[] {
+  return [
+    target.name ?? '(none)',
+    `${target.platform === 'ios' ? 'iOS' : 'API'} ${target.sdkVersion}`,
+    target.id,
+  ];
 }

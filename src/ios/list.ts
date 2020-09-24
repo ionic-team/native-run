@@ -45,9 +45,6 @@ function deviceToTarget(device: DeviceValues): Target {
     model: device.ProductType,
     sdkVersion: device.ProductVersion,
     id: device.UniqueDeviceID,
-    format() {
-      return `${this.name} ${this.model} ${this.sdkVersion} ${this.id}`;
-    },
   };
 }
 
@@ -57,8 +54,5 @@ function simulatorToTarget(simulator: Simulator): Target {
     name: simulator.name,
     sdkVersion: simulator.runtime.version,
     id: simulator.udid,
-    format() {
-      return `${this.name} ${this.sdkVersion} ${this.id}`;
-    },
   };
 }
