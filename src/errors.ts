@@ -51,6 +51,7 @@ export const ERR_VERSION_DOWNGRADE = 'ERR_VERSION_DOWNGRADE';
 export const ERR_MIN_SDK_VERSION = 'ERR_MIN_SDK_VERSION';
 export const ERR_NO_CERTIFICATES = 'ERR_NO_CERTIFICATES';
 export const ERR_NOT_ENOUGH_SPACE = 'ERR_NOT_ENOUGH_SPACE';
+export const ERR_DEVICE_OFFLINE = 'ERR_DEVICE_OFFLINE';
 export const ERR_INVALID_SDK_PACKAGE = 'ERR_INVALID_SDK_PACKAGE';
 export const ERR_INVALID_SERIAL = 'ERR_INVALID_SERIAL';
 export const ERR_INVALID_SKIN = 'ERR_INVALID_SKIN';
@@ -79,6 +80,7 @@ export type ADBExceptionCode =
   | typeof ERR_MIN_SDK_VERSION
   | typeof ERR_NO_CERTIFICATES
   | typeof ERR_NOT_ENOUGH_SPACE
+  | typeof ERR_DEVICE_OFFLINE
   | typeof ERR_NON_ZERO_EXIT;
 
 export class ADBException extends AndroidException<ADBExceptionCode> {}

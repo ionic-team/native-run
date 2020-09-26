@@ -7,6 +7,7 @@ import * as through2 from 'through2';
 
 import {
   ADBException,
+  ERR_DEVICE_OFFLINE,
   ERR_INCOMPATIBLE_UPDATE,
   ERR_MIN_SDK_VERSION,
   ERR_NOT_ENOUGH_SPACE,
@@ -252,6 +253,13 @@ export async function installApk(
               ERR_NOT_ENOUGH_SPACE,
             ),
           );
+        } else if (event === ADBEvent.DeviceOffline) {
+          reject(
+            new ADBException(
+              `Encountered adb error: ${ADBEvent[event]}.`,
+              ERR_DEVICE_OFFLINE,
+            ),
+          );
         }
 
         cb();
@@ -290,6 +298,7 @@ export enum ADBEvent {
   NewerSdkRequiredOnDeviceFailure, // device does not meet minSdkVersion requirement
   NoCertificates, // no certificates in APK, likely due to improper signing config
   NotEnoughSpace, // device is out of hard drive space
+  DeviceOffline, // device is off or needs to be woken up
 }
 
 export function parseAdbInstallOutput(line: string): ADBEvent | undefined {
@@ -306,6 +315,8 @@ export function parseAdbInstallOutput(line: string): ADBEvent | undefined {
     event = ADBEvent.NoCertificates;
   } else if (line.includes('not enough space')) {
     event = ADBEvent.NotEnoughSpace;
+  } else if (line.includes('device offline')) {
+    event = ADBEvent.DeviceOffline;
   }
 
   if (typeof event !== 'undefined') {
