@@ -55,16 +55,10 @@ const ADB_GETPROP_MAP: ReadonlyMap<string, keyof MappedDeviceProps> = new Map<
 
 export async function getDevices(sdk: SDK): Promise<Device[]> {
   const debug = Debug(`${modulePrefix}:${getDevices.name}`);
-  const platformTools = await getSDKPackage(
-    path.join(sdk.root, 'platform-tools'),
-  );
-  const adbBin = path.join(platformTools.location, 'adb');
   const args = ['devices', '-l'];
-  debug('Invoking adb: %O %O', adbBin, args);
 
-  const { stdout } = await execFile(adbBin, args, {
-    env: supplementProcessEnv(sdk),
-  });
+  debug('Invoking adb with args: %O', args);
+  const stdout = await execAdb(sdk, args);
 
   const devices = parseAdbDevices(stdout);
 
@@ -93,16 +87,10 @@ export async function getDeviceProperty(
   property: string,
 ): Promise<string> {
   const debug = Debug(`${modulePrefix}:${getDeviceProperty.name}`);
-  const platformTools = await getSDKPackage(
-    path.join(sdk.root, 'platform-tools'),
-  );
-  const adbBin = path.join(platformTools.location, 'adb');
   const args = ['-s', device.serial, 'shell', 'getprop', property];
-  debug('Invoking adb: %O %O', adbBin, args);
 
-  const { stdout } = await execFile(adbBin, args, {
-    env: supplementProcessEnv(sdk),
-  });
+  debug('Invoking adb with args: %O', args);
+  const stdout = await execAdb(sdk, args);
 
   return stdout.trim();
 }
@@ -112,18 +100,13 @@ export async function getDeviceProperties(
   device: Device,
 ): Promise<DeviceProperties> {
   const debug = Debug(`${modulePrefix}:${getDeviceProperties.name}`);
-  const re = /^\[([a-z0-9.]+)\]: \[(.*)\]$/;
-  const platformTools = await getSDKPackage(
-    path.join(sdk.root, 'platform-tools'),
-  );
-  const adbBin = path.join(platformTools.location, 'adb');
   const args = ['-s', device.serial, 'shell', 'getprop'];
-  debug('Invoking adb: %O %O', adbBin, args);
-  const propAllowList = [...ADB_GETPROP_MAP.keys()];
 
-  const { stdout } = await execFile(adbBin, args, {
-    env: supplementProcessEnv(sdk),
-  });
+  debug('Invoking adb with args: %O', args);
+  const stdout = await execAdb(sdk, args);
+
+  const re = /^\[([a-z0-9.]+)\]: \[(.*)\]$/;
+  const propAllowList = [...ADB_GETPROP_MAP.keys()];
   const properties: DeviceProperties = {};
 
   for (const line of stdout.split(os.EOL)) {
@@ -143,14 +126,10 @@ export async function getDeviceProperties(
 
 export async function waitForDevice(sdk: SDK, serial: string): Promise<void> {
   const debug = Debug(`${modulePrefix}:${waitForDevice.name}`);
-  const platformTools = await getSDKPackage(
-    path.join(sdk.root, 'platform-tools'),
-  );
-  const adbBin = path.join(platformTools.location, 'adb');
   const args = ['-s', serial, 'wait-for-any-device'];
-  debug('Invoking adb: %O %O', adbBin, args);
 
-  await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });
+  debug('Invoking adb with args: %O', args);
+  await execAdb(sdk, args);
 
   debug('Device %s is connected to ADB!', serial);
 }
@@ -177,18 +156,13 @@ export async function waitForClose(
   app: string,
 ): Promise<void> {
   const debug = Debug(`${modulePrefix}:${waitForClose.name}`);
-  const platformTools = await getSDKPackage(
-    path.join(sdk.root, 'platform-tools'),
-  );
-  const adbBin = path.join(platformTools.location, 'adb');
   const args = ['-s', device.serial, 'shell', `ps | grep ${app}`];
 
   return new Promise<void>(resolve => {
     const interval = setInterval(async () => {
-      debug('Invoking adb: %O %O', adbBin, args);
-
       try {
-        await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });
+        debug('Invoking adb with args: %O', args);
+        await execAdb(sdk, args);
       } catch (e) {
         debug('Error received from adb: %O', e);
         debug(
@@ -214,7 +188,7 @@ export async function installApk(
   );
   const adbBin = path.join(platformTools.location, 'adb');
   const args = ['-s', device.serial, 'install', '-r', '-t', apk];
-  debug('Invoking adb: %O %O', adbBin, args);
+  debug('Invoking adb with args: %O', args);
 
   const p = spawn(adbBin, args, {
     stdio: 'pipe',
@@ -284,14 +258,10 @@ export async function closeApp(
   app: string,
 ): Promise<void> {
   const debug = Debug(`${modulePrefix}:${closeApp.name}`);
-  const platformTools = await getSDKPackage(
-    path.join(sdk.root, 'platform-tools'),
-  );
-  const adbBin = path.join(platformTools.location, 'adb');
   const args = ['-s', device.serial, 'shell', 'am', 'force-stop', app];
-  debug('Invoking adb: %O %O', adbBin, args);
 
-  await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });
+  debug('Invoking adb with args: %O', args);
+  await execAdb(sdk, args);
 }
 
 export async function uninstallApp(
@@ -300,14 +270,10 @@ export async function uninstallApp(
   app: string,
 ): Promise<void> {
   const debug = Debug(`${modulePrefix}:${uninstallApp.name}`);
-  const platformTools = await getSDKPackage(
-    path.join(sdk.root, 'platform-tools'),
-  );
-  const adbBin = path.join(platformTools.location, 'adb');
   const args = ['-s', device.serial, 'uninstall', app];
-  debug('Invoking adb: %O %O', adbBin, args);
 
-  await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });
+  debug('Invoking adb with args: %O', args);
+  await execAdb(sdk, args);
 }
 
 export enum ADBEvent {
@@ -345,10 +311,6 @@ export async function startActivity(
   activityName: string,
 ): Promise<void> {
   const debug = Debug(`${modulePrefix}:${startActivity.name}`);
-  const platformTools = await getSDKPackage(
-    path.join(sdk.root, 'platform-tools'),
-  );
-  const adbBin = path.join(platformTools.location, 'adb');
   const args = [
     '-s',
     device.serial,
@@ -359,9 +321,9 @@ export async function startActivity(
     '-n',
     `${packageName}/${activityName}`,
   ];
-  debug('Invoking adb: %O %O', adbBin, args);
 
-  await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });
+  debug('Invoking adb with args: %O', args);
+  await execAdb(sdk, args);
 }
 
 export function parseAdbDevices(output: string): Device[] {
@@ -438,10 +400,6 @@ export async function forwardPorts(
   ports: Ports,
 ): Promise<void> {
   const debug = Debug(`${modulePrefix}:${forwardPorts.name}`);
-  const platformTools = await getSDKPackage(
-    path.join(sdk.root, 'platform-tools'),
-  );
-  const adbBin = path.join(platformTools.location, 'adb');
   const args = [
     '-s',
     device.serial,
@@ -449,9 +407,9 @@ export async function forwardPorts(
     `tcp:${ports.device}`,
     `tcp:${ports.host}`,
   ];
-  debug('Invoking adb: %O %O', adbBin, args);
 
-  await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });
+  debug('Invoking adb with args: %O', args);
+  await execAdb(sdk, args);
 }
 
 export async function unforwardPorts(
@@ -460,10 +418,6 @@ export async function unforwardPorts(
   ports: Ports,
 ): Promise<void> {
   const debug = Debug(`${modulePrefix}:${forwardPorts.name}`);
-  const platformTools = await getSDKPackage(
-    path.join(sdk.root, 'platform-tools'),
-  );
-  const adbBin = path.join(platformTools.location, 'adb');
   const args = [
     '-s',
     device.serial,
@@ -471,7 +425,19 @@ export async function unforwardPorts(
     '--remove',
     `tcp:${ports.device}`,
   ];
-  debug('Invoking adb: %O %O', adbBin, args);
 
-  await execFile(adbBin, args, { env: supplementProcessEnv(sdk) });
+  debug('Invoking adb with args: %O', args);
+  await execAdb(sdk, args);
+}
+
+export async function execAdb(sdk: SDK, args: string[]): Promise<string> {
+  const platformTools = await getSDKPackage(
+    path.join(sdk.root, 'platform-tools'),
+  );
+  const adbBin = path.join(platformTools.location, 'adb');
+  const { stdout } = await execFile(adbBin, args, {
+    env: supplementProcessEnv(sdk),
+  });
+
+  return stdout;
 }
