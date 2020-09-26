@@ -58,7 +58,7 @@ export async function getDevices(sdk: SDK): Promise<Device[]> {
   const args = ['devices', '-l'];
 
   debug('Invoking adb with args: %O', args);
-  const stdout = await execAdb(sdk, args);
+  const stdout = await execAdb(sdk, args, { timeout: 5000 });
 
   const devices = parseAdbDevices(stdout);
 
@@ -90,7 +90,7 @@ export async function getDeviceProperty(
   const args = ['-s', device.serial, 'shell', 'getprop', property];
 
   debug('Invoking adb with args: %O', args);
-  const stdout = await execAdb(sdk, args);
+  const stdout = await execAdb(sdk, args, { timeout: 5000 });
 
   return stdout.trim();
 }
@@ -103,7 +103,7 @@ export async function getDeviceProperties(
   const args = ['-s', device.serial, 'shell', 'getprop'];
 
   debug('Invoking adb with args: %O', args);
-  const stdout = await execAdb(sdk, args);
+  const stdout = await execAdb(sdk, args, { timeout: 5000 });
 
   const re = /^\[([a-z0-9.]+)\]: \[(.*)\]$/;
   const propAllowList = [...ADB_GETPROP_MAP.keys()];
@@ -323,7 +323,7 @@ export async function startActivity(
   ];
 
   debug('Invoking adb with args: %O', args);
-  await execAdb(sdk, args);
+  await execAdb(sdk, args, { timeout: 5000 });
 }
 
 export function parseAdbDevices(output: string): Device[] {
@@ -409,7 +409,7 @@ export async function forwardPorts(
   ];
 
   debug('Invoking adb with args: %O', args);
-  await execAdb(sdk, args);
+  await execAdb(sdk, args, { timeout: 5000 });
 }
 
 export async function unforwardPorts(
@@ -417,7 +417,7 @@ export async function unforwardPorts(
   device: Device,
   ports: Ports,
 ): Promise<void> {
-  const debug = Debug(`${modulePrefix}:${forwardPorts.name}`);
+  const debug = Debug(`${modulePrefix}:${unforwardPorts.name}`);
   const args = [
     '-s',
     device.serial,
@@ -427,17 +427,63 @@ export async function unforwardPorts(
   ];
 
   debug('Invoking adb with args: %O', args);
-  await execAdb(sdk, args);
+  await execAdb(sdk, args, { timeout: 5000 });
 }
 
-export async function execAdb(sdk: SDK, args: string[]): Promise<string> {
-  const platformTools = await getSDKPackage(
-    path.join(sdk.root, 'platform-tools'),
-  );
-  const adbBin = path.join(platformTools.location, 'adb');
-  const { stdout } = await execFile(adbBin, args, {
-    env: supplementProcessEnv(sdk),
-  });
+export interface ExecADBOptions {
+  timeout?: number;
+}
 
-  return stdout;
+export async function execAdb(
+  sdk: SDK,
+  args: string[],
+  options: ExecADBOptions = {},
+): Promise<string> {
+  const debug = Debug(`${modulePrefix}:${execAdb.name}`);
+  let timer: NodeJS.Timer | undefined;
+
+  const retry = async () => {
+    process.stdout.write(
+      `ADB is unresponsive after ${options.timeout}ms, killing server and retrying...\n`,
+    );
+    debug(
+      'ADB timeout of %O reached, killing server and retrying...',
+      options.timeout,
+    );
+    debug('Invoking adb with args: %O', ['kill-server']);
+    await execAdb(sdk, ['kill-server']);
+    debug('Invoking adb with args: %O', ['start-server']);
+    await execAdb(sdk, ['start-server']);
+    debug('Retrying...');
+    return run();
+  };
+
+  const run = async () => {
+    const platformTools = await getSDKPackage(
+      path.join(sdk.root, 'platform-tools'),
+    );
+    const adbBin = path.join(platformTools.location, 'adb');
+    const { stdout } = await execFile(adbBin, args, {
+      env: supplementProcessEnv(sdk),
+    });
+
+    if (timer) {
+      clearTimeout(timer);
+      timer = undefined;
+    }
+
+    return stdout;
+  };
+
+  return new Promise((resolve, reject) => {
+    if (options.timeout) {
+      timer = setTimeout(() => retry().then(resolve, reject), options.timeout);
+    }
+
+    run().then(resolve, err => {
+      if (!timer) {
+        reject(err);
+      }
+    });
+  });
 }
