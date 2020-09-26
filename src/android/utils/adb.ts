@@ -9,6 +9,7 @@ import {
   ADBException,
   ERR_INCOMPATIBLE_UPDATE,
   ERR_MIN_SDK_VERSION,
+  ERR_NOT_ENOUGH_SPACE,
   ERR_NO_CERTIFICATES,
   ERR_VERSION_DOWNGRADE,
 } from '../../errors';
@@ -244,6 +245,13 @@ export async function installApk(
               ERR_NO_CERTIFICATES,
             ),
           );
+        } else if (event === ADBEvent.NotEnoughSpace) {
+          reject(
+            new ADBException(
+              `Encountered adb error: ${ADBEvent[event]}.`,
+              ERR_NOT_ENOUGH_SPACE,
+            ),
+          );
         }
 
         cb();
@@ -281,6 +289,7 @@ export enum ADBEvent {
   NewerVersionOnDeviceFailure, // version of app on device is newer than the one being deployed
   NewerSdkRequiredOnDeviceFailure, // device does not meet minSdkVersion requirement
   NoCertificates, // no certificates in APK, likely due to improper signing config
+  NotEnoughSpace, // device is out of hard drive space
 }
 
 export function parseAdbInstallOutput(line: string): ADBEvent | undefined {
@@ -295,6 +304,8 @@ export function parseAdbInstallOutput(line: string): ADBEvent | undefined {
     event = ADBEvent.NewerSdkRequiredOnDeviceFailure;
   } else if (line.includes('INSTALL_PARSE_FAILED_NO_CERTIFICATES')) {
     event = ADBEvent.NoCertificates;
+  } else if (line.includes('not enough space')) {
+    event = ADBEvent.NotEnoughSpace;
   }
 
   if (typeof event !== 'undefined') {
