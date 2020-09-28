@@ -90,7 +90,7 @@ function formatTargetTable(targets: readonly Target[]): string {
 
 function targetToRow(target: Target): string[] {
   return [
-    target.name ?? '?',
+    target.name ?? target.model ?? target.id ?? '?',
     `${target.platform === 'ios' ? 'iOS' : 'API'} ${target.sdkVersion}`,
     target.id ?? '?',
   ];
