@@ -80,7 +80,7 @@ export class ClientManager {
   async getDebugserverClient() {
     try {
       // iOS 14 added support for a secure debug service so try to connect to that first
-      return this.getServiceClient(
+      return await this.getServiceClient(
         'com.apple.debugserver.DVTSecureSocketProxy',
         DebugserverClient,
       );
