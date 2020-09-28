@@ -17,11 +17,11 @@ export class ProtocolReaderFactory<T> {
 }
 
 export abstract class ProtocolReader {
-  private body!: Buffer; // TODO: ! -> ?
-  private bodyLength!: number; // TODO: ! -> ?
-  private buffer = Buffer.alloc(0);
+  protected body!: Buffer; // TODO: ! -> ?
+  protected bodyLength!: number; // TODO: ! -> ?
+  protected buffer = Buffer.alloc(0);
   constructor(
-    private headerSize: number,
+    protected headerSize: number,
     protected callback: ProtocolReaderCallback,
   ) {
     this.onData = this.onData.bind(this);
