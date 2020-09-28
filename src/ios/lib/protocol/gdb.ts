@@ -31,6 +31,41 @@ export class GDBProtocolReader extends ProtocolReader {
     super(1 /* "Header" is '+' or '-' */, callback);
   }
 
+  onData(data?: Buffer) {
+    // the GDB protocol does not support body length in its header so we cannot rely on
+    // the parent implementation to determine when a payload is complete
+    try {
+      // if there's data, add it to the existing buffer
+      this.buffer = data ? Buffer.concat([this.buffer, data]) : this.buffer;
+
+      // do we have enough bytes to proceed
+      if (this.buffer.length < this.headerSize) {
+        return; // incomplete header, wait for more
+      }
+
+      // first, check the header
+      if (this.parseHeader(this.buffer) === -1) {
+        // we have a valid header so check the body. GDB packets will always be a leading '$', data bytes,
+        // a trailing '#', and a two digit checksum. minimum valid body is the empty response '$#00'
+        // https://developer.apple.com/library/archive/documentation/DeveloperTools/gdb/gdb/gdb_33.html
+        const packetData = this.buffer.toString().match('\\$.*#[0-9a-f]{2}');
+        if (packetData == null) {
+          return; // incomplete body, wait for more
+        }
+        // extract the body and update the buffer
+        const body = Buffer.from(packetData[0]);
+        this.buffer = this.buffer.slice(this.headerSize + body.length);
+        // parse the payload and recurse if there is more data to process
+        this.callback(this.parseBody(body));
+        if (this.buffer.length) {
+          this.onData();
+        }
+      }
+    } catch (err) {
+      this.callback(null, err);
+    }
+  }
+
   parseHeader(data: Buffer) {
     if (data[0] !== ACK_SUCCESS) {
       throw new Error('Unsuccessful debugserver response');
