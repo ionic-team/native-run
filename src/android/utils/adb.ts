@@ -313,7 +313,10 @@ export function parseAdbInstallOutput(line: string): ADBEvent | undefined {
     event = ADBEvent.NewerSdkRequiredOnDeviceFailure;
   } else if (line.includes('INSTALL_PARSE_FAILED_NO_CERTIFICATES')) {
     event = ADBEvent.NoCertificates;
-  } else if (line.includes('not enough space')) {
+  } else if (
+    line.includes('INSTALL_FAILED_INSUFFICIENT_STORAGE') ||
+    line.includes('not enough space')
+  ) {
     event = ADBEvent.NotEnoughSpace;
   } else if (line.includes('device offline')) {
     event = ADBEvent.DeviceOffline;
