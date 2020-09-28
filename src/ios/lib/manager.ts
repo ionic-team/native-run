@@ -78,11 +78,20 @@ export class ClientManager {
   }
 
   async getDebugserverClient() {
-    return this.getServiceClient(
-      'com.apple.debugserver',
-      DebugserverClient,
-      true,
-    );
+    try {
+      // iOS 14 added support for a secure debug service so try to connect to that first
+      return this.getServiceClient(
+        'com.apple.debugserver.DVTSecureSocketProxy',
+        DebugserverClient,
+      );
+    } catch {
+      // otherwise, fall back to the previous implementation
+      return this.getServiceClient(
+        'com.apple.debugserver',
+        DebugserverClient,
+        true,
+      );
+    }
   }
 
   private async getServiceClient<T extends ServiceClient<any>>(
