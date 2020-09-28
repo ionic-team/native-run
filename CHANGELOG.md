@@ -1,3 +1,20 @@
+# [1.2.0](https://github.com/ionic-team/native-run/compare/v1.1.0...v1.2.0) (2020-09-28)
+
+
+### Bug Fixes
+
+* **iOS:** implement iOS 14 compatibility ([#157](https://github.com/ionic-team/native-run/issues/157)) ([6f242fd](https://github.com/ionic-team/native-run/commit/6f242fd9aa1dea2cd96db13f21b981b21953f3ea))
+
+
+### Features
+
+* **android:** gracefully handle when device is offline ([aa6688d](https://github.com/ionic-team/native-run/commit/aa6688d257127c5cf6b24279a6eb506cf5b8c258))
+* **android:** gracefully handle when device is out of space ([9da9f59](https://github.com/ionic-team/native-run/commit/9da9f5968cebdc7887230f3085dfd7c2d5a4f3ec))
+* **android:** handle INSTALL_FAILED_INSUFFICIENT_STORAGE adb error ([bcf2369](https://github.com/ionic-team/native-run/commit/bcf2369b51e6afcd3230eb68db965fe2a89300e1))
+* **android:** kill unresponsive adb server after 5s and retry ([9e1bbc7](https://github.com/ionic-team/native-run/commit/9e1bbc7d636a266ed472e6b43553781bc7e90896))
+* **list:** show model, then ID if no name ([d56415d](https://github.com/ionic-team/native-run/commit/d56415d00c68ce288d6575ebf4cb0386f6070801))
+* columnize `--list` output ([5b7da72](https://github.com/ionic-team/native-run/commit/5b7da7235c23b01185d8317bf5e4cdad878a9845))
+
 # [1.1.0](https://github.com/ionic-team/native-run/compare/v1.0.0...v1.1.0) (2020-09-10)
 
 
