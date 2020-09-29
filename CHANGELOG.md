@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/ionic-team/native-run/compare/v1.2.0...v1.2.1) (2020-09-29)
+
+
+### Bug Fixes
+
+* add missing signal-exit dependency ([#158](https://github.com/ionic-team/native-run/issues/158)) ([18743e0](https://github.com/ionic-team/native-run/commit/18743e0d48212f503393b47a21ced9905a24fcea))
+
 # [1.2.0](https://github.com/ionic-team/native-run/compare/v1.1.0...v1.2.0) (2020-09-28)
 
 
