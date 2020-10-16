@@ -468,7 +468,7 @@ export async function execAdb(
   let timer: NodeJS.Timer | undefined;
 
   const retry = async () => {
-    process.stdout.write(
+    debug(
       `ADB is unresponsive after ${options.timeout}ms, killing server and retrying...\n`,
     );
     debug(
