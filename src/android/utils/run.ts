@@ -5,6 +5,7 @@ import {
   ERR_INCOMPATIBLE_UPDATE,
   ERR_VERSION_DOWNGRADE,
 } from '../../errors';
+import { log } from '../../utils/log';
 
 import type { Device } from './adb';
 import { installApk, uninstallApp } from './adb';
@@ -120,7 +121,7 @@ export async function installApkToDevice(
   apk: string,
   appId: string,
 ): Promise<void> {
-  process.stdout.write(`Installing ${apk}...\n`);
+  log(`Installing ${apk}...\n`);
 
   try {
     await installApk(sdk, device, apk);
@@ -130,7 +131,7 @@ export async function installApkToDevice(
         e.code === ERR_INCOMPATIBLE_UPDATE ||
         e.code === ERR_VERSION_DOWNGRADE
       ) {
-        process.stdout.write(`${e.message} Uninstalling and trying again...\n`);
+        log(`${e.message} Uninstalling and trying again...\n`);
         await uninstallApp(sdk, device, appId);
         await installApk(sdk, device, apk);
         return;

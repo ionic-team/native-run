@@ -2,6 +2,7 @@ import { spawnSync } from 'child_process'; // TODO: need cross-spawn for windows
 import * as Debug from 'debug';
 
 import { Exception } from '../../errors';
+import { log } from '../../utils/log';
 import { onBeforeExit } from '../../utils/process';
 
 import { getXCodePath, getXcodeVersionInfo } from './xcode';
@@ -147,7 +148,7 @@ export async function runOnSimulator(
       }
     });
 
-    process.stdout.write(`Waiting for app to close...\n`);
+    log(`Waiting for app to close...\n`);
     await waitForSimulatorClose(udid, bundleId);
   }
 }
