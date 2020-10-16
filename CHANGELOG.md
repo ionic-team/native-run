@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/ionic-team/native-run/compare/v1.2.1...v1.2.2) (2020-10-16)
+
+
+### Bug Fixes
+
+* **android:** don't print ADB unresponsive error to stdout ([#163](https://github.com/ionic-team/native-run/issues/163)) ([2cd894b](https://github.com/ionic-team/native-run/commit/2cd894ba2341937f19825cb0865dd885acb01ace))
+
 ## [1.2.1](https://github.com/ionic-team/native-run/compare/v1.2.0...v1.2.1) (2020-09-29)
 
 
