@@ -102,9 +102,7 @@ export type EmulatorExceptionCode =
   | typeof ERR_NON_ZERO_EXIT
   | typeof ERR_UNKNOWN_AVD;
 
-export class EmulatorException extends AndroidException<
-  EmulatorExceptionCode
-> {}
+export class EmulatorException extends AndroidException<EmulatorExceptionCode> {}
 
 export type AndroidRunExceptionCode =
   | typeof ERR_NO_AVDS_FOUND
@@ -112,9 +110,7 @@ export type AndroidRunExceptionCode =
   | typeof ERR_NO_DEVICE
   | typeof ERR_NO_TARGET;
 
-export class AndroidRunException extends AndroidException<
-  AndroidRunExceptionCode
-> {}
+export class AndroidRunException extends AndroidException<AndroidRunExceptionCode> {}
 
 export type SDKExceptionCode =
   | typeof ERR_EMULATOR_HOME_NOT_FOUND
