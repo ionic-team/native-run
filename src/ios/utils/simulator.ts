@@ -39,7 +39,11 @@ interface SimCtlOutput {
   readonly devicetypes: SimCtlType[];
 }
 
-export async function getSimulators() {
+export interface SimulatorResult extends Simulator {
+  runtime: SimCtlRuntime;
+}
+
+export async function getSimulators(): Promise<SimulatorResult[]> {
   const simctl = spawnSync('xcrun', ['simctl', 'list', '--json'], {
     encoding: 'utf8',
   });

@@ -1,10 +1,9 @@
 import * as Debug from 'debug';
 import { readFileSync } from 'fs';
 import * as path from 'path';
-import { promisify } from 'util';
 
 import { Exception } from '../../errors';
-import { onBeforeExit } from '../../utils/process';
+import { onBeforeExit, wait } from '../../utils/process';
 import type { DeviceValues, IPLookupResult } from '../lib';
 import {
   AFCError,
@@ -17,7 +16,6 @@ import {
 import { getDeveloperDiskImagePath } from './xcode';
 
 const debug = Debug('native-run:ios:utils:device');
-const wait = promisify(setTimeout);
 
 export async function getConnectedDevices() {
   const usbmuxClient = new UsbmuxdClient(UsbmuxdClient.connectUsbmuxdSocket());

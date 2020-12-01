@@ -2,6 +2,8 @@ import * as Debug from 'debug';
 import type * as net from 'net';
 import * as plist from 'plist';
 
+import { IOSLibError } from '../lib-errors';
+
 import type { ProtocolWriter } from './protocol';
 import {
   PlistProtocolReader,
@@ -70,6 +72,10 @@ export class LockdownProtocolReader extends PlistProtocolReader {
     const resp = super.parseBody(data);
     debug(`Response: ${JSON.stringify(resp)}`);
     if (isLockdownErrorResponse(resp)) {
+      if (resp.Error === 'DeviceLocked') {
+        throw new IOSLibError('Device is currently locked.', 'DeviceLocked');
+      }
+
       throw new Error(resp.Error);
     }
     return resp;
