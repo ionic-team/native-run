@@ -70,7 +70,7 @@ async function runIpaOrAppFileOnInterval(config: IOSRunConfig): Promise<void> {
   let error: Error | undefined;
 
   const retry = async () => {
-    console.log('Device Locked - Checking for unlock in 5 seconds');
+    process.stderr.write('Please unlock your device. Waiting 5 seconds...\n');
     await wait(retryInterval);
     await run();
   };
