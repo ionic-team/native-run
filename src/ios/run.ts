@@ -88,7 +88,7 @@ async function runIpaOrAppFileOnInterval(config: IOSRunConfig): Promise<void> {
   };
 
   await run();
-  
+
   if (error) {
     throw error;
   }
