@@ -66,11 +66,14 @@ async function runIpaOrAppFile({
 }
 
 async function runIpaOrAppFileOnInterval(config: IOSRunConfig): Promise<void> {
-  const retryInterval = 5000;
+  const maxRetryCount = 12; // 1 minute
+  const retryInterval = 5000; // 5 seconds
   let error: Error | undefined;
+  let retryCount = 0;
 
   const retry = async () => {
     process.stderr.write('Please unlock your device. Waiting 5 seconds...\n');
+    retryCount++;
     await wait(retryInterval);
     await run();
   };
@@ -79,9 +82,18 @@ async function runIpaOrAppFileOnInterval(config: IOSRunConfig): Promise<void> {
     try {
       await runIpaOrAppFile(config);
     } catch (err) {
-      if (err instanceof IOSLibError && err.code == 'DeviceLocked') {
+      if (
+        err instanceof IOSLibError &&
+        err.code == 'DeviceLocked' &&
+        retryCount < maxRetryCount
+      ) {
         await retry();
       } else {
+        if (maxRetryCount >= retryCount) {
+          process.stderr.write(
+            'Max retry time has been surpassed. Throwing DeviceLocked Error.\n',
+          );
+        }
         error = err;
       }
     }
