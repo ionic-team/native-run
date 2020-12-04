@@ -17,7 +17,9 @@
     "publish:ci": "semantic-release",
     "publish:testing": "npm version prerelease --preid=testing --no-git-tag-version && npm publish --tag=testing && git stash",
     "prepublishOnly": "npm run build",
-    "postinstall": "husky install"
+    "postinstall": "husky install",
+    "prepublish": "pinst --disable",
+    "postpublish": "pinst --enable"
   },
   "main": "dist/index.js",
   "files": [
@@ -64,6 +66,7 @@
     "eslint": "^7.8.1",
     "husky": "^5.0.4",
     "jest": "^26.4.2",
+    "pinst": "^2.1.1",
     "prettier": "^2.2.1",
     "semantic-release": "^17.1.1",
     "ts-jest": "^26.3.0",
