@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/ionic-team/native-run/compare/v1.2.2...v1.3.0) (2020-12-07)
+
+
+### Features
+
+* **iOS:** Add 5 second retry on DeviceLocked for iOS ([#167](https://github.com/ionic-team/native-run/issues/167)) ([f451e46](https://github.com/ionic-team/native-run/commit/f451e46a7f4d05c27baa641530d00f1301e2bfd5))
+
 ## [1.2.2](https://github.com/ionic-team/native-run/compare/v1.2.1...v1.2.2) (2020-10-16)
 
 
