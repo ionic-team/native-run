@@ -92,7 +92,7 @@ async function runIpaOrAppFileOnInterval(config: IOSRunConfig): Promise<void> {
       } else {
         if (maxRetryCount >= retryCount) {
           error = new IOSRunException(
-            'No unlocked device found after 1 minute of retries',
+            `Device still locked after 1 minute. Aborting.`,
             ERR_DEVICE_LOCKED,
           );
         } else {
