@@ -6,6 +6,7 @@ import * as path from 'path';
 import {
   CLIException,
   ERR_BAD_INPUT,
+  ERR_DEVICE_LOCKED,
   ERR_TARGET_NOT_FOUND,
   IOSRunException,
 } from '../errors';
@@ -91,10 +92,15 @@ async function runIpaOrAppFileOnInterval(config: IOSRunConfig): Promise<void> {
       } else {
         if (maxRetryCount >= retryCount) {
           process.stderr.write(
-            'Max retry time has been surpassed. Throwing DeviceLocked Error.\n',
+            'Max retry time has been surpassed. Throwing IOSRunException.\n',
           );
+          error = new IOSRunException(
+            'No unlocked device found after 1 minute of retries',
+            ERR_DEVICE_LOCKED,
+          );
+        } else {
+          error = err;
         }
-        error = err;
       }
     }
   };
