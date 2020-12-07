@@ -2,10 +2,11 @@
 
 Pull requests are welcome!
 
-To begin, clone the repo, then install dependencies.
+To begin, clone the repo, then install dependencies and setup the project.
 
 ```
 npm install
+npm run setup
 ```
 
 The source code is written in TypeScript. Spin up the compiler to watch for source changes:
