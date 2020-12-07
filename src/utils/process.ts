@@ -8,6 +8,7 @@ const debug = Debug('native-run:utils:process');
 
 export const exec = util.promisify(cp.exec);
 export const execFile = util.promisify(cp.execFile);
+export const wait = util.promisify(setTimeout);
 
 export type ExitQueueFn = () => Promise<void>;
 
