@@ -127,7 +127,7 @@ export class ClientManager {
         const proxy: any = new UsbmuxdProxy(usbmuxdSocket);
         tlsOptions.socket = proxy;
 
-        await new Promise((res, rej) => {
+        await new Promise<void>((res, rej) => {
           const timeoutId = setTimeout(() => {
             rej('The TLS handshake failed to complete after 5s.');
           }, 5000);
