@@ -91,9 +91,6 @@ async function runIpaOrAppFileOnInterval(config: IOSRunConfig): Promise<void> {
         await retry();
       } else {
         if (maxRetryCount >= retryCount) {
-          process.stderr.write(
-            'Max retry time has been surpassed. Throwing IOSRunException.\n',
-          );
           error = new IOSRunException(
             'No unlocked device found after 1 minute of retries',
             ERR_DEVICE_LOCKED,
