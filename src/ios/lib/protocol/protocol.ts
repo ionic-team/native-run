@@ -115,9 +115,9 @@ export abstract class ProtocolClient<MessageType = any> {
           if (callback) {
             callback(
               resp,
-              (...args: any[]) => {
+              (value: any) => {
                 this.socket.removeListener('data', reader.onData);
-                resolve(...args);
+                resolve(value);
               },
               reject,
             );
