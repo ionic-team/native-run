@@ -6,7 +6,8 @@ export const enum ExitCode {
 
 export class Exception<T extends string, D = { [key: string]: string }>
   extends Error
-  implements NodeJS.ErrnoException {
+  implements NodeJS.ErrnoException
+{
   constructor(
     readonly message: string,
     readonly code?: T,
@@ -31,7 +32,7 @@ export class Exception<T extends string, D = { [key: string]: string }>
 
 export class AndroidException<
   T extends string,
-  D = { [key: string]: string }
+  D = { [key: string]: string },
 > extends Exception<T, D> {
   serialize(): string {
     return (
