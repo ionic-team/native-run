@@ -99,10 +99,8 @@ export class ClientManager {
     ServiceType: new (...args: any[]) => T,
     disableSSL = false,
   ) {
-    const {
-      port: servicePort,
-      enableServiceSSL,
-    } = await this.lockdowndClient.startService(name);
+    const { port: servicePort, enableServiceSSL } =
+      await this.lockdowndClient.startService(name);
     const usbmuxClient = new UsbmuxdClient(
       UsbmuxdClient.connectUsbmuxdSocket(),
     );

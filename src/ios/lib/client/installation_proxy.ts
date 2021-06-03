@@ -40,7 +40,8 @@ interface IPInstallCompleteResponseItem extends LockdownResponse {
  *  [{ "Status": "Complete" }]
  */
 type IPInstallPercentCompleteResponse = IPInstallPercentCompleteResponseItem[];
-type IPInstallCFBundleIdentifierResponse = IPInstallCFBundleIdentifierResponseItem[];
+type IPInstallCFBundleIdentifierResponse =
+  IPInstallCFBundleIdentifierResponseItem[];
 type IPInstallCompleteResponse = IPInstallCompleteResponseItem[];
 
 interface IPMessage extends LockdownCommand {
