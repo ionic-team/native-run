@@ -48,7 +48,7 @@ export function isLockdownErrorResponse(
 }
 
 export class LockdownProtocolClient<
-  MessageType extends LockdownRequest | LockdownCommand = LockdownRequest
+  MessageType extends LockdownRequest | LockdownCommand = LockdownRequest,
 > extends ProtocolClient<MessageType> {
   constructor(socket: net.Socket) {
     super(

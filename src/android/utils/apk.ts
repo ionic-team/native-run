@@ -38,8 +38,9 @@ export async function getApkInfo(
   const activity = application.childNodes.find(
     (n: any) => n.nodeName === 'activity',
   );
-  const activityName = activity.attributes.find((a: any) => a.name === 'name')
-    .value;
+  const activityName = activity.attributes.find(
+    (a: any) => a.name === 'name',
+  ).value;
 
   return { appId, activityName };
 }

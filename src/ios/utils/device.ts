@@ -23,16 +23,14 @@ export async function getConnectedDevices() {
   usbmuxClient.socket.end();
 
   return Promise.all(
-    usbmuxDevices.map(
-      async (d): Promise<DeviceValues> => {
-        const socket = await new UsbmuxdClient(
-          UsbmuxdClient.connectUsbmuxdSocket(),
-        ).connect(d, 62078);
-        const device = await new LockdowndClient(socket).getAllValues();
-        socket.end();
-        return device;
-      },
-    ),
+    usbmuxDevices.map(async (d): Promise<DeviceValues> => {
+      const socket = await new UsbmuxdClient(
+        UsbmuxdClient.connectUsbmuxdSocket(),
+      ).connect(d, 62078);
+      const device = await new LockdowndClient(socket).getAllValues();
+      socket.end();
+      return device;
+    }),
   );
 }
 
@@ -86,9 +84,9 @@ async function mountDeveloperDiskImage(clientManager: ClientManager) {
   if (!(await imageMounter.lookupImage()).ImageSignature) {
     // verify DeveloperDiskImage exists (TODO: how does this work on Windows/Linux?)
     // TODO: if windows/linux, download?
-    const version = await (await clientManager.getLockdowndClient()).getValue(
-      'ProductVersion',
-    );
+    const version = await (
+      await clientManager.getLockdowndClient()
+    ).getValue('ProductVersion');
     const developerDiskImagePath = await getDeveloperDiskImagePath(version);
     const developerDiskImageSig = readFileSync(
       `${developerDiskImagePath}.signature`,
