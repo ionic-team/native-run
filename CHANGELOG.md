@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/ionic-team/native-run/compare/v1.3.0...v1.3.1) (2021-06-04)
+
+
+### Bug Fixes
+
+* don't print retry message for --json ([#184](https://github.com/ionic-team/native-run/issues/184)) ([4fb0563](https://github.com/ionic-team/native-run/commit/4fb0563d96435482066a270595b7f3393a0e6b42))
+
 # [1.3.0](https://github.com/ionic-team/native-run/compare/v1.2.2...v1.3.0) (2020-12-07)
 
 
