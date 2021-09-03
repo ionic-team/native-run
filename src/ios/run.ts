@@ -82,7 +82,7 @@ async function runIpaOrAppFileOnInterval(config: IOSRunConfig): Promise<void> {
   const run = async () => {
     try {
       await runIpaOrAppFile(config);
-    } catch (err) {
+    } catch (err: any) {
       if (
         err instanceof IOSLibError &&
         err.code == 'DeviceLocked' &&
@@ -90,7 +90,7 @@ async function runIpaOrAppFileOnInterval(config: IOSRunConfig): Promise<void> {
       ) {
         await retry();
       } else {
-        if (maxRetryCount >= retryCount) {
+        if (retryCount >= maxRetryCount) {
           error = new IOSRunException(
             `Device still locked after 1 minute. Aborting.`,
             ERR_DEVICE_LOCKED,
