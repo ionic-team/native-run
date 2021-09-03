@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/ionic-team/native-run/compare/v1.4.0...v1.4.1) (2021-09-03)
+
+
+### Bug Fixes
+
+* throw iOS errors that are not DeviceLocked ([#200](https://github.com/ionic-team/native-run/issues/200)) ([3ac6914](https://github.com/ionic-team/native-run/commit/3ac6914d7f9672fada40e80a2b0a9bd156e27db0))
+
 # [1.4.0](https://github.com/ionic-team/native-run/compare/v1.3.1...v1.4.0) (2021-06-08)
 
 
