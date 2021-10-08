@@ -218,7 +218,9 @@ export async function getDefaultAVDSchematic(sdk: SDK): Promise<AVDSchematic> {
     }
   }
   if (errors.length > 0) {
-    const unsupportedError = errors.find(e => e.code === ERR_UNSUPPORTED_API_LEVEL);
+    const unsupportedError = errors.find(
+      e => e.code === ERR_UNSUPPORTED_API_LEVEL,
+    );
     if (unsupportedError) {
       throw unsupportedError;
     }
