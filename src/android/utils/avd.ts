@@ -201,6 +201,7 @@ export async function getDefaultAVDSchematic(sdk: SDK): Promise<AVDSchematic> {
   const debug = Debug(`${modulePrefix}:${getDefaultAVDSchematic.name}`);
   const packages = await findAllSDKPackages(sdk);
   const apis = await getAPILevels(packages);
+  const errors: AVDException[] = [];
 
   for (const api of apis) {
     try {
@@ -212,13 +213,19 @@ export async function getDefaultAVDSchematic(sdk: SDK): Promise<AVDSchematic> {
       if (!(e instanceof AVDException)) {
         throw e;
       }
-
+      errors.push(e);
       debug('Issue with API %s: %s', api.apiLevel, e.message);
+    }
+  }
+  if (errors.length > 0) {
+    const unsupportedError = errors.find(e => e.code === ERR_UNSUPPORTED_API_LEVEL);
+    if (unsupportedError) {
+      throw unsupportedError;
     }
   }
 
   throw new AVDException(
-    'No suitable API installation found.',
+    'No suitable API installation found. Use --sdk-info to reveal missing packages and other issues.',
     ERR_UNSUITABLE_API_INSTALLATION,
     1,
   );
