@@ -1,3 +1,15 @@
+# [1.5.0](https://github.com/ionic-team/native-run/compare/v1.4.1...v1.5.0) (2021-10-11)
+
+
+### Bug Fixes
+
+* Throw ERR_UNSUPPORTED_API_LEVEL ([#204](https://github.com/ionic-team/native-run/issues/204)) ([b879744](https://github.com/ionic-team/native-run/commit/b879744c81bbc6b73c6a1a97064dcc51818b2fa5))
+
+
+### Features
+
+* **android:** support API 31 ([#203](https://github.com/ionic-team/native-run/issues/203)) ([fb64ca5](https://github.com/ionic-team/native-run/commit/fb64ca5165cad0fe029ef81e9c8ba11ca36bc08c))
+
 ## [1.4.1](https://github.com/ionic-team/native-run/compare/v1.4.0...v1.4.1) (2021-09-03)
 
 
