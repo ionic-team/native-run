@@ -8,6 +8,7 @@ import type * as Pixel_3_API_29 from '../../data/avds/Pixel_3_API_29.json';
 import type * as Pixel_3_API_30 from '../../data/avds/Pixel_3_API_30.json';
 import type * as Pixel_3_API_31 from '../../data/avds/Pixel_3_API_31.json';
 import type * as Pixel_3_API_32 from '../../data/avds/Pixel_3_API_32.json';
+import type * as Pixel_4_API_33 from '../../data/avds/Pixel_4_API_33.json';
 import type * as Pixel_API_25 from '../../data/avds/Pixel_API_25.json';
 
 import type { SDKPackage } from './';
@@ -87,6 +88,7 @@ export function findPackageBySchemaPath(
 }
 
 export type PartialAVDSchematic =
+  | typeof Pixel_4_API_33
   | typeof Pixel_3_API_32
   | typeof Pixel_3_API_31
   | typeof Pixel_3_API_30
@@ -108,6 +110,34 @@ export interface APISchema {
   readonly validate: (packages: readonly SDKPackage[]) => APISchemaPackage[];
   readonly loadPartialAVDSchematic: () => Promise<PartialAVDSchematic>;
 }
+
+export const API_LEVEL_33: APISchema = Object.freeze({
+  apiLevel: '33',
+  validate: (packages: readonly SDKPackage[]) => {
+    const schemas: APISchemaPackage[] = [
+      { name: 'Android Emulator', path: 'emulator', version: /.+/ },
+      {
+        name: 'Android SDK Platform 33',
+        path: 'platforms;android-33',
+        version: /.+/,
+      },
+    ];
+
+    const missingPackages = findUnsatisfiedPackages(packages, schemas);
+
+    if (!findPackageBySchemaPath(packages, /^system-images;android-33;/)) {
+      missingPackages.push({
+        name: 'Google Play Intel x86 Atom System Image',
+        path: 'system-images;android-33;google_apis_playstore;x86',
+        version: '/.+/',
+      });
+    }
+
+    return missingPackages;
+  },
+  loadPartialAVDSchematic: async () =>
+    import('../../data/avds/Pixel_4_API_33.json'),
+});
 
 export const API_LEVEL_32: APISchema = Object.freeze({
   apiLevel: '32',
@@ -362,6 +392,7 @@ export const API_LEVEL_24: APISchema = Object.freeze({
 });
 
 export const API_LEVEL_SCHEMAS: readonly APISchema[] = [
+  API_LEVEL_33,
   API_LEVEL_32,
   API_LEVEL_31,
   API_LEVEL_30,
