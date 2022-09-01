@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/ionic-team/native-run/compare/v1.6.0...v1.7.0) (2022-09-01)
+
+
+### Features
+
+* **android:** add API 33 support ([#245](https://github.com/ionic-team/native-run/issues/245)) ([8f1717d](https://github.com/ionic-team/native-run/commit/8f1717d1a54eaf9f45688c0c243f2085abd61421))
+
 # [1.6.0](https://github.com/ionic-team/native-run/compare/v1.5.0...v1.6.0) (2022-05-16)
 
 
