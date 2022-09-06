@@ -1,4 +1,4 @@
-import { mkdirp, readdirp } from '@ionic/utils-fs';
+import { mkdirp, readdirp, realpath } from '@ionic/utils-fs';
 import * as Debug from 'debug';
 import * as os from 'os';
 import * as pathlib from 'path';
@@ -165,8 +165,12 @@ export async function resolveSDKRoot(): Promise<string> {
   // $ANDROID_HOME is deprecated, but still overrides $ANDROID_SDK_ROOT if
   // defined and valid.
   if (process.env.ANDROID_HOME && (await isDir(process.env.ANDROID_HOME))) {
-    debug('Using $ANDROID_HOME at %s', process.env.ANDROID_HOME);
-    return process.env.ANDROID_HOME;
+    const realAndroidHome = await realpath(process.env.ANDROID_HOME);
+    if (realAndroidHome !== process.env.ANDROID_HOME) {
+      debug('[NOTE] $ANDROID_HOME looks like a symlink, resolved the real path as "%s"', realAndroidHome);
+    }
+    debug('Interpreting $ANDROID_HOME at %s', realAndroidHome);
+    return realAndroidHome;
   }
 
   debug('Looking for $ANDROID_SDK_ROOT');
@@ -176,8 +180,12 @@ export async function resolveSDKRoot(): Promise<string> {
     process.env.ANDROID_SDK_ROOT &&
     (await isDir(process.env.ANDROID_SDK_ROOT))
   ) {
-    debug('Using $ANDROID_SDK_ROOT at %s', process.env.ANDROID_SDK_ROOT);
-    return process.env.ANDROID_SDK_ROOT;
+    const realAndroidSdkRoot = await realpath(process.env.ANDROID_SDK_ROOT);
+    if (realAndroidSdkRoot !== process.env.ANDROID_SDK_ROOT) {
+      debug('[NOTE] $ANDROID_SDK_ROOT looks like a symlink, resolved the real path as "%s"', realAndroidSdkRoot);
+    }
+    debug('Interpreting $ANDROID_SDK_ROOT at %s', realAndroidSdkRoot);
+    return realAndroidSdkRoot;
   }
 
   const sdkDirs = SDK_DIRECTORIES.get(process.platform);
@@ -206,11 +214,15 @@ export async function resolveEmulatorHome(): Promise<string> {
     process.env.ANDROID_EMULATOR_HOME &&
     (await isDir(process.env.ANDROID_EMULATOR_HOME))
   ) {
+    const realAndroidEmulatorHome = await realpath(process.env.ANDROID_EMULATOR_HOME);
+    if (realAndroidEmulatorHome !== process.env.ANDROID_EMULATOR_HOME) {
+      debug('[NOTE] $ANDROID_EMULATOR_HOME looks like a symlink, resolved the real path as "%s"', realAndroidEmulatorHome);
+    }
     debug(
-      'Using $ANDROID_EMULATOR_HOME at %s',
-      process.env.$ANDROID_EMULATOR_HOME,
+      'Interpreting $ANDROID_EMULATOR_HOME at %s',
+      realAndroidEmulatorHome,
     );
-    return process.env.ANDROID_EMULATOR_HOME;
+    return realAndroidEmulatorHome;
   }
 
   debug('Looking at $HOME/.android');
@@ -237,8 +249,12 @@ export async function resolveAVDHome(): Promise<string> {
     process.env.ANDROID_AVD_HOME &&
     (await isDir(process.env.ANDROID_AVD_HOME))
   ) {
-    debug('Using $ANDROID_AVD_HOME at %s', process.env.$ANDROID_AVD_HOME);
-    return process.env.ANDROID_AVD_HOME;
+    const realAndroidAVDHome = await realpath(process.env.ANDROID_AVD_HOME);
+    if (realAndroidAVDHome !== process.env.ANDROID_AVD_HOME) {
+      debug('[NOTE] $ANDROID_AVD_HOME looks like a symlink, resolved the real path as "%s"', realAndroidAVDHome);
+    }
+    debug('Interpreting $ANDROID_AVD_HOME at %s', realAndroidAVDHome);
+    return realAndroidAVDHome;
   }
 
   debug('Looking at $HOME/.android/avd');
