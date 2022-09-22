@@ -320,7 +320,8 @@ export async function createAVDSchematic(
   );
   const sysdir = pathlib.relative(sdk.root, sysimage.location);
   const [, , tagid] = sysimage.path.split(';');
-  const arch = os.arch() === 'arm64' ? 'arm64' : partialSchematic.configini['abi.type'];
+  const arch =
+    os.arch() === 'arm64' ? 'arm64' : partialSchematic.configini['abi.type'];
   const schematic: AVDSchematic = {
     id: partialSchematic.id,
     ini: sort({
