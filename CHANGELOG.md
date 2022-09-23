@@ -1,3 +1,10 @@
+## [1.7.1](https://github.com/ionic-team/native-run/compare/v1.7.0...v1.7.1) (2022-09-23)
+
+
+### Bug Fixes
+
+* **android:** Use arm64 architecture on emulator creation from M1 ([#258](https://github.com/ionic-team/native-run/issues/258)) ([a6501c4](https://github.com/ionic-team/native-run/commit/a6501c419834f08bfd2be9ef00d0a6b1f4ee5f8a))
+
 # [1.7.0](https://github.com/ionic-team/native-run/compare/v1.6.0...v1.7.0) (2022-09-01)
 
 
