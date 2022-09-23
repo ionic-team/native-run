@@ -1,5 +1,6 @@
 import { copy, mkdirp, readdir, statSafe } from '@ionic/utils-fs';
 import * as Debug from 'debug';
+import * as os from 'os';
 import * as pathlib from 'path';
 
 import { ASSETS_PATH } from '../../constants';
@@ -319,7 +320,8 @@ export async function createAVDSchematic(
   );
   const sysdir = pathlib.relative(sdk.root, sysimage.location);
   const [, , tagid] = sysimage.path.split(';');
-
+  const arch =
+    os.arch() === 'arm64' ? 'arm64' : partialSchematic.configini['abi.type'];
   const schematic: AVDSchematic = {
     id: partialSchematic.id,
     ini: sort({
@@ -329,6 +331,8 @@ export async function createAVDSchematic(
     }),
     configini: sort({
       ...partialSchematic.configini,
+      'abi.type': arch,
+      'hw.cpu.arch': arch,
       'skin.path': skinpath,
       'image.sysdir.1': sysdir,
       'tag.id': tagid,
