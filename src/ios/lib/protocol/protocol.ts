@@ -127,6 +127,7 @@ export abstract class ProtocolClient<MessageType = any> {
           }
         },
       );
+      this.socket.on('error', err => {throw err});
       this.socket.on('data', reader.onData);
       this.writer.write(this.socket, msg);
     });
