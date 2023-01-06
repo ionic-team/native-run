@@ -1,4 +1,4 @@
-[![github-actions](https://img.shields.io/github/workflow/status/ionic-team/native-run/CI/develop?style=flat-square)](https://github.com/ionic-team/native-run/actions?query=workflow%3ACI)
+[![github-actions](https://img.shields.io/github/actions/workflow/status/ionic-team/native-run/ci.yml?branch=develop&style=flat-square)](https://github.com/ionic-team/native-run/actions?query=workflow%3ACI)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg?style=flat-square)](https://github.com/semantic-release/semantic-release)
 [![npm](https://img.shields.io/npm/v/native-run.svg?style=flat-square)](https://www.npmjs.com/package/native-run)
 
