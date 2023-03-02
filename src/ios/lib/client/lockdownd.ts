@@ -139,7 +139,7 @@ export class LockdowndClient extends ServiceClient<LockdownProtocolClient> {
           this.protocolClient.socket,
           {
             secureContext: tls.createSecureContext({
-              secureProtocol: 'TLSv1_method',
+              secureProtocol: 'TLSv1_2_method',
               cert: pairRecord.RootCertificate,
               key: pairRecord.RootPrivateKey,
             }),

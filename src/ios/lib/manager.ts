@@ -110,7 +110,7 @@ export class ClientManager {
       const tlsOptions: tls.ConnectionOptions = {
         rejectUnauthorized: false,
         secureContext: tls.createSecureContext({
-          secureProtocol: 'TLSv1_method',
+          secureProtocol: 'TLSv1_2_method',
           cert: this.pairRecord.RootCertificate,
           key: this.pairRecord.RootPrivateKey,
         }),
