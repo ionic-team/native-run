@@ -1,3 +1,10 @@
+## [1.7.2](https://github.com/ionic-team/native-run/compare/v1.7.1...v1.7.2) (2023-03-02)
+
+
+### Bug Fixes
+
+* NodeJS 18 compat ([#275](https://github.com/ionic-team/native-run/issues/275)) ([45050bb](https://github.com/ionic-team/native-run/commit/45050bbd416692e0911fe73a67d789b205e48ecc))
+
 ## [1.7.1](https://github.com/ionic-team/native-run/compare/v1.7.0...v1.7.1) (2022-09-23)
 
 
