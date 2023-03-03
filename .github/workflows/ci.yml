@@ -3,10 +3,11 @@ name: CI
 on:
   push:
     branches:
-      - '**'
+      - develop
   pull_request:
-    branches:
-      - '**'
+    types:
+      - 'synchronize'
+      - 'opened'
 
 jobs:
   build-and-test:
