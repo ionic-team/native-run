@@ -123,7 +123,7 @@ export class AFCClient extends ServiceClient<AFCProtocolClient> {
     // so we delay any requests that would push us over until more open up
     let numOpenFiles = 0
     const pendingFileUploads: (() => void)[] = []
-    const _this = this
+    const _this = this // eslint-disable-line @typescript-eslint/no-this-alias
     return uploadDir(srcPath)
 
     async function uploadDir(dirPath: string): Promise<void> {

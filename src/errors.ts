@@ -129,7 +129,7 @@ export type IOSRunExceptionCode =
 
 export class IOSRunException extends Exception<IOSRunExceptionCode> {}
 
-export function serializeError(e = new Error()): string {
+export function serializeError(e = new Error('Unknown error')): string {
   const stack = String(e.stack ? e.stack : e)
 
   if (process.argv.includes('--json'))

@@ -28,6 +28,8 @@ export function getOptionValues(
   args.map((entry: string, idx: number) => {
     if (entry === arg)
       returnVal.push(args[idx + 1])
+
+    return undefined
   })
   return returnVal
 }

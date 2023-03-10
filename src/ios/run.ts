@@ -80,6 +80,8 @@ async function runIpaOrAppFileOnInterval(config: IOSRunConfig): Promise<void> {
     process.stderr.write('Please unlock your device. Waiting 5 seconds...\n')
     retryCount++
     await wait(retryInterval)
+    // TODO: 'run' was used before it was defined.
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     await run()
   }
 

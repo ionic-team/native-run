@@ -135,7 +135,7 @@ export class ClientManager {
             // After the handshake, we don't need TLS or the proxy anymore,
             // since we'll just pass in the naked usbmuxd socket to the service client
             this.destroy()
-            reject()
+            reject(new Error('The TLS handshake failed to complete.'))
           })
         })
       }
