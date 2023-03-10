@@ -1,7 +1,8 @@
-import * as path from 'path';
+import path from 'node:path'
 
-import * as iniUtils from '../../../utils/ini';
-import * as avdUtils from '../avd';
+import * as avdUtils from 'native-run/android/utils/avd'
+import * as iniUtils from 'native-run/utils/ini'
+import { describe, expect, it } from 'vitest'
 
 describe('android/utils/avd', () => {
   describe('getAVDFromINI', () => {
@@ -9,9 +10,9 @@ describe('android/utils/avd', () => {
       const inipath = path.resolve(
         __dirname,
         './fixtures/avd/Pixel_2_API_28.ini',
-      );
-      const ini: any = await iniUtils.readINI(inipath);
-      ini.path = path.resolve(__dirname, './fixtures/avd/Pixel_2_API_28.avd'); // patch path
+      )
+      const ini: any = await iniUtils.readINI(inipath)
+      ini.path = path.resolve(__dirname, './fixtures/avd/Pixel_2_API_28.avd') // patch path
 
       const expected = {
         id: 'Pixel_2_API_28',
@@ -21,22 +22,22 @@ describe('android/utils/avd', () => {
         screenDPI: 420,
         screenWidth: 1080,
         screenHeight: 1920,
-      };
+      }
 
-      const avd = await avdUtils.getAVDFromINI(inipath, ini);
-      expect(avd).toEqual(expected);
-    });
+      const avd = await avdUtils.getAVDFromINI(inipath, ini)
+      expect(avd).toEqual(expected)
+    })
 
     it('should properly parse Pixel_2_XL_API_28', async () => {
       const inipath = path.resolve(
         __dirname,
         './fixtures/avd/Pixel_2_XL_API_28.ini',
-      );
-      const ini: any = await iniUtils.readINI(inipath);
+      )
+      const ini: any = await iniUtils.readINI(inipath)
       ini.path = path.resolve(
         __dirname,
         './fixtures/avd/Pixel_2_XL_API_28.avd',
-      ); // patch path
+      ) // patch path
 
       const expected = {
         id: 'Pixel_2_XL_API_28',
@@ -46,19 +47,19 @@ describe('android/utils/avd', () => {
         screenDPI: 560,
         screenWidth: 1440,
         screenHeight: 2880,
-      };
+      }
 
-      const avd = await avdUtils.getAVDFromINI(inipath, ini);
-      expect(avd).toEqual(expected);
-    });
+      const avd = await avdUtils.getAVDFromINI(inipath, ini)
+      expect(avd).toEqual(expected)
+    })
 
     it('should properly parse Pixel_API_25', async () => {
       const inipath = path.resolve(
         __dirname,
         './fixtures/avd/Pixel_API_25.ini',
-      );
-      const ini: any = await iniUtils.readINI(inipath);
-      ini.path = path.resolve(__dirname, './fixtures/avd/Pixel_API_25.avd'); // patch path
+      )
+      const ini: any = await iniUtils.readINI(inipath)
+      ini.path = path.resolve(__dirname, './fixtures/avd/Pixel_API_25.avd') // patch path
 
       const expected = {
         id: 'Pixel_API_25',
@@ -68,19 +69,19 @@ describe('android/utils/avd', () => {
         screenDPI: 480,
         screenWidth: 1080,
         screenHeight: 1920,
-      };
+      }
 
-      const avd = await avdUtils.getAVDFromINI(inipath, ini);
-      expect(avd).toEqual(expected);
-    });
+      const avd = await avdUtils.getAVDFromINI(inipath, ini)
+      expect(avd).toEqual(expected)
+    })
 
     it('should properly parse Nexus_5X_API_24', async () => {
       const inipath = path.resolve(
         __dirname,
         './fixtures/avd/Nexus_5X_API_24.ini',
-      );
-      const ini: any = await iniUtils.readINI(inipath);
-      ini.path = path.resolve(__dirname, './fixtures/avd/Nexus_5X_API_24.avd'); // patch path
+      )
+      const ini: any = await iniUtils.readINI(inipath)
+      ini.path = path.resolve(__dirname, './fixtures/avd/Nexus_5X_API_24.avd') // patch path
 
       const expected = {
         id: 'Nexus_5X_API_24',
@@ -90,19 +91,19 @@ describe('android/utils/avd', () => {
         screenDPI: 420,
         screenWidth: 1080,
         screenHeight: 1920,
-      };
+      }
 
-      const avd = await avdUtils.getAVDFromINI(inipath, ini);
-      expect(avd).toEqual(expected);
-    });
+      const avd = await avdUtils.getAVDFromINI(inipath, ini)
+      expect(avd).toEqual(expected)
+    })
 
     it('should properly parse avdmanager_1', async () => {
       const inipath = path.resolve(
         __dirname,
         './fixtures/avd/avdmanager_1.ini',
-      );
-      const ini: any = await iniUtils.readINI(inipath);
-      ini.path = path.resolve(__dirname, './fixtures/avd/avdmanager_1.avd'); // patch path
+      )
+      const ini: any = await iniUtils.readINI(inipath)
+      ini.path = path.resolve(__dirname, './fixtures/avd/avdmanager_1.avd') // patch path
 
       const expected = {
         id: 'avdmanager_1',
@@ -112,10 +113,10 @@ describe('android/utils/avd', () => {
         screenDPI: null,
         screenWidth: null,
         screenHeight: null,
-      };
+      }
 
-      const avd = await avdUtils.getAVDFromINI(inipath, ini);
-      expect(avd).toEqual(expected);
-    });
-  });
-});
+      const avd = await avdUtils.getAVDFromINI(inipath, ini)
+      expect(avd).toEqual(expected)
+    })
+  })
+})

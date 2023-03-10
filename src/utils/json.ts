@@ -3,5 +3,5 @@ export function stringify(obj: any): string {
     obj,
     (k, v) => (v instanceof RegExp ? v.toString() : v),
     '\t',
-  );
+  )
 }

@@ -1,15 +1,15 @@
 export function once<T extends (...args: any[]) => any>(fn: T): T {
-  let called = false;
-  let r: any;
+  let called = false
+  let r: any
 
   const wrapper: any = (...args: any[]): any => {
     if (!called) {
-      called = true;
-      r = fn(...args);
+      called = true
+      r = fn(...args)
     }
 
-    return r;
-  };
+    return r
+  }
 
-  return wrapper;
+  return wrapper
 }

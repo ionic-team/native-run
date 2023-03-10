@@ -1,80 +1,80 @@
-import type * as net from 'net';
-import { Duplex } from 'stream';
-import * as tls from 'tls';
+import type * as net from 'node:net'
+import { Duplex } from 'node:stream'
+import * as tls from 'node:tls'
 
-import type { ServiceClient } from './client';
-import { AFCClient } from './client/afc';
-import { DebugserverClient } from './client/debugserver';
-import { InstallationProxyClient } from './client/installation_proxy';
-import { LockdowndClient } from './client/lockdownd';
-import { MobileImageMounterClient } from './client/mobile_image_mounter';
-import type { UsbmuxdDevice, UsbmuxdPairRecord } from './client/usbmuxd';
-import { UsbmuxdClient } from './client/usbmuxd';
+import type { ServiceClient } from './client'
+import { AFCClient } from './client/afc'
+import { DebugserverClient } from './client/debugserver'
+import { InstallationProxyClient } from './client/installation_proxy'
+import { LockdowndClient } from './client/lockdownd'
+import { MobileImageMounterClient } from './client/mobile_image_mounter'
+import type { UsbmuxdDevice, UsbmuxdPairRecord } from './client/usbmuxd'
+import { UsbmuxdClient } from './client/usbmuxd'
 
 export class ClientManager {
-  private connections: net.Socket[];
+  private connections: net.Socket[]
   constructor(
     public pairRecord: UsbmuxdPairRecord,
     public device: UsbmuxdDevice,
     private lockdowndClient: LockdowndClient,
   ) {
-    this.connections = [lockdowndClient.socket];
+    this.connections = [lockdowndClient.socket]
   }
 
   static async create(udid?: string) {
     const usbmuxClient = new UsbmuxdClient(
       UsbmuxdClient.connectUsbmuxdSocket(),
-    );
-    const device = await usbmuxClient.getDevice(udid);
+    )
+    const device = await usbmuxClient.getDevice(udid)
     const pairRecord = await usbmuxClient.readPairRecord(
       device.Properties.SerialNumber,
-    );
-    const lockdownSocket = await usbmuxClient.connect(device, 62078);
-    const lockdownClient = new LockdowndClient(lockdownSocket);
-    await lockdownClient.doHandshake(pairRecord);
-    return new ClientManager(pairRecord, device, lockdownClient);
+    )
+    const lockdownSocket = await usbmuxClient.connect(device, 62078)
+    const lockdownClient = new LockdowndClient(lockdownSocket)
+    await lockdownClient.doHandshake(pairRecord)
+    return new ClientManager(pairRecord, device, lockdownClient)
   }
 
   async getUsbmuxdClient() {
     const usbmuxClient = new UsbmuxdClient(
       UsbmuxdClient.connectUsbmuxdSocket(),
-    );
-    this.connections.push(usbmuxClient.socket);
-    return usbmuxClient;
+    )
+    this.connections.push(usbmuxClient.socket)
+    return usbmuxClient
   }
 
   async getLockdowndClient() {
     const usbmuxClient = new UsbmuxdClient(
       UsbmuxdClient.connectUsbmuxdSocket(),
-    );
-    const lockdownSocket = await usbmuxClient.connect(this.device, 62078);
-    const lockdownClient = new LockdowndClient(lockdownSocket);
-    this.connections.push(lockdownClient.socket);
-    return lockdownClient;
+    )
+    const lockdownSocket = await usbmuxClient.connect(this.device, 62078)
+    const lockdownClient = new LockdowndClient(lockdownSocket)
+    this.connections.push(lockdownClient.socket)
+    return lockdownClient
   }
 
   async getLockdowndClientWithHandshake() {
-    const lockdownClient = await this.getLockdowndClient();
-    await lockdownClient.doHandshake(this.pairRecord);
-    return lockdownClient;
+    const lockdownClient = await this.getLockdowndClient()
+    await lockdownClient.doHandshake(this.pairRecord)
+    return lockdownClient
   }
 
   async getAFCClient() {
-    return this.getServiceClient('com.apple.afc', AFCClient);
+    return this.getServiceClient('com.apple.afc', AFCClient)
   }
 
   async getInstallationProxyClient() {
     return this.getServiceClient(
       'com.apple.mobile.installation_proxy',
       InstallationProxyClient,
-    );
+    )
   }
 
   async getMobileImageMounterClient() {
     return this.getServiceClient(
       'com.apple.mobile.mobile_image_mounter',
       MobileImageMounterClient,
-    );
+    )
   }
 
   async getDebugserverClient() {
@@ -83,14 +83,15 @@ export class ClientManager {
       return await this.getServiceClient(
         'com.apple.debugserver.DVTSecureSocketProxy',
         DebugserverClient,
-      );
-    } catch {
+      )
+    }
+    catch {
       // otherwise, fall back to the previous implementation
       return this.getServiceClient(
         'com.apple.debugserver',
         DebugserverClient,
         true,
-      );
+      )
     }
   }
 
@@ -99,12 +100,12 @@ export class ClientManager {
     ServiceType: new (...args: any[]) => T,
     disableSSL = false,
   ) {
-    const { port: servicePort, enableServiceSSL } =
-      await this.lockdowndClient.startService(name);
+    const { port: servicePort, enableServiceSSL }
+      = await this.lockdowndClient.startService(name)
     const usbmuxClient = new UsbmuxdClient(
       UsbmuxdClient.connectUsbmuxdSocket(),
-    );
-    let usbmuxdSocket = await usbmuxClient.connect(this.device, servicePort);
+    )
+    let usbmuxdSocket = await usbmuxClient.connect(this.device, servicePort)
 
     if (enableServiceSSL) {
       const tlsOptions: tls.ConnectionOptions = {
@@ -114,7 +115,7 @@ export class ClientManager {
           cert: this.pairRecord.RootCertificate,
           key: this.pairRecord.RootPrivateKey,
         }),
-      };
+      }
 
       // Some services seem to not support TLS/SSL after the initial handshake
       // More info: https://github.com/libimobiledevice/libimobiledevice/issues/793
@@ -122,37 +123,39 @@ export class ClientManager {
         // According to https://nodejs.org/api/tls.html#tls_tls_connect_options_callback we can
         // pass any Duplex in to tls.connect instead of a Socket. So we'll use our proxy to keep
         // the TLS wrapper and underlying usbmuxd socket separate.
-        const proxy: any = new UsbmuxdProxy(usbmuxdSocket);
-        tlsOptions.socket = proxy;
+        const proxy: any = new UsbmuxdProxy(usbmuxdSocket)
+        tlsOptions.socket = proxy
 
-        await new Promise<void>((res, rej) => {
+        await new Promise<void>((resolve, reject) => {
           const timeoutId = setTimeout(() => {
-            rej('The TLS handshake failed to complete after 5s.');
-          }, 5000);
+            resolve('The TLS handshake failed to complete after 5s.')
+          }, 5000)
           tls.connect(tlsOptions, function (this: tls.TLSSocket) {
-            clearTimeout(timeoutId);
+            clearTimeout(timeoutId)
             // After the handshake, we don't need TLS or the proxy anymore,
             // since we'll just pass in the naked usbmuxd socket to the service client
-            this.destroy();
-            res();
-          });
-        });
-      } else {
-        tlsOptions.socket = usbmuxdSocket;
-        usbmuxdSocket = tls.connect(tlsOptions);
+            this.destroy()
+            reject(new Error('The TLS handshake failed to complete.'))
+          })
+        })
+      }
+      else {
+        tlsOptions.socket = usbmuxdSocket
+        usbmuxdSocket = tls.connect(tlsOptions)
       }
     }
-    const client = new ServiceType(usbmuxdSocket);
-    this.connections.push(client.socket);
-    return client;
+    const client = new ServiceType(usbmuxdSocket)
+    this.connections.push(client.socket)
+    return client
   }
 
   end() {
     for (const socket of this.connections) {
       // may already be closed
       try {
-        socket.end();
-      } catch (err) {
+        socket.end()
+      }
+      catch (err) {
         // ignore
       }
     }
@@ -161,16 +164,16 @@ export class ClientManager {
 
 class UsbmuxdProxy extends Duplex {
   constructor(private usbmuxdSock: net.Socket) {
-    super();
+    super()
 
-    this.usbmuxdSock.on('data', data => {
-      this.push(data);
-    });
+    this.usbmuxdSock.on('data', (data) => {
+      this.push(data)
+    })
   }
 
   _write(chunk: any, encoding: string, callback: (err?: Error) => void) {
-    this.usbmuxdSock.write(chunk);
-    callback();
+    this.usbmuxdSock.write(chunk)
+    callback()
   }
 
   _read(size: number) {
@@ -179,6 +182,6 @@ class UsbmuxdProxy extends Duplex {
   }
 
   _destroy() {
-    this.usbmuxdSock.removeAllListeners();
+    this.usbmuxdSock.removeAllListeners()
   }
 }

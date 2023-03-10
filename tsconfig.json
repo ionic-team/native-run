@@ -1,26 +1,23 @@
 {
-  "compilerOptions": {
-    "allowUnreachableCode": false,
-    "importHelpers": true,
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUnusedLocals": true,
-    "outDir": "./dist",
-    "pretty": true,
-    "strict": true,
-    "target": "es2019",
-    "lib": [
-      "es2019"
-    ]
-  },
-  "include": [
-    "src/**/*",
-    "types/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "src/**/__tests__/*.ts"
-  ]
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "display": "Node 14",
+    "compilerOptions": {
+        "baseUrl": ".",
+        "lib": [
+            "es2020"
+        ],
+        "module": "commonjs",
+        "target": "es2020",
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "resolveJsonModule": true,
+        "forceConsistentCasingInFileNames": true,
+        "moduleResolution": "node",
+        "paths": {
+            "native-run/*": [
+                "src/*"
+            ]
+        }
+    }
 }

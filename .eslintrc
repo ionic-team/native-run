@@ -1,0 +1,12 @@
+{
+    "extends": "@antfu",
+    "rules": {
+       "no-console": "warn"
+    },
+    "ignorePatterns": [
+        "dist",
+        "node_modules",
+        "old",
+        "src/**/__tests__/*.ts",
+    ]
+}

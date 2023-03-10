@@ -8,8 +8,8 @@ const help = `
     --verbose ............ Print verbose output to stderr
     --list ............... Print connected devices and virtual devices
 
-`;
+`
 
 export async function run(args: readonly string[]): Promise<void> {
-  process.stdout.write(help);
+  process.stdout.write(help)
 }
