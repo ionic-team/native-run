@@ -3,7 +3,8 @@
   "version": "1.7.2",
   "description": "A CLI for running apps on iOS/Android devices and simulators/emulators",
   "bin": {
-    "native-run": "bin/native-run"
+    "native-run": "bin/native-run.js",
+    "native-run-esm": "bin/native-run-esm.mjs"
   },
   "author": "Ionic Team <hi@ionicframework.com> (https://ionicframework.com)",
   "license": "MIT",
