@@ -17,17 +17,17 @@
 
   https://github.com/openstf/adbkit-apkreader/blob/368f6b207c57e82fa7373c1608920ca7f4a8904c/lib/apkreader/parser/binaryxml.js
 */
-import * as assert from 'assert';
+import * as assert from 'node:assert'
 
-// import * as Debug from 'debug';
-import { Exception } from '../../errors';
+// import Debug from 'debug';
+import { Exception } from '../../errors'
 // const debug = Debug('native-run:android:util:binary-xml-parser');
 
 const NodeType = {
   ELEMENT_NODE: 1,
   ATTRIBUTE_NODE: 2,
   CDATA_SECTION_NODE: 4,
-};
+}
 
 const ChunkType = {
   NULL: 0x0000,
@@ -40,21 +40,21 @@ const ChunkType = {
   XML_START_ELEMENT: 0x0102,
   XML_END_ELEMENT: 0x0103,
   XML_CDATA: 0x0104,
-  XML_LAST_CHUNK: 0x017f,
+  XML_LAST_CHUNK: 0x017F,
   XML_RESOURCE_MAP: 0x0180,
   TABLE_PACKAGE: 0x0200,
   TABLE_TYPE: 0x0201,
   TABLE_TYPE_SPEC: 0x0202,
-};
+}
 
 const StringFlags = {
   SORTED: 1 << 0,
   UTF8: 1 << 8,
-};
+}
 
 // Taken from android.util.TypedValue
 const TypedValue = {
-  COMPLEX_MANTISSA_MASK: 0x00ffffff,
+  COMPLEX_MANTISSA_MASK: 0x00FFFFFF,
   COMPLEX_MANTISSA_SHIFT: 0x00000008,
   COMPLEX_RADIX_0p23: 0x00000003,
   COMPLEX_RADIX_16p7: 0x00000001,
@@ -66,102 +66,102 @@ const TypedValue = {
   COMPLEX_UNIT_FRACTION: 0x00000000,
   COMPLEX_UNIT_FRACTION_PARENT: 0x00000001,
   COMPLEX_UNIT_IN: 0x00000004,
-  COMPLEX_UNIT_MASK: 0x0000000f,
+  COMPLEX_UNIT_MASK: 0x0000000F,
   COMPLEX_UNIT_MM: 0x00000005,
   COMPLEX_UNIT_PT: 0x00000003,
   COMPLEX_UNIT_PX: 0x00000000,
   COMPLEX_UNIT_SHIFT: 0x00000000,
   COMPLEX_UNIT_SP: 0x00000002,
   DENSITY_DEFAULT: 0x00000000,
-  DENSITY_NONE: 0x0000ffff,
+  DENSITY_NONE: 0x0000FFFF,
   TYPE_ATTRIBUTE: 0x00000002,
   TYPE_DIMENSION: 0x00000005,
-  TYPE_FIRST_COLOR_INT: 0x0000001c,
+  TYPE_FIRST_COLOR_INT: 0x0000001C,
   TYPE_FIRST_INT: 0x00000010,
   TYPE_FLOAT: 0x00000004,
   TYPE_FRACTION: 0x00000006,
   TYPE_INT_BOOLEAN: 0x00000012,
-  TYPE_INT_COLOR_ARGB4: 0x0000001e,
-  TYPE_INT_COLOR_ARGB8: 0x0000001c,
-  TYPE_INT_COLOR_RGB4: 0x0000001f,
-  TYPE_INT_COLOR_RGB8: 0x0000001d,
+  TYPE_INT_COLOR_ARGB4: 0x0000001E,
+  TYPE_INT_COLOR_ARGB8: 0x0000001C,
+  TYPE_INT_COLOR_RGB4: 0x0000001F,
+  TYPE_INT_COLOR_RGB8: 0x0000001D,
   TYPE_INT_DEC: 0x00000010,
   TYPE_INT_HEX: 0x00000011,
-  TYPE_LAST_COLOR_INT: 0x0000001f,
-  TYPE_LAST_INT: 0x0000001f,
+  TYPE_LAST_COLOR_INT: 0x0000001F,
+  TYPE_LAST_INT: 0x0000001F,
   TYPE_NULL: 0x00000000,
   TYPE_REFERENCE: 0x00000001,
   TYPE_STRING: 0x00000003,
-};
+}
 
 export class BinaryXmlParser {
-  cursor = 0;
-  strings: string[] = [];
-  resources: any[] = [];
-  document: any;
-  parent: any;
-  stack: any[] = [];
-  debug = false;
+  cursor = 0
+  strings: string[] = []
+  resources: any[] = []
+  document: any
+  parent: any
+  stack: any[] = []
+  debug = false
   constructor(public buffer: Buffer, options: any = {}) {
-    this.debug = options.debug || false;
+    this.debug = options.debug || false
   }
 
   readU8(): number {
     // debug('readU8');
     // debug('cursor:', this.cursor);
-    const val = this.buffer[this.cursor];
+    const val = this.buffer[this.cursor]
     // debug('value:', val);
-    this.cursor += 1;
-    return val;
+    this.cursor += 1
+    return val
   }
 
   readU16(): number {
     // debug('readU16');
     // debug('cursor:', this.cursor);
-    const val = this.buffer.readUInt16LE(this.cursor);
+    const val = this.buffer.readUInt16LE(this.cursor)
     // debug('value:', val);
-    this.cursor += 2;
-    return val;
+    this.cursor += 2
+    return val
   }
 
   readS32(): number {
     // debug('readS32');
     // debug('cursor:', this.cursor);
-    const val = this.buffer.readInt32LE(this.cursor);
+    const val = this.buffer.readInt32LE(this.cursor)
     // debug('value:', val);
-    this.cursor += 4;
-    return val;
+    this.cursor += 4
+    return val
   }
 
   readU32(): number {
     // debug('readU32');
     // debug('cursor:', this.cursor);
-    const val = this.buffer.readUInt32LE(this.cursor);
+    const val = this.buffer.readUInt32LE(this.cursor)
     // debug('value:', val);
-    this.cursor += 4;
-    return val;
+    this.cursor += 4
+    return val
   }
 
   readLength8(): number {
     // debug('readLength8');
-    let len = this.readU8();
+    let len = this.readU8()
     if (len & 0x80) {
-      len = (len & 0x7f) << 8;
-      len += this.readU8();
+      len = (len & 0x7F) << 8
+      len += this.readU8()
     }
     // debug('length:', len);
-    return len;
+    return len
   }
 
   readLength16(): number {
     // debug('readLength16');
-    let len = this.readU16();
+    let len = this.readU16()
     if (len & 0x8000) {
-      len = (len & 0x7fff) << 16;
-      len += this.readU16();
+      len = (len & 0x7FFF) << 16
+      len += this.readU16()
     }
     // debug('length:', len);
-    return len;
+    return len
   }
 
   readDimension(): any {
@@ -171,36 +171,36 @@ export class BinaryXmlParser {
       value: null,
       unit: null,
       rawUnit: null,
-    };
+    }
 
-    const value = this.readU32();
-    const unit = dimension.value & 0xff;
+    const value = this.readU32()
+    const unit = dimension.value & 0xFF
 
-    dimension.value = value >> 8;
-    dimension.rawUnit = unit;
+    dimension.value = value >> 8
+    dimension.rawUnit = unit
 
     switch (unit) {
       case TypedValue.COMPLEX_UNIT_MM:
-        dimension.unit = 'mm';
-        break;
+        dimension.unit = 'mm'
+        break
       case TypedValue.COMPLEX_UNIT_PX:
-        dimension.unit = 'px';
-        break;
+        dimension.unit = 'px'
+        break
       case TypedValue.COMPLEX_UNIT_DIP:
-        dimension.unit = 'dp';
-        break;
+        dimension.unit = 'dp'
+        break
       case TypedValue.COMPLEX_UNIT_SP:
-        dimension.unit = 'sp';
-        break;
+        dimension.unit = 'sp'
+        break
       case TypedValue.COMPLEX_UNIT_PT:
-        dimension.unit = 'pt';
-        break;
+        dimension.unit = 'pt'
+        break
       case TypedValue.COMPLEX_UNIT_IN:
-        dimension.unit = 'in';
-        break;
+        dimension.unit = 'in'
+        break
     }
 
-    return dimension;
+    return dimension
   }
 
   readFraction(): any {
@@ -210,36 +210,36 @@ export class BinaryXmlParser {
       value: null,
       type: null,
       rawType: null,
-    };
+    }
 
-    const value = this.readU32();
-    const type = value & 0xf;
+    const value = this.readU32()
+    const type = value & 0xF
 
-    fraction.value = this.convertIntToFloat(value >> 4);
-    fraction.rawType = type;
+    fraction.value = this.convertIntToFloat(value >> 4)
+    fraction.rawType = type
 
     switch (type) {
       case TypedValue.COMPLEX_UNIT_FRACTION:
-        fraction.type = '%';
-        break;
+        fraction.type = '%'
+        break
       case TypedValue.COMPLEX_UNIT_FRACTION_PARENT:
-        fraction.type = '%p';
-        break;
+        fraction.type = '%p'
+        break
     }
 
-    return fraction;
+    return fraction
   }
 
   readHex24(): string {
     // debug('readHex24');
-    const val = (this.readU32() & 0xffffff).toString(16);
-    return val;
+    const val = (this.readU32() & 0xFFFFFF).toString(16)
+    return val
   }
 
   readHex32(): string {
     // debug('readHex32');
-    const val = this.readU32().toString(16);
-    return val;
+    const val = this.readU32().toString(16)
+    return val
   }
 
   readTypedValue(): any {
@@ -249,146 +249,145 @@ export class BinaryXmlParser {
       value: null,
       type: null,
       rawType: null,
-    };
-
-    const start = this.cursor;
-
-    let size = this.readU16();
-    /* const zero = */ this.readU8();
-    const dataType = this.readU8();
-
-    // Yes, there has been a real world APK where the size is malformed.
-    if (size === 0) {
-      size = 8;
     }
 
-    typedValue.rawType = dataType;
+    const start = this.cursor
+
+    let size = this.readU16()
+    /* const zero = */ this.readU8()
+    const dataType = this.readU8()
+
+    // Yes, there has been a real world APK where the size is malformed.
+    if (size === 0)
+      size = 8
+
+    typedValue.rawType = dataType
 
     switch (dataType) {
       case TypedValue.TYPE_INT_DEC:
-        typedValue.value = this.readS32();
-        typedValue.type = 'int_dec';
-        break;
+        typedValue.value = this.readS32()
+        typedValue.type = 'int_dec'
+        break
       case TypedValue.TYPE_INT_HEX:
-        typedValue.value = this.readS32();
-        typedValue.type = 'int_hex';
-        break;
+        typedValue.value = this.readS32()
+        typedValue.type = 'int_hex'
+        break
       case TypedValue.TYPE_STRING: {
-        const ref = this.readS32();
-        typedValue.value = ref > 0 ? this.strings[ref] : '';
-        typedValue.type = 'string';
-        break;
+        const ref = this.readS32()
+        typedValue.value = ref > 0 ? this.strings[ref] : ''
+        typedValue.type = 'string'
+        break
       }
       case TypedValue.TYPE_REFERENCE: {
-        const id = this.readU32();
-        typedValue.value = `resourceId:0x${id.toString(16)}`;
-        typedValue.type = 'reference';
-        break;
+        const id = this.readU32()
+        typedValue.value = `resourceId:0x${id.toString(16)}`
+        typedValue.type = 'reference'
+        break
       }
       case TypedValue.TYPE_INT_BOOLEAN:
-        typedValue.value = this.readS32() !== 0;
-        typedValue.type = 'boolean';
-        break;
+        typedValue.value = this.readS32() !== 0
+        typedValue.type = 'boolean'
+        break
       case TypedValue.TYPE_NULL:
-        this.readU32();
-        typedValue.value = null;
-        typedValue.type = 'null';
-        break;
+        this.readU32()
+        typedValue.value = null
+        typedValue.type = 'null'
+        break
       case TypedValue.TYPE_INT_COLOR_RGB8:
-        typedValue.value = this.readHex24();
-        typedValue.type = 'rgb8';
-        break;
+        typedValue.value = this.readHex24()
+        typedValue.type = 'rgb8'
+        break
       case TypedValue.TYPE_INT_COLOR_RGB4:
-        typedValue.value = this.readHex24();
-        typedValue.type = 'rgb4';
-        break;
+        typedValue.value = this.readHex24()
+        typedValue.type = 'rgb4'
+        break
       case TypedValue.TYPE_INT_COLOR_ARGB8:
-        typedValue.value = this.readHex32();
-        typedValue.type = 'argb8';
-        break;
+        typedValue.value = this.readHex32()
+        typedValue.type = 'argb8'
+        break
       case TypedValue.TYPE_INT_COLOR_ARGB4:
-        typedValue.value = this.readHex32();
-        typedValue.type = 'argb4';
-        break;
+        typedValue.value = this.readHex32()
+        typedValue.type = 'argb4'
+        break
       case TypedValue.TYPE_DIMENSION:
-        typedValue.value = this.readDimension();
-        typedValue.type = 'dimension';
-        break;
+        typedValue.value = this.readDimension()
+        typedValue.type = 'dimension'
+        break
       case TypedValue.TYPE_FRACTION:
-        typedValue.value = this.readFraction();
-        typedValue.type = 'fraction';
-        break;
+        typedValue.value = this.readFraction()
+        typedValue.type = 'fraction'
+        break
       default: {
         // const type = dataType.toString(16);
         // debug(`Not sure what to do with typed value of type 0x${type}, falling back to reading an uint32.`);
-        typedValue.value = this.readU32();
-        typedValue.type = 'unknown';
+        typedValue.value = this.readU32()
+        typedValue.type = 'unknown'
       }
     }
 
     // Ensure we consume the whole value
-    const end = start + size;
+    const end = start + size
     if (this.cursor !== end) {
       // const type = dataType.toString(16);
       // const diff = end - this.cursor;
       //       debug(`Cursor is off by ${diff} bytes at ${this.cursor} at supposed end \
       // of typed value of type 0x${type}. The typed value started at offset ${start} \
       // and is supposed to end at offset ${end}. Ignoring the rest of the value.`);
-      this.cursor = end;
+      this.cursor = end
     }
 
-    return typedValue;
+    return typedValue
   }
 
   // https://twitter.com/kawasima/status/427730289201139712
   convertIntToFloat(int: number): number {
-    const buf = new ArrayBuffer(4);
-    new Int32Array(buf)[0] = int;
-    return new Float32Array(buf)[0];
+    const buf = new ArrayBuffer(4)
+    new Int32Array(buf)[0] = int
+    return new Float32Array(buf)[0]
   }
 
   readString(encoding: string): string {
     // debug('readString', encoding);
-    let stringLength;
-    let byteLength;
-    let value;
+    let stringLength
+    let byteLength
+    let value
     switch (encoding) {
       case 'utf-8':
-        stringLength = this.readLength8();
+        stringLength = this.readLength8()
         // debug('stringLength:', stringLength);
-        byteLength = this.readLength8();
+        byteLength = this.readLength8()
         // debug('byteLength:', byteLength);
         value = this.buffer.toString(
           encoding,
           this.cursor,
           (this.cursor += byteLength),
-        );
+        )
         // debug('value:', value);
-        assert.equal(this.readU8(), 0, 'String must end with trailing zero');
-        return value;
+        assert.equal(this.readU8(), 0, 'String must end with trailing zero')
+        return value
       case 'ucs2':
-        stringLength = this.readLength16();
+        stringLength = this.readLength16()
         // debug('stringLength:', stringLength);
-        byteLength = stringLength * 2;
+        byteLength = stringLength * 2
         // debug('byteLength:', byteLength);
         value = this.buffer.toString(
           encoding,
           this.cursor,
           (this.cursor += byteLength),
-        );
+        )
         // debug('value:', value);
-        assert.equal(this.readU16(), 0, 'String must end with trailing zero');
-        return value;
+        assert.equal(this.readU16(), 0, 'String must end with trailing zero')
+        return value
       default:
-        throw new Exception(`Unsupported encoding '${encoding}'`);
+        throw new Exception(`Unsupported encoding '${encoding}'`)
     }
   }
 
   readChunkHeader(): {
-    startOffset: number;
-    chunkType: number;
-    headerSize: number;
-    chunkSize: number;
+    startOffset: number
+    chunkType: number
+    headerSize: number
+    chunkSize: number
   } {
     // debug('readChunkHeader');
     const header = {
@@ -396,75 +395,74 @@ export class BinaryXmlParser {
       chunkType: this.readU16(),
       headerSize: this.readU16(),
       chunkSize: this.readU32(),
-    };
+    }
     // debug('startOffset:', header.startOffset);
     // debug('chunkType:', header.chunkType);
     // debug('headerSize:', header.headerSize);
     // debug('chunkSize:', header.chunkSize);
-    return header;
+    return header
   }
 
   readStringPool(header: any): null {
     // debug('readStringPool');
 
-    header.stringCount = this.readU32();
+    header.stringCount = this.readU32()
     // debug('stringCount:', header.stringCount);
-    header.styleCount = this.readU32();
+    header.styleCount = this.readU32()
     // debug('styleCount:', header.styleCount);
-    header.flags = this.readU32();
+    header.flags = this.readU32()
     // debug('flags:', header.flags);
-    header.stringsStart = this.readU32();
+    header.stringsStart = this.readU32()
     // debug('stringsStart:', header.stringsStart);
-    header.stylesStart = this.readU32();
+    header.stylesStart = this.readU32()
     // debug('stylesStart:', header.stylesStart);
 
-    if (header.chunkType !== ChunkType.STRING_POOL) {
-      throw new Exception('Invalid string pool header');
-    }
+    if (header.chunkType !== ChunkType.STRING_POOL)
+      throw new Exception('Invalid string pool header')
 
-    const offsets = [];
+    const offsets = []
     for (let i = 0, l = header.stringCount; i < l; ++i) {
       // debug('offset:', i);
-      offsets.push(this.readU32());
+      offsets.push(this.readU32())
     }
 
     // const sorted = (header.flags & StringFlags.SORTED) === StringFlags.SORTED;
     // debug('sorted:', sorted);
-    const encoding =
-      (header.flags & StringFlags.UTF8) === StringFlags.UTF8 ? 'utf-8' : 'ucs2';
+    const encoding
+      = (header.flags & StringFlags.UTF8) === StringFlags.UTF8 ? 'utf-8' : 'ucs2'
     // debug('encoding:', encoding);
 
-    const stringsStart = header.startOffset + header.stringsStart;
-    this.cursor = stringsStart;
+    const stringsStart = header.startOffset + header.stringsStart
+    this.cursor = stringsStart
     for (let i = 0, l = header.stringCount; i < l; ++i) {
       // debug('string:', i);
       // debug('offset:', offsets[i]);
-      this.cursor = stringsStart + offsets[i];
-      this.strings.push(this.readString(encoding));
+      this.cursor = stringsStart + offsets[i]
+      this.strings.push(this.readString(encoding))
     }
 
     // Skip styles
-    this.cursor = header.startOffset + header.chunkSize;
+    this.cursor = header.startOffset + header.chunkSize
 
-    return null;
+    return null
   }
 
   readResourceMap(header: any): null {
     // debug('readResourceMap');
-    const count = Math.floor((header.chunkSize - header.headerSize) / 4);
-    for (let i = 0; i < count; ++i) {
-      this.resources.push(this.readU32());
-    }
-    return null;
+    const count = Math.floor((header.chunkSize - header.headerSize) / 4)
+    for (let i = 0; i < count; ++i)
+      this.resources.push(this.readU32())
+
+    return null
   }
 
   readXmlNamespaceStart(/* header */): null {
     // debug('readXmlNamespaceStart');
 
-    this.readU32();
-    this.readU32();
-    this.readU32();
-    this.readU32();
+    this.readU32()
+    this.readU32()
+    this.readU32()
+    this.readU32()
 
     // const line = this.readU32();
     // const commentRef = this.readU32();
@@ -477,16 +475,16 @@ export class BinaryXmlParser {
     // namespaceURI.prefix = this.strings[prefixRef] // if prefixRef > 0
     // namespaceURI.uri = this.strings[uriRef] // if uriRef > 0
 
-    return null;
+    return null
   }
 
   readXmlNamespaceEnd(/* header */): null {
     // debug('readXmlNamespaceEnd');
 
-    this.readU32();
-    this.readU32();
-    this.readU32();
-    this.readU32();
+    this.readU32()
+    this.readU32()
+    this.readU32()
+    this.readU32()
 
     // const line = this.readU32();
     // const commentRef = this.readU32();
@@ -499,7 +497,7 @@ export class BinaryXmlParser {
     // namespaceURI.prefix = this.strings[prefixRef] // if prefixRef > 0
     // namespaceURI.uri = this.strings[uriRef] // if uriRef > 0
 
-    return null;
+    return null
   }
 
   readXmlElementStart(/* header */): any {
@@ -511,47 +509,46 @@ export class BinaryXmlParser {
       nodeName: null,
       attributes: [],
       childNodes: [],
-    };
-
-    this.readU32();
-    this.readU32();
-    // const line = this.readU32();
-    // const commentRef = this.readU32();
-    const nsRef = this.readS32();
-    const nameRef = this.readS32();
-
-    if (nsRef > 0) {
-      node.namespaceURI = this.strings[nsRef];
     }
 
-    node.nodeName = this.strings[nameRef];
+    this.readU32()
+    this.readU32()
+    // const line = this.readU32();
+    // const commentRef = this.readU32();
+    const nsRef = this.readS32()
+    const nameRef = this.readS32()
 
-    this.readU16();
-    this.readU16();
+    if (nsRef > 0)
+      node.namespaceURI = this.strings[nsRef]
+
+    node.nodeName = this.strings[nameRef]
+
+    this.readU16()
+    this.readU16()
     // const attrStart = this.readU16();
     // const attrSize = this.readU16();
-    const attrCount = this.readU16();
+    const attrCount = this.readU16()
     // const idIndex = this.readU16();
     // const classIndex = this.readU16();
     // const styleIndex = this.readU16();
-    this.readU16();
-    this.readU16();
-    this.readU16();
+    this.readU16()
+    this.readU16()
+    this.readU16()
 
-    for (let i = 0; i < attrCount; ++i) {
-      node.attributes.push(this.readXmlAttribute());
-    }
+    for (let i = 0; i < attrCount; ++i)
+      node.attributes.push(this.readXmlAttribute())
 
     if (this.document) {
-      this.parent.childNodes.push(node);
-      this.parent = node;
-    } else {
-      this.document = this.parent = node;
+      this.parent.childNodes.push(node)
+      this.parent = node
+    }
+    else {
+      this.document = this.parent = node
     }
 
-    this.stack.push(node);
+    this.stack.push(node)
 
-    return node;
+    return node
   }
 
   readXmlAttribute(): any {
@@ -564,43 +561,41 @@ export class BinaryXmlParser {
       name: null,
       value: null,
       typedValue: null,
-    };
-
-    const nsRef = this.readS32();
-    const nameRef = this.readS32();
-    const valueRef = this.readS32();
-
-    if (nsRef > 0) {
-      attr.namespaceURI = this.strings[nsRef];
     }
 
-    attr.nodeName = attr.name = this.strings[nameRef];
+    const nsRef = this.readS32()
+    const nameRef = this.readS32()
+    const valueRef = this.readS32()
 
-    if (valueRef > 0) {
-      attr.value = this.strings[valueRef];
-    }
+    if (nsRef > 0)
+      attr.namespaceURI = this.strings[nsRef]
 
-    attr.typedValue = this.readTypedValue();
+    attr.nodeName = attr.name = this.strings[nameRef]
 
-    return attr;
+    if (valueRef > 0)
+      attr.value = this.strings[valueRef]
+
+    attr.typedValue = this.readTypedValue()
+
+    return attr
   }
 
   readXmlElementEnd(/* header */): null {
     // debug('readXmlCData');
 
-    this.readU32();
-    this.readU32();
-    this.readU32();
-    this.readU32();
+    this.readU32()
+    this.readU32()
+    this.readU32()
+    this.readU32()
     // const line = this.readU32();
     // const commentRef = this.readU32();
     // const nsRef = this.readS32();
     // const nameRef = this.readS32();
 
-    this.stack.pop();
-    this.parent = this.stack[this.stack.length - 1];
+    this.stack.pop()
+    this.parent = this.stack[this.stack.length - 1]
 
-    return null;
+    return null
   }
 
   readXmlCData(/* header */): any {
@@ -612,74 +607,72 @@ export class BinaryXmlParser {
       nodeName: '#cdata',
       data: null,
       typedValue: null,
-    };
-
-    this.readU32();
-    this.readU32();
-    // const line = this.readU32();
-    // const commentRef = this.readU32();
-    const dataRef = this.readS32();
-
-    if (dataRef > 0) {
-      cdata.data = this.strings[dataRef];
     }
 
-    cdata.typedValue = this.readTypedValue();
+    this.readU32()
+    this.readU32()
+    // const line = this.readU32();
+    // const commentRef = this.readU32();
+    const dataRef = this.readS32()
 
-    this.parent.childNodes.push(cdata);
+    if (dataRef > 0)
+      cdata.data = this.strings[dataRef]
 
-    return cdata;
+    cdata.typedValue = this.readTypedValue()
+
+    this.parent.childNodes.push(cdata)
+
+    return cdata
   }
 
   readNull(header: any): null {
     // debug('readNull');
-    this.cursor += header.chunkSize - header.headerSize;
-    return null;
+    this.cursor += header.chunkSize - header.headerSize
+    return null
   }
 
   parse(): any {
     // debug('parse');
 
-    const xmlHeader = this.readChunkHeader();
-    if (xmlHeader.chunkType !== ChunkType.XML) {
-      throw new Exception('Invalid XML header');
-    }
+    const xmlHeader = this.readChunkHeader()
+    if (xmlHeader.chunkType !== ChunkType.XML)
+      throw new Exception('Invalid XML header')
 
     while (this.cursor < this.buffer.length) {
       // debug('chunk');
-      const start = this.cursor;
-      const header = this.readChunkHeader();
+      const start = this.cursor
+      const header = this.readChunkHeader()
       switch (header.chunkType) {
         case ChunkType.STRING_POOL:
-          this.readStringPool(header);
-          break;
+          this.readStringPool(header)
+          break
         case ChunkType.XML_RESOURCE_MAP:
-          this.readResourceMap(header);
-          break;
+          this.readResourceMap(header)
+          break
         case ChunkType.XML_START_NAMESPACE:
-          this.readXmlNamespaceStart();
-          break;
+          this.readXmlNamespaceStart()
+          break
         case ChunkType.XML_END_NAMESPACE:
-          this.readXmlNamespaceEnd();
-          break;
+          this.readXmlNamespaceEnd()
+          break
         case ChunkType.XML_START_ELEMENT:
-          this.readXmlElementStart();
-          break;
+          this.readXmlElementStart()
+          break
         case ChunkType.XML_END_ELEMENT:
-          this.readXmlElementEnd();
-          break;
+          this.readXmlElementEnd()
+          break
         case ChunkType.XML_CDATA:
-          this.readXmlCData();
-          break;
+          this.readXmlCData()
+          break
         case ChunkType.NULL:
-          this.readNull(header);
-          break;
+          this.readNull(header)
+          break
         default:
-          throw new Exception(`Unsupported chunk type '${header.chunkType}'`);
+          throw new Exception(`Unsupported chunk type '${header.chunkType}'`)
       }
 
       // Ensure we consume the whole chunk
-      const end = start + header.chunkSize;
+      const end = start + header.chunkSize
       if (this.cursor !== end) {
         // const diff = end - this.cursor;
         // const type = header.chunkType.toString(16);
@@ -690,6 +683,6 @@ export class BinaryXmlParser {
       }
     }
 
-    return this.document;
+    return this.document
   }
 }

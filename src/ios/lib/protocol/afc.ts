@@ -1,42 +1,42 @@
-import * as Debug from 'debug';
-import type * as net from 'net';
+import type * as net from 'node:net'
+import Debug from 'debug'
 
-import type { ProtocolReaderCallback, ProtocolWriter } from './protocol';
+import type { ProtocolReaderCallback, ProtocolWriter } from './protocol'
 import {
   ProtocolClient,
   ProtocolReader,
   ProtocolReaderFactory,
-} from './protocol';
+} from './protocol'
 
-const debug = Debug('native-run:ios:lib:protocol:afc');
+const debug = Debug('native-run:ios:lib:protocol:afc')
 
-export const AFC_MAGIC = 'CFA6LPAA';
-export const AFC_HEADER_SIZE = 40;
+export const AFC_MAGIC = 'CFA6LPAA'
+export const AFC_HEADER_SIZE = 40
 
 export interface AFCHeader {
-  magic: typeof AFC_MAGIC;
-  totalLength: number;
-  headerLength: number;
-  requestId: number;
-  operation: AFC_OPS;
+  magic: typeof AFC_MAGIC
+  totalLength: number
+  headerLength: number
+  requestId: number
+  operation: AFC_OPS
 }
 
 export interface AFCMessage {
-  operation: AFC_OPS;
-  data?: any;
-  payload?: any;
+  operation: AFC_OPS
+  data?: any
+  payload?: any
 }
 
 export interface AFCResponse {
-  operation: AFC_OPS;
-  id: number;
-  data: Buffer;
+  operation: AFC_OPS
+  id: number
+  data: Buffer
 }
 
 export interface AFCStatusResponse {
-  operation: AFC_OPS.STATUS;
-  id: number;
-  data: number;
+  operation: AFC_OPS.STATUS
+  id: number
+  data: number
 }
 
 /**
@@ -96,32 +96,32 @@ export enum AFC_OPS {
   /**
    * GetFileInfo
    */
-  GET_FILE_INFO = 0x0000000a,
+  GET_FILE_INFO = 0x0000000A,
 
   /**
    * GetDeviceInfo
    */
-  GET_DEVINFO = 0x0000000b,
+  GET_DEVINFO = 0x0000000B,
 
   /**
    * WriteFileAtomic (tmp file+rename)
    */
-  WRITE_FILE_ATOM = 0x0000000c,
+  WRITE_FILE_ATOM = 0x0000000C,
 
   /**
    * FileRefOpen
    */
-  FILE_OPEN = 0x0000000d,
+  FILE_OPEN = 0x0000000D,
 
   /**
    * FileRefOpenResult
    */
-  FILE_OPEN_RES = 0x0000000e,
+  FILE_OPEN_RES = 0x0000000E,
 
   /**
    * FileRefRead
    */
-  FILE_READ = 0x0000000f,
+  FILE_READ = 0x0000000F,
 
   /**
    * FileRefWrite
@@ -176,32 +176,32 @@ export enum AFC_OPS {
   /**
    * SetSocketBlockSize (0x800000)
    */
-  SET_SOCKET_BS = 0x0000001a,
+  SET_SOCKET_BS = 0x0000001A,
 
   /**
    * FileRefLock
    */
-  FILE_LOCK = 0x0000001b,
+  FILE_LOCK = 0x0000001B,
 
   /**
    * MakeLink
    */
-  MAKE_LINK = 0x0000001c,
+  MAKE_LINK = 0x0000001C,
 
   /**
    * GetFileHash
    */
-  GET_FILE_HASH = 0x0000001d,
+  GET_FILE_HASH = 0x0000001D,
 
   /**
    * SetModTime
    */
-  SET_FILE_MOD_TIME = 0x0000001e,
+  SET_FILE_MOD_TIME = 0x0000001E,
 
   /**
    * GetFileHashWithRange
    */
-  GET_FILE_HASH_RANGE = 0x0000001f,
+  GET_FILE_HASH_RANGE = 0x0000001F,
 
   // iOS 6+
 
@@ -322,91 +322,92 @@ export enum AFC_FILE_OPEN_FLAGS {
 
 function isAFCResponse(resp: any): resp is AFCResponse {
   return (
-    AFC_OPS[resp.operation] !== undefined &&
-    resp.id !== undefined &&
-    resp.data !== undefined
-  );
+    AFC_OPS[resp.operation] !== undefined
+    && resp.id !== undefined
+    && resp.data !== undefined
+  )
 }
 
 function isStatusResponse(resp: any): resp is AFCStatusResponse {
-  return isAFCResponse(resp) && resp.operation === AFC_OPS.STATUS;
+  return isAFCResponse(resp) && resp.operation === AFC_OPS.STATUS
 }
 
 function isErrorStatusResponse(resp: AFCResponse): boolean {
-  return isStatusResponse(resp) && resp.data !== AFC_STATUS.SUCCESS;
+  return isStatusResponse(resp) && resp.data !== AFC_STATUS.SUCCESS
 }
 
 class AFCInternalError extends Error {
   constructor(msg: string, public requestId: number) {
-    super(msg);
+    super(msg)
   }
 }
 
 export class AFCError extends Error {
   constructor(msg: string, public status: AFC_STATUS) {
-    super(msg);
+    super(msg)
   }
 }
 
 export class AFCProtocolClient extends ProtocolClient {
-  private requestId = 0;
-  private requestCallbacks: { [key: number]: ProtocolReaderCallback } = {};
+  private requestId = 0
+  private requestCallbacks: { [key: number]: ProtocolReaderCallback } = {}
 
   constructor(socket: net.Socket) {
     super(
       socket,
       new ProtocolReaderFactory(AFCProtocolReader),
       new AFCProtocolWriter(),
-    );
+    )
 
     const reader = this.readerFactory.create((resp, err) => {
       if (err && err instanceof AFCInternalError) {
-        this.requestCallbacks[err.requestId](resp, err);
-      } else if (isErrorStatusResponse(resp)) {
+        this.requestCallbacks[err.requestId](resp, err)
+      }
+      else if (isErrorStatusResponse(resp)) {
         this.requestCallbacks[resp.id](
           resp,
           new AFCError(AFC_STATUS[resp.data], resp.data),
-        );
-      } else {
-        this.requestCallbacks[resp.id](resp);
+        )
       }
-    });
-    socket.on('data', reader.onData);
+      else {
+        this.requestCallbacks[resp.id](resp)
+      }
+    })
+    socket.on('data', reader.onData)
   }
 
   sendMessage(msg: AFCMessage): Promise<AFCResponse> {
     return new Promise<AFCResponse>((resolve, reject) => {
-      const requestId = this.requestId++;
+      const requestId = this.requestId++
       this.requestCallbacks[requestId] = async (resp: any, err?: Error) => {
         if (err) {
-          reject(err);
-          return;
+          reject(err)
+          return
         }
-        if (isAFCResponse(resp)) {
-          resolve(resp);
-        } else {
-          reject(new Error('Malformed AFC response'));
-        }
-      };
-      this.writer.write(this.socket, { ...msg, requestId });
-    });
+        if (isAFCResponse(resp))
+          resolve(resp)
+        else
+          reject(new Error('Malformed AFC response'))
+      }
+      this.writer.write(this.socket, { ...msg, requestId })
+    })
   }
 }
 
 export class AFCProtocolReader extends ProtocolReader {
-  private header!: AFCHeader; // TODO: ! -> ?
+  private header!: AFCHeader // TODO: ! -> ?
 
   constructor(callback: ProtocolReaderCallback) {
-    super(AFC_HEADER_SIZE, callback);
+    super(AFC_HEADER_SIZE, callback)
   }
 
   parseHeader(data: Buffer) {
-    const magic = data.slice(0, 8).toString('ascii');
+    const magic = data.slice(0, 8).toString('ascii')
     if (magic !== AFC_MAGIC) {
       throw new AFCInternalError(
         `Invalid AFC packet received (magic != ${AFC_MAGIC})`,
         data.readUInt32LE(24),
-      );
+      )
     }
     // technically these are uint64
     this.header = {
@@ -415,13 +416,13 @@ export class AFCProtocolReader extends ProtocolReader {
       headerLength: data.readUInt32LE(16),
       requestId: data.readUInt32LE(24),
       operation: data.readUInt32LE(32),
-    };
-
-    debug(`parse header: ${JSON.stringify(this.header)}`);
-    if (this.header.headerLength < AFC_HEADER_SIZE) {
-      throw new AFCInternalError('Invalid AFC header', this.header.requestId);
     }
-    return this.header.totalLength - AFC_HEADER_SIZE;
+
+    debug(`parse header: ${JSON.stringify(this.header)}`)
+    if (this.header.headerLength < AFC_HEADER_SIZE)
+      throw new AFCInternalError('Invalid AFC header', this.header.requestId)
+
+    return this.header.totalLength - AFC_HEADER_SIZE
   }
 
   parseBody(data: Buffer): AFCResponse | AFCStatusResponse {
@@ -429,63 +430,65 @@ export class AFCProtocolReader extends ProtocolReader {
       operation: this.header.operation,
       id: this.header.requestId,
       data,
-    };
+    }
     if (isStatusResponse(body)) {
-      const status = data.readUInt32LE(0);
+      const status = data.readUInt32LE(0)
       debug(
         `${AFC_OPS[this.header.operation]} response: ${AFC_STATUS[status]}`,
-      );
-      body.data = status;
-    } else if (data.length <= 8) {
+      )
+      body.data = status
+    }
+    else if (data.length <= 8) {
       debug(
         `${
           AFC_OPS[this.header.operation]
         } response: ${Array.prototype.toString.call(body)}`,
-      );
-    } else {
+      )
+    }
+    else {
       debug(
         `${AFC_OPS[this.header.operation]} response length: ${
           data.length
         } bytes`,
-      );
+      )
     }
-    return body;
+    return body
   }
 }
 
 export class AFCProtocolWriter implements ProtocolWriter {
   write(socket: net.Socket, msg: AFCMessage & { requestId: number }) {
-    const { data, payload, operation, requestId } = msg;
+    const { data, payload, operation, requestId } = msg
 
-    const dataLength = data ? data.length : 0;
-    const payloadLength = payload ? payload.length : 0;
+    const dataLength = data ? data.length : 0
+    const payloadLength = payload ? payload.length : 0
 
-    const header = Buffer.alloc(AFC_HEADER_SIZE);
-    const magic = Buffer.from(AFC_MAGIC);
-    magic.copy(header);
-    header.writeUInt32LE(AFC_HEADER_SIZE + dataLength + payloadLength, 8);
-    header.writeUInt32LE(AFC_HEADER_SIZE + dataLength, 16);
-    header.writeUInt32LE(requestId, 24);
-    header.writeUInt32LE(operation, 32);
-    socket.write(header);
-    socket.write(data);
+    const header = Buffer.alloc(AFC_HEADER_SIZE)
+    const magic = Buffer.from(AFC_MAGIC)
+    magic.copy(header)
+    header.writeUInt32LE(AFC_HEADER_SIZE + dataLength + payloadLength, 8)
+    header.writeUInt32LE(AFC_HEADER_SIZE + dataLength, 16)
+    header.writeUInt32LE(requestId, 24)
+    header.writeUInt32LE(operation, 32)
+    socket.write(header)
+    socket.write(data)
     if (data.length <= 8) {
       debug(
         `socket write, header: { requestId: ${requestId}, operation: ${
           AFC_OPS[operation]
         }}, body: ${Array.prototype.toString.call(data)}`,
-      );
-    } else {
+      )
+    }
+    else {
       debug(
         `socket write, header: { requestId: ${requestId}, operation: ${AFC_OPS[operation]}}, body: ${data.length} bytes`,
-      );
+      )
     }
 
     debug(
       `socket write, bytes written ${header.length} (header), ${data.length} (body)`,
-    );
-    if (payload) {
-      socket.write(payload);
-    }
+    )
+    if (payload)
+      socket.write(payload)
   }
 }

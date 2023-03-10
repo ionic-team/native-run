@@ -18,7 +18,7 @@ To install, run:
 npm install -g native-run
 ```
 
-:memo: Requires NodeJS 10+
+:memo: Requires NodeJS 14+
 
 ## Usage
 

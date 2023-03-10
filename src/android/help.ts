@@ -28,8 +28,8 @@ const help = `
     --target <id> ........... Use a specific target
     --connect ............... Tie process to app process
     --forward <port:port> ... Forward a port from device to host
-`;
+`
 
 export async function run(args: readonly string[]): Promise<void> {
-  process.stdout.write(`${help}\n`);
+  process.stdout.write(`${help}\n`)
 }

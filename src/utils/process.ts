@@ -1,21 +1,21 @@
-import * as cp from 'child_process';
-import * as Debug from 'debug';
-import * as util from 'util';
+import * as cp from 'node:child_process'
+import * as util from 'node:util'
+import Debug from 'debug'
 
-import { once } from './fn';
+import { once } from './fn'
 
-const debug = Debug('native-run:utils:process');
+const debug = Debug('native-run:utils:process')
 
-export const exec = util.promisify(cp.exec);
-export const execFile = util.promisify(cp.execFile);
-export const wait = util.promisify(setTimeout);
+export const exec = util.promisify(cp.exec)
+export const execFile = util.promisify(cp.execFile)
+export const wait = util.promisify(setTimeout)
 
-export type ExitQueueFn = () => Promise<void>;
+export type ExitQueueFn = () => Promise<void>
 
-const exitQueue: ExitQueueFn[] = [];
+const exitQueue: ExitQueueFn[] = []
 
 export function onBeforeExit(fn: ExitQueueFn): void {
-  exitQueue.push(fn);
+  exitQueue.push(fn)
 }
 
 const BEFORE_EXIT_SIGNALS: NodeJS.Signals[] = [
@@ -23,32 +23,32 @@ const BEFORE_EXIT_SIGNALS: NodeJS.Signals[] = [
   'SIGTERM',
   'SIGHUP',
   'SIGBREAK',
-];
+]
 
 const beforeExitHandlerWrapper = (signal: NodeJS.Signals) =>
   once(async () => {
-    debug('onBeforeExit handler: %s received', signal);
+    debug('onBeforeExit handler: %s received', signal)
     debug(
       'onBeforeExit handler: running %s queued functions',
       exitQueue.length,
-    );
+    )
 
     for (const [i, fn] of exitQueue.entries()) {
       try {
-        await fn();
-      } catch (e) {
-        debug('Error from function %d in exit queue: %O', i, e);
+        await fn()
+      }
+      catch (e) {
+        debug('Error from function %d in exit queue: %O', i, e)
       }
     }
 
     debug(
       'onBeforeExit handler: exiting (exit code %s)',
       process.exitCode ? process.exitCode : 0,
-    );
+    )
 
-    process.exit();
-  });
+    process.exit()
+  })
 
-for (const signal of BEFORE_EXIT_SIGNALS) {
-  process.on(signal, beforeExitHandlerWrapper(signal));
-}
+for (const signal of BEFORE_EXIT_SIGNALS)
+  process.on(signal, beforeExitHandlerWrapper(signal))

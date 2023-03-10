@@ -25,8 +25,8 @@ const help = `
                            With --list prints available simulators
     --target <id> ........ Use a specific target
     --connect ............ Tie process to app process
-`;
+`
 
 export async function run(): Promise<void> {
-  process.stdout.write(`${help}\n`);
+  process.stdout.write(`${help}\n`)
 }

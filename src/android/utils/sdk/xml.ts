@@ -1,54 +1,53 @@
-import { readFile } from '@ionic/utils-fs';
-import type { Element, ElementTree } from 'elementtree';
+import { readFile } from '@ionic/utils-fs'
+import type { Element, ElementTree } from 'elementtree'
 
-import { ERR_INVALID_SDK_PACKAGE, SDKException } from '../../../errors';
+import { ERR_INVALID_SDK_PACKAGE, SDKException } from '../../../errors'
 
 export function getAPILevelFromPackageXml(
   packageXml: ElementTree,
 ): string | undefined {
-  const apiLevel = packageXml.find('./localPackage/type-details/api-level');
+  const apiLevel = packageXml.find('./localPackage/type-details/api-level')
 
-  return apiLevel?.text?.toString();
+  return apiLevel?.text?.toString()
 }
 
 export async function readPackageXml(path: string): Promise<ElementTree> {
-  const et = await import('elementtree');
-  const contents = await readFile(path, { encoding: 'utf8' });
-  const etree = et.parse(contents);
+  const et = await import('elementtree')
+  const contents = await readFile(path, { encoding: 'utf8' })
+  const etree = et.parse(contents)
 
-  return etree;
+  return etree
 }
 
 export function getPathFromPackageXml(packageXml: ElementTree): string {
-  const localPackage = packageXml.find('./localPackage');
+  const localPackage = packageXml.find('./localPackage')
 
-  if (!localPackage) {
-    throw new SDKException(`Invalid SDK package.`, ERR_INVALID_SDK_PACKAGE);
-  }
+  if (!localPackage)
+    throw new SDKException('Invalid SDK package.', ERR_INVALID_SDK_PACKAGE)
 
-  const path = localPackage.get('path');
+  const path = localPackage.get('path')
 
   if (!path) {
     throw new SDKException(
-      `Invalid SDK package path.`,
+      'Invalid SDK package path.',
       ERR_INVALID_SDK_PACKAGE,
-    );
+    )
   }
 
-  return path.toString();
+  return path.toString()
 }
 
 export function getNameFromPackageXml(packageXml: ElementTree): string {
-  const name = packageXml.find('./localPackage/display-name');
+  const name = packageXml.find('./localPackage/display-name')
 
   if (!name || !name.text) {
     throw new SDKException(
-      `Invalid SDK package name.`,
+      'Invalid SDK package name.',
       ERR_INVALID_SDK_PACKAGE,
-    );
+    )
   }
 
-  return name.text.toString();
+  return name.text.toString()
 }
 
 export function getVersionFromPackageXml(packageXml: ElementTree): string {
@@ -56,26 +55,25 @@ export function getVersionFromPackageXml(packageXml: ElementTree): string {
     packageXml.find('./localPackage/revision/major'),
     packageXml.find('./localPackage/revision/minor'),
     packageXml.find('./localPackage/revision/micro'),
-  ];
+  ]
 
   const textFromElement = (e: Element | null): string =>
-    e?.text ? e.text.toString() : '';
-  const versions: string[] = [];
+    e?.text ? e.text.toString() : ''
+  const versions: string[] = []
 
   for (const version of versionElements.map(textFromElement)) {
-    if (!version) {
-      break;
-    }
+    if (!version)
+      break
 
-    versions.push(version);
+    versions.push(version)
   }
 
   if (versions.length === 0) {
     throw new SDKException(
-      `Invalid SDK package version.`,
+      'Invalid SDK package version.',
       ERR_INVALID_SDK_PACKAGE,
-    );
+    )
   }
 
-  return versions.join('.');
+  return versions.join('.')
 }

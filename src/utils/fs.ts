@@ -1,11 +1,10 @@
-import { statSafe } from '@ionic/utils-fs';
+import { statSafe } from '@ionic/utils-fs'
 
 export async function isDir(p: string): Promise<boolean> {
-  const stats = await statSafe(p);
+  const stats = await statSafe(p)
 
-  if (stats?.isDirectory()) {
-    return true;
-  }
+  if (stats?.isDirectory())
+    return true
 
-  return false;
+  return false
 }
