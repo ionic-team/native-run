@@ -21,6 +21,10 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
+        node:
+          - 18.x
+          - 16.x
+          - 14.x
 
     steps:
       - uses: actions/checkout@v3
@@ -31,7 +35,7 @@ jobs:
 
       - uses: actions/setup-node@v3
         with:
-          node-version: 18.x
+          node-version: ${{ matrix.node }}
 
       - name: Get pnpm store directory
         id: pnpm-cache
