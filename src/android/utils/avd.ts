@@ -27,6 +27,27 @@ import {
 
 const modulePrefix = 'native-run:android:utils:avd';
 
+// Mapping Node os.arch() to AVD CPU arch
+// value of hw.cpu.arch equals abi.type
+// see: https://cs.android.com/android/platform/superproject/+/master:tools/aadevtools/avd/create_avd.sh;l=167
+// Possible values of hw.cpu.arch are 'x86', 'x86_64', 'arm', 'arm64'
+// see: https://developer.android.com/ndk/guides/abis
+// see also: https://android.googlesource.com/platform/external/qemu/+/1381d44efe69ba0b37fb7f7ef868125e279fc14a/android/emulator/main-emulator.cpp#155
+const CPUArchMap: Record<string, string> = {
+  ia32: 'x86',
+  x64: 'x86_64',
+  arm: 'arm',
+  arm64: 'arm64',
+}
+
+// Mapping Node os.arch() to Android ABI types
+const ABIMap: Record<string, string> = {
+  ia32: 'x86',
+  x64: 'x86_64',
+  arm: 'armeabi-v7a',
+  arm64: 'arm64-v8a',
+}
+
 export interface AVD {
   readonly id: string;
   readonly path: string;
@@ -260,7 +281,7 @@ export async function getAVDSchematicFromAPILevel(
     );
   }
 
-  return createAVDSchematic(sdk, await schema.loadPartialAVDSchematic());
+  return createAVDSchematic(sdk, Number(api.apiLevel), await schema.loadPartialAVDSchematic());
 }
 
 export async function getDefaultAVD(
@@ -299,11 +320,27 @@ export async function createAVD(
 
 export async function createAVDSchematic(
   sdk: SDK,
+  apiLevel: number,
   partialSchematic: PartialAVDSchematic,
 ): Promise<AVDSchematic> {
+  let pathRegex = new RegExp(`^system-images;${partialSchematic.ini.target}`);
+  const cpuArch = os.arch();
+  const abiType = ABIMap[cpuArch];
+
+  // if both arm and x86 system images are installed, an arm system image will be returned
+  // but arm emulation is not supported by the QEMU2 emulator on x86_64 host for API level 28 and above
+  // so the newly created AVD will not boot properly
+  // moreover, arm64(aarch64) host only supports arm64 emulation
+  // see: https://android.googlesource.com/platform/external/qemu/+/1381d44efe69ba0b37fb7f7ef868125e279fc14a/android/emulator/main-emulator.cpp#910
+  const x86Only = apiLevel >= 28 && cpuArch === 'x64';
+  const armOnly = cpuArch === 'arm64';
+  if (x86Only || armOnly) {
+    pathRegex = new RegExp(`^system-images;${partialSchematic.ini.target};.*${abiType}$`);
+  }
+
   const sysimage = findPackageBySchemaPath(
     sdk.packages || [],
-    new RegExp(`^system-images;${partialSchematic.ini.target}`),
+    pathRegex,
   );
 
   if (!sysimage) {
@@ -320,8 +357,7 @@ export async function createAVDSchematic(
   );
   const sysdir = pathlib.relative(sdk.root, sysimage.location);
   const [, , tagid] = sysimage.path.split(';');
-  const arch =
-    os.arch() === 'arm64' ? 'arm64' : partialSchematic.configini['abi.type'];
+
   const schematic: AVDSchematic = {
     id: partialSchematic.id,
     ini: sort({
@@ -331,8 +367,8 @@ export async function createAVDSchematic(
     }),
     configini: sort({
       ...partialSchematic.configini,
-      'abi.type': arch,
-      'hw.cpu.arch': arch,
+      'abi.type': abiType,
+      'hw.cpu.arch': CPUArchMap[cpuArch],
       'skin.path': skinpath,
       'image.sysdir.1': sysdir,
       'tag.id': tagid,
