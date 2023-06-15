@@ -1,4 +1,4 @@
-import { mkdirp, readdirp } from '@ionic/utils-fs';
+import { readdirp } from '@ionic/utils-fs';
 import * as Debug from 'debug';
 import * as os from 'os';
 import * as pathlib from 'path';
@@ -8,6 +8,8 @@ import {
   ERR_SDK_NOT_FOUND,
   ERR_SDK_PACKAGE_NOT_FOUND,
   SDKException,
+  ERR_AVD_HOME_NOT_FOUND,
+  EmulatorException
 } from '../../../errors';
 import { isDir } from '../../../utils/fs';
 
@@ -162,8 +164,7 @@ export async function resolveSDKRoot(): Promise<string> {
   const debug = Debug(`${modulePrefix}:${resolveSDKRoot.name}`);
   debug('Looking for $ANDROID_HOME');
 
-  // $ANDROID_HOME is deprecated, but still overrides $ANDROID_SDK_ROOT if
-  // defined and valid.
+  // $ANDROID_SDK_ROOT is deprecated, try $ANDROID_HOME first.
   if (process.env.ANDROID_HOME && (await isDir(process.env.ANDROID_HOME))) {
     debug('Using $ANDROID_HOME at %s', process.env.ANDROID_HOME);
     return process.env.ANDROID_HOME;
@@ -213,6 +214,33 @@ export async function resolveEmulatorHome(): Promise<string> {
     return process.env.ANDROID_EMULATOR_HOME;
   }
 
+  debug('Looking for $ANDROID_USER_HOME');
+
+  if (
+    process.env.ANDROID_USER_HOME &&
+    (await isDir(process.env.ANDROID_USER_HOME))
+  ) {
+    debug(
+      'Using $ANDROID_USER_HOME/.android at %s',
+      process.env.$ANDROID_USER_HOME,
+    );
+    return process.env.ANDROID_USER_HOME;
+  }
+
+  debug('Looking for $ANDROID_SDK_HOME/.android');
+
+  if (
+    process.env.ANDROID_SDK_HOME &&
+    (await isDir(process.env.ANDROID_SDK_HOME))
+  ) {
+    const emulatorHome = pathlib.join(process.env.ANDROID_SDK_HOME, '.android');
+    debug(
+      'Using $ANDROID_SDK_HOME/.android at %s',
+      emulatorHome,
+    );
+    return emulatorHome;
+  }
+
   debug('Looking at $HOME/.android');
 
   const homeEmulatorHome = pathlib.join(homedir, '.android');
@@ -228,6 +256,7 @@ export async function resolveEmulatorHome(): Promise<string> {
   );
 }
 
+// for env variables precedences, see: https://developer.android.com/studio/command-line/variables
 export async function resolveAVDHome(): Promise<string> {
   const debug = Debug(`${modulePrefix}:${resolveAVDHome.name}`);
 
@@ -241,17 +270,24 @@ export async function resolveAVDHome(): Promise<string> {
     return process.env.ANDROID_AVD_HOME;
   }
 
-  debug('Looking at $HOME/.android/avd');
+  debug('Looking for emulator home directory');
 
-  const homeAvdHome = pathlib.join(homedir, '.android', 'avd');
+  try {
+    const emulatorHome = await resolveEmulatorHome();
+    const avdHome = pathlib.join(emulatorHome, 'avd');
+    debug('Using $ANDROID_EMULATOR_HOME/avd at %s', avdHome);
+    return avdHome;
+  } catch (e) {
+    debug('Encountered error with %O', e);
 
-  if (!(await isDir(homeAvdHome))) {
-    debug('Creating directory: %s', homeAvdHome);
-    await mkdirp(homeAvdHome);
+    if (e instanceof SDKException && e.code === ERR_EMULATOR_HOME_NOT_FOUND) {
+      throw new EmulatorException(
+        `No valid AVD home found.`,
+        ERR_AVD_HOME_NOT_FOUND,
+      );
+    }
+    throw e;
   }
-
-  debug('Using $HOME/.android/avd/ at %s', homeAvdHome);
-  return homeAvdHome;
 }
 
 export function supplementProcessEnv(sdk: SDK): NodeJS.ProcessEnv {

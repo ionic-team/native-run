@@ -126,4 +126,55 @@ describe('android/utils/sdk', () => {
       expect(mockIsDir).toHaveBeenCalledWith('/home/me/Library/Android/sdk');
     });
   });
+
+  describe('resolveEmulatorHome', () => {
+    beforeEach(async () => {
+      sdkUtils = await import('../');
+    });
+
+    it('should resolve with ANDROID_EMULATOR_HOME if in environment', async () => {
+      mockIsDir.mockResolvedValueOnce(true);
+      Object.defineProperty(process, 'env', {
+        value: {
+          ANDROID_EMULATOR_HOME: '/some/dir',
+          ANDROID_USER_HOME: '/some/other/dir',
+        },
+      });
+      await expect(sdkUtils.resolveEmulatorHome()).resolves.toEqual('/some/dir');
+      expect(mockIsDir).toHaveBeenCalledTimes(1);
+      expect(mockIsDir).toHaveBeenCalledWith('/some/dir');
+    });
+
+    it('should resolve with ANDROID_USER_HOME when ANDROID_EMULATOR_HOME is absent', async () => {
+      mockIsDir.mockResolvedValueOnce(true);
+      Object.defineProperty(process, 'env', {
+        value: {
+          ANDROID_USER_HOME: '/some/dir/.android',
+        },
+      });
+      await expect(sdkUtils.resolveEmulatorHome()).resolves.toEqual('/some/dir/.android');
+      expect(mockIsDir).toHaveBeenCalledTimes(1);
+      expect(mockIsDir).toHaveBeenCalledWith('/some/dir/.android');
+    });
+
+    it('should resolve with ANDROID_SDK_HOME/.android when ANDROID_EMULATOR_HOME and ANDROID_USER_HOME are absent', async () => {
+      mockIsDir.mockResolvedValueOnce(true);
+      Object.defineProperty(process, 'env', {
+        value: {
+          ANDROID_SDK_HOME: '/some/dir',
+        },
+      });
+      await expect(sdkUtils.resolveEmulatorHome()).resolves.toEqual('/some/dir/.android');
+      expect(mockIsDir).toHaveBeenCalledTimes(1);
+      expect(mockIsDir).toHaveBeenCalledWith('/some/dir');
+    })
+
+    it('should resolve with HOME/.android when ANDROID_EMULATOR_HOME, ANDROID_USER_HOME, ANDROID_SDK_HOME all are absent', async () => {
+      mockIsDir.mockResolvedValueOnce(true);
+      await expect(sdkUtils.resolveEmulatorHome()).resolves.toEqual('/home/me/.android');
+      expect(mockIsDir).toHaveBeenCalledTimes(1);
+      expect(mockIsDir).toHaveBeenCalledWith('/home/me/.android');
+    })
+
+  });
 });
