@@ -59,7 +59,7 @@
     "@types/split2": "^3.2.1",
     "@types/through2": "^2.0.34",
     "@types/yauzl": "^2.10.0",
-    "eslint": "^7.8.1",
+    "eslint": "^8.43.0",
     "husky": "^5.0.4",
     "jest": "^26.4.2",
     "prettier": "^2.2.1",
