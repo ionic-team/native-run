@@ -1,3 +1,4 @@
+import { spawn } from 'child_process';
 import * as Debug from 'debug';
 import { readFileSync } from 'fs';
 import * as path from 'path';
@@ -13,7 +14,7 @@ import {
   UsbmuxdClient,
 } from '../lib';
 
-import { getDeveloperDiskImagePath } from './xcode';
+import { getDeveloperDiskImagePath, getXcodeVersionInfo } from './xcode';
 
 const debug = Debug('native-run:ios:utils:device');
 
@@ -56,21 +57,55 @@ export async function runOnDevice(
     const { [bundleId]: appInfo } = await installer.lookupApp([bundleId]);
     // launch fails with EBusy or ENotFound if you try to launch immediately after install
     await wait(200);
-    const debugServerClient = await launchApp(clientManager, appInfo);
-    if (waitForApp) {
-      onBeforeExit(async () => {
-        // causes continue() to return
-        debugServerClient.halt();
-        // give continue() time to return response
-        await wait(64);
-      });
+    try {
+      const debugServerClient = await launchApp(clientManager, appInfo);
+      if (waitForApp) {
+        onBeforeExit(async () => {
+          // causes continue() to return
+          debugServerClient.halt();
+          // give continue() time to return response
+          await wait(64);
+        });
 
-      debug(`Waiting for app to close...\n`);
-      const result = await debugServerClient.continue();
-      // TODO: I have no idea what this packet means yet (successful close?)
-      // if not a close (ie, most likely due to halt from onBeforeExit), then kill the app
-      if (result !== 'W00') {
-        await debugServerClient.kill();
+        debug(`Waiting for app to close...\n`);
+        const result = await debugServerClient.continue();
+        // TODO: I have no idea what this packet means yet (successful close?)
+        // if not a close (ie, most likely due to halt from onBeforeExit), then kill the app
+        if (result !== 'W00') {
+          await debugServerClient.kill();
+        }
+      }
+    } catch {
+      // if launching app throws, try with devicectl, but requires Xcode 15
+      const [xcodeVersion] = getXcodeVersionInfo();
+      if (Number(xcodeVersion) >= 15) {
+        const launchResult = spawn('xcrun', [
+          'devicectl',
+          'device',
+          'process',
+          'launch',
+          '--device',
+          udid,
+          bundleId,
+        ]);
+        return new Promise<void>((resolve, reject) => {
+          launchResult.on('close', code => {
+            if (code === 0) {
+              resolve();
+            } else {
+              reject(
+                new Exception(`There was an error launching app on device`),
+              );
+            }
+          });
+          launchResult.on('error', err => {
+            reject(err);
+          });
+        });
+      } else {
+        throw new Exception(
+          `running on iOS 17 devices requires Xcode 15 and later`,
+        );
       }
     }
   } finally {
