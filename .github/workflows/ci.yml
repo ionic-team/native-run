@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - develop
+      - stable
   pull_request:
     types:
       - 'synchronize'
