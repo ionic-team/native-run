@@ -78,7 +78,8 @@ export async function runOnDevice(
     } catch {
       // if launching app throws, try with devicectl, but requires Xcode 15
       const [xcodeVersion] = getXcodeVersionInfo();
-      if (Number(xcodeVersion) >= 15) {
+      const xcodeMajorVersion = Number(xcodeVersion.split('.')[0]);
+      if (xcodeMajorVersion >= 15) {
         const launchResult = spawn('xcrun', [
           'devicectl',
           'device',
