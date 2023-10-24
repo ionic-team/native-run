@@ -1,3 +1,10 @@
+## [1.7.4](https://github.com/ionic-team/native-run/compare/v1.7.3...v1.7.4) (2023-10-24)
+
+
+### Bug Fixes
+
+* xcode major version extraction ([#351](https://github.com/ionic-team/native-run/issues/351)) ([24ffe66](https://github.com/ionic-team/native-run/commit/24ffe6654458d1aeb4944f9ceb9ddb402c39f651))
+
 ## [1.7.3](https://github.com/ionic-team/native-run/compare/v1.7.2...v1.7.3) (2023-09-21)
 
 
