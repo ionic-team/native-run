@@ -5,7 +5,7 @@ import { Exception } from '../../errors';
 import { log } from '../../utils/log';
 import { onBeforeExit } from '../../utils/process';
 
-import { getXCodePath, getXcodeVersionInfo } from './xcode';
+import { getXCodePath } from './xcode';
 
 const debug = Debug('native-run:ios:utils:simulator');
 
@@ -49,11 +49,6 @@ export async function getSimulators(): Promise<SimulatorResult[]> {
   });
   if (simctl.status) {
     throw new Exception(`Unable to retrieve simulator list: ${simctl.stderr}`);
-  }
-
-  const [xcodeVersion] = getXcodeVersionInfo();
-  if (Number(xcodeVersion) < 10) {
-    throw new Exception('native-run only supports Xcode 10 and later');
   }
 
   try {

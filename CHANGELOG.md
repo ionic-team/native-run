@@ -1,3 +1,18 @@
+## [1.7.4](https://github.com/ionic-team/native-run/compare/v1.7.3...v1.7.4) (2023-10-24)
+
+
+### Bug Fixes
+
+* xcode major version extraction ([#351](https://github.com/ionic-team/native-run/issues/351)) ([24ffe66](https://github.com/ionic-team/native-run/commit/24ffe6654458d1aeb4944f9ceb9ddb402c39f651))
+
+## [1.7.3](https://github.com/ionic-team/native-run/compare/v1.7.2...v1.7.3) (2023-09-21)
+
+
+### Bug Fixes
+
+* Pin @types/babel__traverse version to fix build ([#342](https://github.com/ionic-team/native-run/issues/342)) ([8492b24](https://github.com/ionic-team/native-run/commit/8492b2454466bbee2f843dd09ec6231d608a5ad5))
+* use devicectl for iOS 17 if Xcode 15 is available ([#341](https://github.com/ionic-team/native-run/issues/341)) ([5c56d71](https://github.com/ionic-team/native-run/commit/5c56d712fdeb351b01d75edeb2bd2c9106e29f35))
+
 ## [1.7.2](https://github.com/ionic-team/native-run/compare/v1.7.1...v1.7.2) (2023-03-02)
 
 
