@@ -3,7 +3,7 @@ import { stringify } from '../utils/json';
 import type { SDKPackage } from './utils/sdk';
 import { findAllSDKPackages, getSDK } from './utils/sdk';
 import type { APILevel } from './utils/sdk/api';
-import { API_LEVEL_SCHEMAS, getAPILevels } from './utils/sdk/api';
+import { getAPILevels } from './utils/sdk/api';
 
 type Platform = Required<APILevel>;
 
@@ -19,8 +19,7 @@ export async function run(args: readonly string[]): Promise<void> {
   const packages = await findAllSDKPackages(sdk);
   const apis = await getAPILevels(packages);
   const platforms = apis.map(api => {
-    const schema = API_LEVEL_SCHEMAS.find(s => s.apiLevel === api.apiLevel);
-    return { ...api, missingPackages: schema ? schema.validate(packages) : [] };
+    return { ...api };
   });
 
   const sdkinfo: SDKInfo = {
@@ -58,13 +57,6 @@ API Level:            ${platform.apiLevel}
 Packages:             ${platform.packages
     .map(p => formatPackage(p))
     .join('\n' + ' '.repeat(22))}
-${
-  platform.missingPackages.length > 0
-    ? `(!) Missing Packages: ${platform.missingPackages
-        .map(p => formatPackage(p))
-        .join('\n' + ' '.repeat(22))}`
-    : ''
-}
   `.trim();
 }
 
