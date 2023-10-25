@@ -208,7 +208,7 @@ export async function resolveEmulatorHome(): Promise<string> {
   ) {
     debug(
       'Using $ANDROID_EMULATOR_HOME at %s',
-      process.env.$ANDROID_EMULATOR_HOME,
+      process.env.ANDROID_EMULATOR_HOME,
     );
     return process.env.ANDROID_EMULATOR_HOME;
   }
@@ -237,7 +237,7 @@ export async function resolveAVDHome(): Promise<string> {
     process.env.ANDROID_AVD_HOME &&
     (await isDir(process.env.ANDROID_AVD_HOME))
   ) {
-    debug('Using $ANDROID_AVD_HOME at %s', process.env.$ANDROID_AVD_HOME);
+    debug('Using $ANDROID_AVD_HOME at %s', process.env.ANDROID_AVD_HOME);
     return process.env.ANDROID_AVD_HOME;
   }
 
