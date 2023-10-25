@@ -61,14 +61,12 @@ export async function spawnEmulator(
   const emulatorBin = path.join(emulator.location, 'emulator');
   const args = ['-avd', avd.id, '-port', port.toString(), '-verbose'];
   debug('Invoking emulator: %O %O', emulatorBin, args);
-
   const p = spawn(emulatorBin, args, {
     detached: true,
     stdio: ['ignore', 'pipe', 'pipe'],
     env: supplementProcessEnv(sdk),
   });
   p.unref();
-
   return new Promise<void>((_resolve, _reject) => {
     const resolve: typeof _resolve = once(() => {
       _resolve();
@@ -89,7 +87,6 @@ export async function spawnEmulator(
 
       debug('Android Emulator: %O', line);
       const event = parseEmulatorOutput(line);
-
       if (event === EmulatorEvent.AlreadyRunning) {
         reject(
           new EmulatorException(

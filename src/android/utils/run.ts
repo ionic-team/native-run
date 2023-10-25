@@ -2,7 +2,9 @@ import * as Debug from 'debug';
 
 import {
   ADBException,
+  AndroidRunException,
   ERR_INCOMPATIBLE_UPDATE,
+  ERR_NO_TARGET,
   ERR_VERSION_DOWNGRADE,
 } from '../../errors';
 import { log } from '../../utils/log';
@@ -10,7 +12,6 @@ import { log } from '../../utils/log';
 import type { Device } from './adb';
 import { installApk, uninstallApp } from './adb';
 import type { AVD } from './avd';
-import { getDefaultAVD } from './avd';
 import { getAVDFromEmulator, runEmulator } from './emulator';
 import type { SDK } from './sdk';
 
@@ -106,13 +107,10 @@ export async function selectVirtualDevice(
     debug('Found running emulator: %s', emulator.serial);
     return emulator;
   }
-
-  // Spin up an emulator using the AVD we ship with.
-  const defaultAvd = await getDefaultAVD(sdk, avds);
-  const device = await runEmulator(sdk, defaultAvd, 5554); // TODO: will 5554 always be available at this point?
-  debug('Emulator ready, running avd: %s on %s', defaultAvd.id, device.serial);
-
-  return device;
+  throw new AndroidRunException(
+    'No target devices/emulators available.',
+    ERR_NO_TARGET,
+  );
 }
 
 export async function installApkToDevice(
