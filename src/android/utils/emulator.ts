@@ -128,7 +128,7 @@ export async function spawnEmulator(
     p.on('close', code => {
       debug('Emulator closed, exit code %d', code);
 
-      if (code > 0) {
+      if (code) {
         reject(
           new EmulatorException(
             `Non-zero exit code from Emulator: ${code}`,
