@@ -32,16 +32,16 @@
     "url": "git+https://github.com/ionic-team/native-run.git"
   },
   "dependencies": {
-    "@ionic/utils-fs": "^3.1.6",
-    "@ionic/utils-terminal": "^2.3.3",
+    "@ionic/utils-fs": "^3.1.7",
+    "@ionic/utils-terminal": "^2.3.4",
     "bplist-parser": "^0.3.2",
     "debug": "^4.3.4",
     "elementtree": "^0.1.7",
-    "ini": "^3.0.1",
-    "plist": "^3.0.6",
-    "split2": "^4.1.0",
+    "ini": "^4.1.1",
+    "plist": "^3.1.0",
+    "split2": "^4.2.0",
     "through2": "^4.0.2",
-    "tslib": "^2.4.0",
+    "tslib": "^2.6.2",
     "yauzl": "^2.10.0"
   },
   "devDependencies": {
