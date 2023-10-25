@@ -16,8 +16,7 @@
     "eslint": "eslint . --ext .ts",
     "publish:ci": "semantic-release",
     "publish:testing": "npm version prerelease --preid=testing --no-git-tag-version && npm publish --tag=testing && git stash",
-    "prepublishOnly": "npm run build",
-    "setup": "husky install"
+    "prepublishOnly": "npm run build"
   },
   "main": "dist/index.js",
   "files": [
@@ -61,7 +60,6 @@
     "@types/through2": "^2.0.34",
     "@types/yauzl": "^2.10.0",
     "eslint": "^7.8.1",
-    "husky": "^5.0.4",
     "jest": "^26.4.2",
     "prettier": "^2.2.1",
     "semantic-release": "^19.0.5",
