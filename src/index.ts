@@ -45,7 +45,7 @@ export async function run(): Promise<void> {
 
       throw new CLIException(`Unsupported platform: "${platform}"`, ERR_BAD_INPUT);
     }
-  } catch (e) {
+  } catch (e: any) {
     debug('Caught fatal error: %O', e);
     process.exitCode = e instanceof Exception ? e.exitCode : ExitCode.GENERAL;
     process.stdout.write(serializeError(e));

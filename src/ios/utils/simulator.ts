@@ -62,7 +62,7 @@ export async function getSimulators(): Promise<SimulatorResult[]> {
       )
       .reduce((prev, next) => prev.concat(next)) // flatten
       .sort((a, b) => (a.name < b.name ? -1 : 1));
-  } catch (err) {
+  } catch (err: any) {
     throw new Exception(`Unable to retrieve simulator list: ${err.message}`);
   }
 }
