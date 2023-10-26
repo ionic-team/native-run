@@ -67,7 +67,7 @@ export abstract class ProtocolReader {
           this.onData();
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       this.callback(null, err);
     }
   }

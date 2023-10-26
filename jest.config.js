@@ -5,7 +5,7 @@ module.exports = {
       diagnostics: {
         // warnOnly: true,
       },
-      tsConfig: {
+      tsconfig: {
         types: [
           "node",
           "jest",

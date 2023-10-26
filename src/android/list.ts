@@ -17,7 +17,7 @@ export async function list(args: readonly string[]): Promise<Targets> {
     (async () => {
       try {
         return await getDeviceTargets(sdk);
-      } catch (e) {
+      } catch (e: any) {
         errors.push(e);
         return [];
       }
@@ -25,7 +25,7 @@ export async function list(args: readonly string[]): Promise<Targets> {
     (async () => {
       try {
         return await getVirtualTargets(sdk);
-      } catch (e) {
+      } catch (e: any) {
         errors.push(e);
         return [];
       }

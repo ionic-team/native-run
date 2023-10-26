@@ -128,7 +128,7 @@ export async function getSDKPackage(location: string): Promise<SDKPackage> {
         name,
         apiLevel,
       };
-    } catch (e) {
+    } catch (e: any) {
       debug('Encountered error with %s: %O', packageXmlPath, e);
 
       if (e.code === 'ENOENT') {

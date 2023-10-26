@@ -53,7 +53,7 @@ export class GDBProtocolReader extends ProtocolReader {
           this.onData();
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       this.callback(null, err);
     }
   }

@@ -19,7 +19,7 @@ export async function list(args: readonly string[]): Promise<Targets> {
       try {
         const devices = await getConnectedDevices();
         return devices.map(deviceToTarget);
-      } catch (e) {
+      } catch (e: any) {
         errors.push(e);
         return [];
       }
@@ -28,7 +28,7 @@ export async function list(args: readonly string[]): Promise<Targets> {
       try {
         const simulators = await getSimulators();
         return simulators.map(simulatorToTarget);
-      } catch (e) {
+      } catch (e: any) {
         errors.push(e);
         return [];
       }
