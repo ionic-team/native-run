@@ -23,14 +23,12 @@ export async function unzip(srcPath: string, onEntry: UnzipOnEntry) {
         return reject(err);
       }
 
-      const openReadStream = promisify(
-        zipfile.openReadStream.bind(zipfile) as YauzlOpenReadStream,
-      );
+      const openReadStream = promisify(zipfile.openReadStream.bind(zipfile) as YauzlOpenReadStream);
       zipfile.once('error', reject);
       // resolve when either one happens
       zipfile.once('close', resolve); // fd of zip closed
       zipfile.once('end', resolve); // last entry read
-      zipfile.on('entry', entry => onEntry(entry, zipfile, openReadStream));
+      zipfile.on('entry', (entry) => onEntry(entry, zipfile, openReadStream));
       zipfile.readEntry();
     });
   });

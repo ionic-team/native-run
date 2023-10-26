@@ -19,20 +19,14 @@ export interface Target {
   readonly id: string;
 }
 
-export function formatTargets(
-  args: readonly string[],
-  targets: Targets,
-): string {
+export function formatTargets(args: readonly string[], targets: Targets): string {
   const { devices, virtualDevices, errors } = targets;
 
   const virtualOnly = args.includes('--virtual');
   const devicesOnly = args.includes('--device');
 
   if (virtualOnly && devicesOnly) {
-    throw new CLIException(
-      'Only one of --device or --virtual may be specified',
-      ERR_BAD_INPUT,
-    );
+    throw new CLIException('Only one of --device or --virtual may be specified', ERR_BAD_INPUT);
   }
 
   if (args.includes('--json')) {
@@ -50,7 +44,7 @@ export function formatTargets(
   let output = '';
 
   if (errors.length > 0) {
-    output += `Errors (!):\n\n${errors.map(e => `  ${serializeError(e)}`)}\n`;
+    output += `Errors (!):\n\n${errors.map((e) => `  ${serializeError(e)}`)}\n`;
   }
 
   if (!virtualOnly) {

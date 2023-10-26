@@ -12,12 +12,7 @@ interface IPOptions {
   ApplicationsType?: 'Any';
   PackageType?: 'Developer';
   CFBundleIdentifier?: string;
-  ReturnAttributes?: (
-    | 'CFBundleIdentifier'
-    | 'CFBundleExecutable'
-    | 'Container'
-    | 'Path'
-  )[];
+  ReturnAttributes?: ('CFBundleIdentifier' | 'CFBundleExecutable' | 'Container' | 'Path')[];
   BundleIDs?: string[];
 }
 
@@ -40,8 +35,7 @@ interface IPInstallCompleteResponseItem extends LockdownResponse {
  *  [{ "Status": "Complete" }]
  */
 type IPInstallPercentCompleteResponse = IPInstallPercentCompleteResponseItem[];
-type IPInstallCFBundleIdentifierResponse =
-  IPInstallCFBundleIdentifierResponseItem[];
+type IPInstallCFBundleIdentifierResponse = IPInstallCFBundleIdentifierResponseItem[];
 type IPInstallCompleteResponse = IPInstallCompleteResponseItem[];
 
 interface IPMessage extends LockdownCommand {
@@ -74,27 +68,19 @@ function isIPLookupResponse(resp: any): resp is IPLookupResponse {
   return resp.length && resp[0].LookupResult !== undefined;
 }
 
-function isIPInstallPercentCompleteResponse(
-  resp: any,
-): resp is IPInstallPercentCompleteResponse {
+function isIPInstallPercentCompleteResponse(resp: any): resp is IPInstallPercentCompleteResponse {
   return resp.length && resp[0].PercentComplete !== undefined;
 }
 
-function isIPInstallCFBundleIdentifierResponse(
-  resp: any,
-): resp is IPInstallCFBundleIdentifierResponse {
+function isIPInstallCFBundleIdentifierResponse(resp: any): resp is IPInstallCFBundleIdentifierResponse {
   return resp.length && resp[0].CFBundleIdentifier !== undefined;
 }
 
-function isIPInstallCompleteResponse(
-  resp: any,
-): resp is IPInstallCompleteResponse {
+function isIPInstallCompleteResponse(resp: any): resp is IPInstallCompleteResponse {
   return resp.length && resp[0].Status === 'Complete';
 }
 
-export class InstallationProxyClient extends ServiceClient<
-  LockdownProtocolClient<IPMessage>
-> {
+export class InstallationProxyClient extends ServiceClient<LockdownProtocolClient<IPMessage>> {
   constructor(public socket: net.Socket) {
     super(socket, new LockdownProtocolClient(socket));
   }
@@ -102,12 +88,7 @@ export class InstallationProxyClient extends ServiceClient<
   async lookupApp(
     bundleIds: string[],
     options: IPOptions = {
-      ReturnAttributes: [
-        'Path',
-        'Container',
-        'CFBundleExecutable',
-        'CFBundleIdentifier',
-      ],
+      ReturnAttributes: ['Path', 'Container', 'CFBundleExecutable', 'CFBundleIdentifier'],
       ApplicationsType: 'Any',
     },
   ) {
@@ -150,9 +131,7 @@ export class InstallationProxyClient extends ServiceClient<
         if (isIPInstallCompleteResponse(resp)) {
           resolve();
         } else if (isIPInstallPercentCompleteResponse(resp)) {
-          debug(
-            `Installation status: ${resp[0].Status}, %${resp[0].PercentComplete}`,
-          );
+          debug(`Installation status: ${resp[0].Status}, %${resp[0].PercentComplete}`);
         } else if (isIPInstallCFBundleIdentifierResponse(resp)) {
           debug(`Installed app: ${resp[0].CFBundleIdentifier}`);
         } else {

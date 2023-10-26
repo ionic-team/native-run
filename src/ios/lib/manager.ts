@@ -22,13 +22,9 @@ export class ClientManager {
   }
 
   static async create(udid?: string) {
-    const usbmuxClient = new UsbmuxdClient(
-      UsbmuxdClient.connectUsbmuxdSocket(),
-    );
+    const usbmuxClient = new UsbmuxdClient(UsbmuxdClient.connectUsbmuxdSocket());
     const device = await usbmuxClient.getDevice(udid);
-    const pairRecord = await usbmuxClient.readPairRecord(
-      device.Properties.SerialNumber,
-    );
+    const pairRecord = await usbmuxClient.readPairRecord(device.Properties.SerialNumber);
     const lockdownSocket = await usbmuxClient.connect(device, 62078);
     const lockdownClient = new LockdowndClient(lockdownSocket);
     await lockdownClient.doHandshake(pairRecord);
@@ -36,17 +32,13 @@ export class ClientManager {
   }
 
   async getUsbmuxdClient() {
-    const usbmuxClient = new UsbmuxdClient(
-      UsbmuxdClient.connectUsbmuxdSocket(),
-    );
+    const usbmuxClient = new UsbmuxdClient(UsbmuxdClient.connectUsbmuxdSocket());
     this.connections.push(usbmuxClient.socket);
     return usbmuxClient;
   }
 
   async getLockdowndClient() {
-    const usbmuxClient = new UsbmuxdClient(
-      UsbmuxdClient.connectUsbmuxdSocket(),
-    );
+    const usbmuxClient = new UsbmuxdClient(UsbmuxdClient.connectUsbmuxdSocket());
     const lockdownSocket = await usbmuxClient.connect(this.device, 62078);
     const lockdownClient = new LockdowndClient(lockdownSocket);
     this.connections.push(lockdownClient.socket);
@@ -64,33 +56,20 @@ export class ClientManager {
   }
 
   async getInstallationProxyClient() {
-    return this.getServiceClient(
-      'com.apple.mobile.installation_proxy',
-      InstallationProxyClient,
-    );
+    return this.getServiceClient('com.apple.mobile.installation_proxy', InstallationProxyClient);
   }
 
   async getMobileImageMounterClient() {
-    return this.getServiceClient(
-      'com.apple.mobile.mobile_image_mounter',
-      MobileImageMounterClient,
-    );
+    return this.getServiceClient('com.apple.mobile.mobile_image_mounter', MobileImageMounterClient);
   }
 
   async getDebugserverClient() {
     try {
       // iOS 14 added support for a secure debug service so try to connect to that first
-      return await this.getServiceClient(
-        'com.apple.debugserver.DVTSecureSocketProxy',
-        DebugserverClient,
-      );
+      return await this.getServiceClient('com.apple.debugserver.DVTSecureSocketProxy', DebugserverClient);
     } catch {
       // otherwise, fall back to the previous implementation
-      return this.getServiceClient(
-        'com.apple.debugserver',
-        DebugserverClient,
-        true,
-      );
+      return this.getServiceClient('com.apple.debugserver', DebugserverClient, true);
     }
   }
 
@@ -99,11 +78,8 @@ export class ClientManager {
     ServiceType: new (...args: any[]) => T,
     disableSSL = false,
   ) {
-    const { port: servicePort, enableServiceSSL } =
-      await this.lockdowndClient.startService(name);
-    const usbmuxClient = new UsbmuxdClient(
-      UsbmuxdClient.connectUsbmuxdSocket(),
-    );
+    const { port: servicePort, enableServiceSSL } = await this.lockdowndClient.startService(name);
+    const usbmuxClient = new UsbmuxdClient(UsbmuxdClient.connectUsbmuxdSocket());
     let usbmuxdSocket = await usbmuxClient.connect(this.device, servicePort);
 
     if (enableServiceSSL) {
@@ -163,7 +139,7 @@ class UsbmuxdProxy extends Duplex {
   constructor(private usbmuxdSock: net.Socket) {
     super();
 
-    this.usbmuxdSock.on('data', data => {
+    this.usbmuxdSock.on('data', (data) => {
       this.push(data);
     });
   }

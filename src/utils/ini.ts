@@ -6,10 +6,7 @@ const debug = Debug('native-run:android:utils:ini');
 
 export type INIGuard<T> = (o: any) => o is T;
 
-export async function readINI<T>(
-  p: string,
-  guard: INIGuard<T> = (o: any): o is T => true,
-): Promise<T | undefined> {
+export async function readINI<T>(p: string, guard: INIGuard<T> = (o: any): o is T => true): Promise<T | undefined> {
   const ini = await import('ini');
 
   try {

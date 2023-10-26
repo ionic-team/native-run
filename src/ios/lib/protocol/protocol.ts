@@ -7,9 +7,7 @@ const BPLIST_MAGIC = Buffer.from('bplist00');
 export type ProtocolReaderCallback = (resp: any, err?: Error) => void;
 
 export class ProtocolReaderFactory<T> {
-  constructor(
-    private ProtocolReader: new (callback: ProtocolReaderCallback) => T,
-  ) {}
+  constructor(private ProtocolReader: new (callback: ProtocolReaderCallback) => T) {}
 
   create(callback: (resp: any, err?: Error) => void): T {
     return new this.ProtocolReader(callback);
@@ -106,28 +104,26 @@ export abstract class ProtocolClient<MessageType = any> {
     callback?: (response: ResponseType, resolve: any, reject: any) => void,
   ): Promise<CallbackType | ResponseType> {
     return new Promise<ResponseType | CallbackType>((resolve, reject) => {
-      const reader = this.readerFactory.create(
-        async (resp: ResponseType, err?: Error) => {
-          if (err) {
-            reject(err);
-            return;
-          }
-          if (callback) {
-            callback(
-              resp,
-              (value: any) => {
-                this.socket.removeListener('data', reader.onData);
-                resolve(value);
-              },
-              reject,
-            );
-          } else {
-            this.socket.removeListener('data', reader.onData);
-            resolve(resp);
-          }
-        },
-      );
-      this.socket.on('error', err => {
+      const reader = this.readerFactory.create(async (resp: ResponseType, err?: Error) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        if (callback) {
+          callback(
+            resp,
+            (value: any) => {
+              this.socket.removeListener('data', reader.onData);
+              resolve(value);
+            },
+            reject,
+          );
+        } else {
+          this.socket.removeListener('data', reader.onData);
+          resolve(resp);
+        }
+      });
+      this.socket.on('error', (err) => {
         throw err;
       });
       this.socket.on('data', reader.onData);

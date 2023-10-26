@@ -7,10 +7,7 @@ import { execFile } from '../../utils/process';
 type XcodeVersion = string;
 type XcodeBuildVersion = string;
 
-export function getXcodeVersionInfo(): readonly [
-  XcodeVersion,
-  XcodeBuildVersion,
-] {
+export function getXcodeVersionInfo(): readonly [XcodeVersion, XcodeBuildVersion] {
   const xcodeVersionInfo = spawnSync('xcodebuild', ['-version'], {
     encoding: 'utf8',
   });
@@ -20,13 +17,9 @@ export function getXcodeVersionInfo(): readonly [
 
   try {
     const trimmed = xcodeVersionInfo.stdout.trim().split('\n');
-    return ['Xcode ', 'Build version'].map((s, i) =>
-      trimmed[i].replace(s, ''),
-    ) as [string, string];
+    return ['Xcode ', 'Build version'].map((s, i) => trimmed[i].replace(s, '')) as [string, string];
   } catch (error) {
-    throw new Exception(
-      `There was an error trying to retrieve the Xcode version: ${xcodeVersionInfo.stderr}`,
-    );
+    throw new Exception(`There was an error trying to retrieve the Xcode version: ${xcodeVersionInfo.stderr}`);
   }
 }
 
@@ -46,9 +39,7 @@ export async function getXCodePath() {
 
 export async function getDeveloperDiskImagePath(version: string) {
   const xCodePath = await getXCodePath();
-  const versionDirs = await readdir(
-    `${xCodePath}/Platforms/iPhoneOS.platform/DeviceSupport/`,
-  );
+  const versionDirs = await readdir(`${xCodePath}/Platforms/iPhoneOS.platform/DeviceSupport/`);
   const versionPrefix = version.match(/\d+\.\d+/);
   if (versionPrefix === null) {
     throw new Exception(`Invalid iOS version: ${version}`);

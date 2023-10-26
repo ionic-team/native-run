@@ -31,10 +31,7 @@ describe('android/utils/sdk/api', () => {
   };
 
   describe('findUnsatisfiedPackages', () => {
-    const schemaPackages: APISchemaPackage[] = [
-      FooPackageSchema,
-      BarPackageSchema,
-    ];
+    const schemaPackages: APISchemaPackage[] = [FooPackageSchema, BarPackageSchema];
 
     it('should return all package schemas for empty packages', () => {
       const result = findUnsatisfiedPackages([], schemaPackages);
@@ -67,18 +64,12 @@ describe('android/utils/sdk/api', () => {
     });
 
     it('should not find package for invalid version', () => {
-      const pkg = findPackageBySchema(
-        [FooPackage, BarPackageInvalidVersion],
-        BarPackageSchema,
-      );
+      const pkg = findPackageBySchema([FooPackage, BarPackageInvalidVersion], BarPackageSchema);
       expect(pkg).toBeUndefined();
     });
 
     it('should find foo package by schema', () => {
-      const pkg = findPackageBySchema(
-        [FooPackage, BarPackage],
-        FooPackageSchema,
-      );
+      const pkg = findPackageBySchema([FooPackage, BarPackage], FooPackageSchema);
       expect(pkg).toBe(FooPackage);
     });
   });

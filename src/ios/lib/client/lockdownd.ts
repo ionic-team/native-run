@@ -68,39 +68,23 @@ interface LockdowndQueryTypeResponse {
   Type: string;
 }
 
-function isLockdowndServiceResponse(
-  resp: any,
-): resp is LockdowndServiceResponse {
-  return (
-    resp.Request === 'StartService' &&
-    resp.Service !== undefined &&
-    resp.Port !== undefined
-  );
+function isLockdowndServiceResponse(resp: any): resp is LockdowndServiceResponse {
+  return resp.Request === 'StartService' && resp.Service !== undefined && resp.Port !== undefined;
 }
 
-function isLockdowndSessionResponse(
-  resp: any,
-): resp is LockdowndSessionResponse {
+function isLockdowndSessionResponse(resp: any): resp is LockdowndSessionResponse {
   return resp.Request === 'StartSession';
 }
 
-function isLockdowndAllValuesResponse(
-  resp: any,
-): resp is LockdowndAllValuesResponse {
+function isLockdowndAllValuesResponse(resp: any): resp is LockdowndAllValuesResponse {
   return resp.Request === 'GetValue' && resp.Value !== undefined;
 }
 
 function isLockdowndValueResponse(resp: any): resp is LockdowndValueResponse {
-  return (
-    resp.Request === 'GetValue' &&
-    resp.Key !== undefined &&
-    typeof resp.Value === 'string'
-  );
+  return resp.Request === 'GetValue' && resp.Key !== undefined && typeof resp.Value === 'string';
 }
 
-function isLockdowndQueryTypeResponse(
-  resp: any,
-): resp is LockdowndQueryTypeResponse {
+function isLockdowndQueryTypeResponse(resp: any): resp is LockdowndQueryTypeResponse {
   return resp.Request === 'QueryType' && resp.Type !== undefined;
 }
 
@@ -135,16 +119,13 @@ export class LockdowndClient extends ServiceClient<LockdownProtocolClient> {
 
     if (isLockdowndSessionResponse(resp)) {
       if (resp.EnableSessionSSL) {
-        this.protocolClient.socket = new tls.TLSSocket(
-          this.protocolClient.socket,
-          {
-            secureContext: tls.createSecureContext({
-              secureProtocol: 'TLSv1_2_method',
-              cert: pairRecord.RootCertificate,
-              key: pairRecord.RootPrivateKey,
-            }),
-          },
-        );
+        this.protocolClient.socket = new tls.TLSSocket(this.protocolClient.socket, {
+          secureContext: tls.createSecureContext({
+            secureProtocol: 'TLSv1_2_method',
+            cert: pairRecord.RootCertificate,
+            key: pairRecord.RootPrivateKey,
+          }),
+        });
         debug(`Socket upgraded to TLS connection`);
       }
       // TODO: save sessionID for StopSession?

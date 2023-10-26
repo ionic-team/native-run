@@ -9,28 +9,22 @@ export interface APILevel {
   readonly packages: SDKPackage[];
 }
 
-export async function getAPILevels(
-  packages: SDKPackage[],
-): Promise<APILevel[]> {
+export async function getAPILevels(packages: SDKPackage[]): Promise<APILevel[]> {
   const debug = Debug(`${modulePrefix}:${getAPILevels.name}`);
   const levels = [
     ...new Set(
-      packages
-        .map(pkg => pkg.apiLevel)
-        .filter(
-          (apiLevel): apiLevel is string => typeof apiLevel !== 'undefined',
-        ),
+      packages.map((pkg) => pkg.apiLevel).filter((apiLevel): apiLevel is string => typeof apiLevel !== 'undefined'),
     ),
   ].sort((a, b) => (a <= b ? 1 : -1));
 
-  const apis = levels.map(apiLevel => ({
+  const apis = levels.map((apiLevel) => ({
     apiLevel,
-    packages: packages.filter(pkg => pkg.apiLevel === apiLevel),
+    packages: packages.filter((pkg) => pkg.apiLevel === apiLevel),
   }));
 
   debug(
     'Discovered installed API Levels: %O',
-    apis.map(api => ({ ...api, packages: api.packages.map(pkg => pkg.path) })),
+    apis.map((api) => ({ ...api, packages: api.packages.map((pkg) => pkg.path) })),
   );
 
   return apis;
@@ -40,13 +34,10 @@ export function findUnsatisfiedPackages(
   packages: readonly SDKPackage[],
   schemas: readonly APISchemaPackage[],
 ): APISchemaPackage[] {
-  return schemas.filter(pkg => !findPackageBySchema(packages, pkg));
+  return schemas.filter((pkg) => !findPackageBySchema(packages, pkg));
 }
 
-export function findPackageBySchema(
-  packages: readonly SDKPackage[],
-  pkg: APISchemaPackage,
-): SDKPackage | undefined {
+export function findPackageBySchema(packages: readonly SDKPackage[], pkg: APISchemaPackage): SDKPackage | undefined {
   const apiPkg = findPackageBySchemaPath(packages, pkg.path);
 
   if (apiPkg) {
@@ -66,7 +57,7 @@ export function findPackageBySchemaPath(
   packages: readonly SDKPackage[],
   path: string | RegExp,
 ): SDKPackage | undefined {
-  return packages.find(pkg => {
+  return packages.find((pkg) => {
     if (typeof path !== 'string') {
       return !!pkg.path.match(path);
     }

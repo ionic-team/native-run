@@ -2,11 +2,7 @@ import * as Debug from 'debug';
 import type * as net from 'net';
 
 import type { ProtocolReaderCallback, ProtocolWriter } from './protocol';
-import {
-  ProtocolClient,
-  ProtocolReader,
-  ProtocolReaderFactory,
-} from './protocol';
+import { ProtocolClient, ProtocolReader, ProtocolReaderFactory } from './protocol';
 
 const debug = Debug('native-run:ios:lib:protocol:afc');
 
@@ -321,11 +317,7 @@ export enum AFC_FILE_OPEN_FLAGS {
 }
 
 function isAFCResponse(resp: any): resp is AFCResponse {
-  return (
-    AFC_OPS[resp.operation] !== undefined &&
-    resp.id !== undefined &&
-    resp.data !== undefined
-  );
+  return AFC_OPS[resp.operation] !== undefined && resp.id !== undefined && resp.data !== undefined;
 }
 
 function isStatusResponse(resp: any): resp is AFCStatusResponse {
@@ -337,13 +329,19 @@ function isErrorStatusResponse(resp: AFCResponse): boolean {
 }
 
 class AFCInternalError extends Error {
-  constructor(msg: string, public requestId: number) {
+  constructor(
+    msg: string,
+    public requestId: number,
+  ) {
     super(msg);
   }
 }
 
 export class AFCError extends Error {
-  constructor(msg: string, public status: AFC_STATUS) {
+  constructor(
+    msg: string,
+    public status: AFC_STATUS,
+  ) {
     super(msg);
   }
 }
@@ -353,20 +351,13 @@ export class AFCProtocolClient extends ProtocolClient {
   private requestCallbacks: { [key: number]: ProtocolReaderCallback } = {};
 
   constructor(socket: net.Socket) {
-    super(
-      socket,
-      new ProtocolReaderFactory(AFCProtocolReader),
-      new AFCProtocolWriter(),
-    );
+    super(socket, new ProtocolReaderFactory(AFCProtocolReader), new AFCProtocolWriter());
 
     const reader = this.readerFactory.create((resp, err) => {
       if (err && err instanceof AFCInternalError) {
         this.requestCallbacks[err.requestId](resp, err);
       } else if (isErrorStatusResponse(resp)) {
-        this.requestCallbacks[resp.id](
-          resp,
-          new AFCError(AFC_STATUS[resp.data], resp.data),
-        );
+        this.requestCallbacks[resp.id](resp, new AFCError(AFC_STATUS[resp.data], resp.data));
       } else {
         this.requestCallbacks[resp.id](resp);
       }
@@ -403,10 +394,7 @@ export class AFCProtocolReader extends ProtocolReader {
   parseHeader(data: Buffer) {
     const magic = data.slice(0, 8).toString('ascii');
     if (magic !== AFC_MAGIC) {
-      throw new AFCInternalError(
-        `Invalid AFC packet received (magic != ${AFC_MAGIC})`,
-        data.readUInt32LE(24),
-      );
+      throw new AFCInternalError(`Invalid AFC packet received (magic != ${AFC_MAGIC})`, data.readUInt32LE(24));
     }
     // technically these are uint64
     this.header = {
@@ -432,22 +420,12 @@ export class AFCProtocolReader extends ProtocolReader {
     };
     if (isStatusResponse(body)) {
       const status = data.readUInt32LE(0);
-      debug(
-        `${AFC_OPS[this.header.operation]} response: ${AFC_STATUS[status]}`,
-      );
+      debug(`${AFC_OPS[this.header.operation]} response: ${AFC_STATUS[status]}`);
       body.data = status;
     } else if (data.length <= 8) {
-      debug(
-        `${
-          AFC_OPS[this.header.operation]
-        } response: ${Array.prototype.toString.call(body)}`,
-      );
+      debug(`${AFC_OPS[this.header.operation]} response: ${Array.prototype.toString.call(body)}`);
     } else {
-      debug(
-        `${AFC_OPS[this.header.operation]} response length: ${
-          data.length
-        } bytes`,
-      );
+      debug(`${AFC_OPS[this.header.operation]} response length: ${data.length} bytes`);
     }
     return body;
   }
@@ -481,9 +459,7 @@ export class AFCProtocolWriter implements ProtocolWriter {
       );
     }
 
-    debug(
-      `socket write, bytes written ${header.length} (header), ${data.length} (body)`,
-    );
+    debug(`socket write, bytes written ${header.length} (header), ${data.length} (body)`);
     if (payload) {
       socket.write(payload);
     }

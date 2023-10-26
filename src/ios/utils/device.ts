@@ -6,13 +6,7 @@ import * as path from 'path';
 import { Exception } from '../../errors';
 import { onBeforeExit, wait } from '../../utils/process';
 import type { DeviceValues, IPLookupResult } from '../lib';
-import {
-  AFCError,
-  AFC_STATUS,
-  ClientManager,
-  LockdowndClient,
-  UsbmuxdClient,
-} from '../lib';
+import { AFCError, AFC_STATUS, ClientManager, LockdowndClient, UsbmuxdClient } from '../lib';
 
 import { getDeveloperDiskImagePath, getXcodeVersionInfo } from './xcode';
 
@@ -25,9 +19,7 @@ export async function getConnectedDevices() {
 
   return Promise.all(
     usbmuxDevices.map(async (d): Promise<DeviceValues> => {
-      const socket = await new UsbmuxdClient(
-        UsbmuxdClient.connectUsbmuxdSocket(),
-      ).connect(d, 62078);
+      const socket = await new UsbmuxdClient(UsbmuxdClient.connectUsbmuxdSocket()).connect(d, 62078);
       const device = await new LockdowndClient(socket).getAllValues();
       socket.end();
       return device;
@@ -35,12 +27,7 @@ export async function getConnectedDevices() {
   );
 }
 
-export async function runOnDevice(
-  udid: string,
-  appPath: string,
-  bundleId: string,
-  waitForApp: boolean,
-) {
+export async function runOnDevice(udid: string, appPath: string, bundleId: string, waitForApp: boolean) {
   const clientManager = await ClientManager.create(udid);
 
   try {
@@ -80,33 +67,21 @@ export async function runOnDevice(
       const [xcodeVersion] = getXcodeVersionInfo();
       const xcodeMajorVersion = Number(xcodeVersion.split('.')[0]);
       if (xcodeMajorVersion >= 15) {
-        const launchResult = spawn('xcrun', [
-          'devicectl',
-          'device',
-          'process',
-          'launch',
-          '--device',
-          udid,
-          bundleId,
-        ]);
+        const launchResult = spawn('xcrun', ['devicectl', 'device', 'process', 'launch', '--device', udid, bundleId]);
         return new Promise<void>((resolve, reject) => {
-          launchResult.on('close', code => {
+          launchResult.on('close', (code) => {
             if (code === 0) {
               resolve();
             } else {
-              reject(
-                new Exception(`There was an error launching app on device`),
-              );
+              reject(new Exception(`There was an error launching app on device`));
             }
           });
-          launchResult.on('error', err => {
+          launchResult.on('error', (err) => {
             reject(err);
           });
         });
       } else {
-        throw new Exception(
-          `running on iOS 17 devices requires Xcode 15 and later`,
-        );
+        throw new Exception(`running on iOS 17 devices requires Xcode 15 and later`);
       }
     }
   } finally {
@@ -120,29 +95,15 @@ async function mountDeveloperDiskImage(clientManager: ClientManager) {
   if (!(await imageMounter.lookupImage()).ImageSignature) {
     // verify DeveloperDiskImage exists (TODO: how does this work on Windows/Linux?)
     // TODO: if windows/linux, download?
-    const version = await (
-      await clientManager.getLockdowndClient()
-    ).getValue('ProductVersion');
+    const version = await (await clientManager.getLockdowndClient()).getValue('ProductVersion');
     const developerDiskImagePath = await getDeveloperDiskImagePath(version);
-    const developerDiskImageSig = readFileSync(
-      `${developerDiskImagePath}.signature`,
-    );
-    await imageMounter.uploadImage(
-      developerDiskImagePath,
-      developerDiskImageSig,
-    );
-    await imageMounter.mountImage(
-      developerDiskImagePath,
-      developerDiskImageSig,
-    );
+    const developerDiskImageSig = readFileSync(`${developerDiskImagePath}.signature`);
+    await imageMounter.uploadImage(developerDiskImagePath, developerDiskImageSig);
+    await imageMounter.mountImage(developerDiskImagePath, developerDiskImageSig);
   }
 }
 
-async function uploadApp(
-  clientManager: ClientManager,
-  srcPath: string,
-  destinationPath: string,
-) {
+async function uploadApp(clientManager: ClientManager, srcPath: string, destinationPath: string) {
   const afcClient = await clientManager.getAFCClient();
   try {
     await afcClient.getFileInfo('PublicStaging');
@@ -156,10 +117,7 @@ async function uploadApp(
   await afcClient.uploadDirectory(srcPath, destinationPath);
 }
 
-async function launchApp(
-  clientManager: ClientManager,
-  appInfo: IPLookupResult[string],
-) {
+async function launchApp(clientManager: ClientManager, appInfo: IPLookupResult[string]) {
   let tries = 0;
   while (tries < 3) {
     const debugServerClient = await clientManager.getDebugserverClient();

@@ -3,10 +3,7 @@ import * as fs from 'fs';
 import type * as net from 'net';
 
 import type { LockdownCommand, LockdownResponse } from '../protocol/lockdown';
-import {
-  LockdownProtocolClient,
-  isLockdownResponse,
-} from '../protocol/lockdown';
+import { LockdownProtocolClient, isLockdownResponse } from '../protocol/lockdown';
 
 import { ResponseError, ServiceClient } from './client';
 
@@ -30,21 +27,15 @@ export interface MIMUploadReceiveBytesResponse extends LockdownResponse {
   Status: 'ReceiveBytesAck';
 }
 
-function isMIMUploadCompleteResponse(
-  resp: any,
-): resp is MIMUploadCompleteResponse {
+function isMIMUploadCompleteResponse(resp: any): resp is MIMUploadCompleteResponse {
   return resp.Status === 'Complete';
 }
 
-function isMIMUploadReceiveBytesResponse(
-  resp: any,
-): resp is MIMUploadReceiveBytesResponse {
+function isMIMUploadReceiveBytesResponse(resp: any): resp is MIMUploadReceiveBytesResponse {
   return resp.Status === 'ReceiveBytesAck';
 }
 
-export class MobileImageMounterClient extends ServiceClient<
-  LockdownProtocolClient<MIMMessage>
-> {
+export class MobileImageMounterClient extends ServiceClient<LockdownProtocolClient<MIMMessage>> {
   constructor(socket: net.Socket) {
     super(socket, new LockdownProtocolClient(socket));
   }
@@ -60,10 +51,7 @@ export class MobileImageMounterClient extends ServiceClient<
     });
 
     if (!isLockdownResponse(resp) || resp.Status !== 'Complete') {
-      throw new ResponseError(
-        `There was an error mounting ${imagePath} on device`,
-        resp,
-      );
+      throw new ResponseError(`There was an error mounting ${imagePath} on device`, resp);
     }
   }
 
@@ -82,16 +70,11 @@ export class MobileImageMounterClient extends ServiceClient<
         if (isMIMUploadReceiveBytesResponse(resp)) {
           const imageStream = fs.createReadStream(imagePath);
           imageStream.pipe(this.protocolClient.socket, { end: false });
-          imageStream.on('error', err => reject(err));
+          imageStream.on('error', (err) => reject(err));
         } else if (isMIMUploadCompleteResponse(resp)) {
           resolve();
         } else {
-          reject(
-            new ResponseError(
-              `There was an error uploading image ${imagePath} to the device`,
-              resp,
-            ),
-          );
+          reject(new ResponseError(`There was an error uploading image ${imagePath} to the device`, resp));
         }
       },
     );

@@ -7,9 +7,7 @@ import { getInstalledAVDs } from './avd';
 import type { SDK } from './sdk';
 
 export async function getDeviceTargets(sdk: SDK): Promise<Target[]> {
-  return (await getDevices(sdk))
-    .filter(device => device.type === 'hardware')
-    .map(deviceToTarget);
+  return (await getDevices(sdk)).filter((device) => device.type === 'hardware').map(deviceToTarget);
 }
 
 export async function getVirtualTargets(sdk: SDK): Promise<Target[]> {

@@ -27,8 +27,7 @@ describe('android/utils/emulator', () => {
     });
 
     it('should parse response from output', () => {
-      const expected =
-        authRequiredOutput.split('\n').slice(0, -2).join('\n') + '\n';
+      const expected = authRequiredOutput.split('\n').slice(0, -2).join('\n') + '\n';
       const event = parseAndroidConsoleResponse(authRequiredOutput);
       expect(event).toBe(expected);
     });
