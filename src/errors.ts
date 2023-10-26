@@ -4,10 +4,7 @@ export const enum ExitCode {
   GENERAL = 1,
 }
 
-export class Exception<T extends string, D = { [key: string]: string }>
-  extends Error
-  implements NodeJS.ErrnoException
-{
+export class Exception<T extends string, D = { [key: string]: string }> extends Error implements NodeJS.ErrnoException {
   constructor(
     readonly message: string,
     readonly code?: T,
@@ -30,10 +27,7 @@ export class Exception<T extends string, D = { [key: string]: string }>
   }
 }
 
-export class AndroidException<
-  T extends string,
-  D = { [key: string]: string },
-> extends Exception<T, D> {
+export class AndroidException<T extends string, D = { [key: string]: string }> extends Exception<T, D> {
   serialize(): string {
     return (
       `${super.serialize()}\n\n` +
@@ -55,8 +49,7 @@ export const ERR_NOT_ENOUGH_SPACE = 'ERR_NOT_ENOUGH_SPACE';
 export const ERR_DEVICE_OFFLINE = 'ERR_DEVICE_OFFLINE';
 export const ERR_INVALID_SDK_PACKAGE = 'ERR_INVALID_SDK_PACKAGE';
 export const ERR_NON_ZERO_EXIT = 'ERR_NON_ZERO_EXIT';
-export const ERR_UNSUITABLE_API_INSTALLATION =
-  'ERR_UNSUITABLE_API_INSTALLATION';
+export const ERR_UNSUITABLE_API_INSTALLATION = 'ERR_UNSUITABLE_API_INSTALLATION';
 export const ERR_SDK_NOT_FOUND = 'ERR_SDK_NOT_FOUND';
 export const ERR_SDK_PACKAGE_NOT_FOUND = 'ERR_SDK_PACKAGE_NOT_FOUND';
 export const ERR_TARGET_NOT_FOUND = 'ERR_TARGET_NOT_FOUND';
@@ -92,10 +85,7 @@ export type EmulatorExceptionCode =
 
 export class EmulatorException extends AndroidException<EmulatorExceptionCode> {}
 
-export type AndroidRunExceptionCode =
-  | typeof ERR_TARGET_NOT_FOUND
-  | typeof ERR_NO_DEVICE
-  | typeof ERR_NO_TARGET;
+export type AndroidRunExceptionCode = typeof ERR_TARGET_NOT_FOUND | typeof ERR_NO_DEVICE | typeof ERR_NO_TARGET;
 
 export class AndroidRunException extends AndroidException<AndroidRunExceptionCode> {}
 

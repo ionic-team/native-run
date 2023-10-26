@@ -45,10 +45,7 @@ export interface Device extends MappedDeviceProps {
   properties: DeviceProperties;
 }
 
-const ADB_GETPROP_MAP: ReadonlyMap<string, keyof MappedDeviceProps> = new Map<
-  string,
-  keyof MappedDeviceProps
->([
+const ADB_GETPROP_MAP: ReadonlyMap<string, keyof MappedDeviceProps> = new Map<string, keyof MappedDeviceProps>([
   ['ro.product.manufacturer', 'manufacturer'],
   ['ro.product.model', 'model'],
   ['ro.product.name', 'product'],
@@ -65,7 +62,7 @@ export async function getDevices(sdk: SDK): Promise<Device[]> {
   const devices = parseAdbDevices(stdout);
 
   await Promise.all(
-    devices.map(async device => {
+    devices.map(async (device) => {
       const properties = await getDeviceProperties(sdk, device);
 
       for (const [prop, deviceProp] of ADB_GETPROP_MAP.entries()) {
@@ -83,11 +80,7 @@ export async function getDevices(sdk: SDK): Promise<Device[]> {
   return devices;
 }
 
-export async function getDeviceProperty(
-  sdk: SDK,
-  device: Device,
-  property: string,
-): Promise<string> {
+export async function getDeviceProperty(sdk: SDK, device: Device, property: string): Promise<string> {
   const debug = Debug(`${modulePrefix}:${getDeviceProperty.name}`);
   const args = ['-s', device.serial, 'shell', 'getprop', property];
 
@@ -97,10 +90,7 @@ export async function getDeviceProperty(
   return stdout.trim();
 }
 
-export async function getDeviceProperties(
-  sdk: SDK,
-  device: Device,
-): Promise<DeviceProperties> {
+export async function getDeviceProperties(sdk: SDK, device: Device): Promise<DeviceProperties> {
   const debug = Debug(`${modulePrefix}:${getDeviceProperties.name}`);
   const args = ['-s', device.serial, 'shell', 'getprop'];
 
@@ -139,7 +129,7 @@ export async function waitForDevice(sdk: SDK, serial: string): Promise<void> {
 export async function waitForBoot(sdk: SDK, device: Device): Promise<void> {
   const debug = Debug(`${modulePrefix}:${waitForBoot.name}`);
 
-  return new Promise<void>(resolve => {
+  return new Promise<void>((resolve) => {
     const interval = setInterval(async () => {
       const booted = await getDeviceProperty(sdk, device, 'dev.bootcomplete');
 
@@ -152,26 +142,18 @@ export async function waitForBoot(sdk: SDK, device: Device): Promise<void> {
   });
 }
 
-export async function waitForClose(
-  sdk: SDK,
-  device: Device,
-  app: string,
-): Promise<void> {
+export async function waitForClose(sdk: SDK, device: Device, app: string): Promise<void> {
   const debug = Debug(`${modulePrefix}:${waitForClose.name}`);
   const args = ['-s', device.serial, 'shell', `ps | grep ${app}`];
 
-  return new Promise<void>(resolve => {
+  return new Promise<void>((resolve) => {
     const interval = setInterval(async () => {
       try {
         debug('Invoking adb with args: %O', args);
         await execAdb(sdk, args);
       } catch (e) {
         debug('Error received from adb: %O', e);
-        debug(
-          'App %s no longer found in process list for %s',
-          app,
-          device.serial,
-        );
+        debug('App %s no longer found in process list for %s', app, device.serial);
         clearInterval(interval);
         resolve();
       }
@@ -179,15 +161,9 @@ export async function waitForClose(
   });
 }
 
-export async function installApk(
-  sdk: SDK,
-  device: Device,
-  apk: string,
-): Promise<void> {
+export async function installApk(sdk: SDK, device: Device, apk: string): Promise<void> {
   const debug = Debug(`${modulePrefix}:${installApk.name}`);
-  const platformTools = await getSDKPackage(
-    path.join(sdk.root, 'platform-tools'),
-  );
+  const platformTools = await getSDKPackage(path.join(sdk.root, 'platform-tools'));
   const adbBin = path.join(platformTools.location, 'adb');
   const args = ['-s', device.serial, 'install', '-r', '-t', apk];
   debug('Invoking adb with args: %O', args);
@@ -198,7 +174,7 @@ export async function installApk(
   });
 
   return new Promise<void>((resolve, reject) => {
-    p.on('close', code => {
+    p.on('close', (code) => {
       if (code === 0) {
         resolve();
       } else {
@@ -206,7 +182,7 @@ export async function installApk(
       }
     });
 
-    p.on('error', err => {
+    p.on('error', (err) => {
       debug('adb install error: %O', err);
       reject(err);
     });
@@ -219,47 +195,17 @@ export async function installApk(
         const event = parseAdbInstallOutput(line);
 
         if (event === ADBEvent.IncompatibleUpdateFailure) {
-          reject(
-            new ADBException(
-              `Encountered adb error: ${ADBEvent[event]}.`,
-              ERR_INCOMPATIBLE_UPDATE,
-            ),
-          );
+          reject(new ADBException(`Encountered adb error: ${ADBEvent[event]}.`, ERR_INCOMPATIBLE_UPDATE));
         } else if (event === ADBEvent.NewerVersionOnDeviceFailure) {
-          reject(
-            new ADBException(
-              `Encountered adb error: ${ADBEvent[event]}.`,
-              ERR_VERSION_DOWNGRADE,
-            ),
-          );
+          reject(new ADBException(`Encountered adb error: ${ADBEvent[event]}.`, ERR_VERSION_DOWNGRADE));
         } else if (event === ADBEvent.NewerSdkRequiredOnDeviceFailure) {
-          reject(
-            new ADBException(
-              `Encountered adb error: ${ADBEvent[event]}.`,
-              ERR_MIN_SDK_VERSION,
-            ),
-          );
+          reject(new ADBException(`Encountered adb error: ${ADBEvent[event]}.`, ERR_MIN_SDK_VERSION));
         } else if (event === ADBEvent.NoCertificates) {
-          reject(
-            new ADBException(
-              `Encountered adb error: ${ADBEvent[event]}.`,
-              ERR_NO_CERTIFICATES,
-            ),
-          );
+          reject(new ADBException(`Encountered adb error: ${ADBEvent[event]}.`, ERR_NO_CERTIFICATES));
         } else if (event === ADBEvent.NotEnoughSpace) {
-          reject(
-            new ADBException(
-              `Encountered adb error: ${ADBEvent[event]}.`,
-              ERR_NOT_ENOUGH_SPACE,
-            ),
-          );
+          reject(new ADBException(`Encountered adb error: ${ADBEvent[event]}.`, ERR_NOT_ENOUGH_SPACE));
         } else if (event === ADBEvent.DeviceOffline) {
-          reject(
-            new ADBException(
-              `Encountered adb error: ${ADBEvent[event]}.`,
-              ERR_DEVICE_OFFLINE,
-            ),
-          );
+          reject(new ADBException(`Encountered adb error: ${ADBEvent[event]}.`, ERR_DEVICE_OFFLINE));
         }
 
         cb();
@@ -268,11 +214,7 @@ export async function installApk(
   });
 }
 
-export async function closeApp(
-  sdk: SDK,
-  device: Device,
-  app: string,
-): Promise<void> {
+export async function closeApp(sdk: SDK, device: Device, app: string): Promise<void> {
   const debug = Debug(`${modulePrefix}:${closeApp.name}`);
   const args = ['-s', device.serial, 'shell', 'am', 'force-stop', app];
 
@@ -280,11 +222,7 @@ export async function closeApp(
   await execAdb(sdk, args);
 }
 
-export async function uninstallApp(
-  sdk: SDK,
-  device: Device,
-  app: string,
-): Promise<void> {
+export async function uninstallApp(sdk: SDK, device: Device, app: string): Promise<void> {
   const debug = Debug(`${modulePrefix}:${uninstallApp.name}`);
   const args = ['-s', device.serial, 'uninstall', app];
 
@@ -313,10 +251,7 @@ export function parseAdbInstallOutput(line: string): ADBEvent | undefined {
     event = ADBEvent.NewerSdkRequiredOnDeviceFailure;
   } else if (line.includes('INSTALL_PARSE_FAILED_NO_CERTIFICATES')) {
     event = ADBEvent.NoCertificates;
-  } else if (
-    line.includes('INSTALL_FAILED_INSUFFICIENT_STORAGE') ||
-    line.includes('not enough space')
-  ) {
+  } else if (line.includes('INSTALL_FAILED_INSUFFICIENT_STORAGE') || line.includes('not enough space')) {
     event = ADBEvent.NotEnoughSpace;
   } else if (line.includes('device offline')) {
     event = ADBEvent.DeviceOffline;
@@ -336,16 +271,7 @@ export async function startActivity(
   activityName: string,
 ): Promise<void> {
   const debug = Debug(`${modulePrefix}:${startActivity.name}`);
-  const args = [
-    '-s',
-    device.serial,
-    'shell',
-    'am',
-    'start',
-    '-W',
-    '-n',
-    `${packageName}/${activityName}`,
-  ];
+  const args = ['-s', device.serial, 'shell', 'am', 'start', '-W', '-n', `${packageName}/${activityName}`];
 
   debug('Invoking adb with args: %O', args);
   await execAdb(sdk, args, { timeout: 5000 });
@@ -369,30 +295,23 @@ export function parseAdbDevices(output: string): Device[] {
         const [, serial, state, description] = m;
         const properties = description
           .split(/\s+/)
-          .map(prop => (prop.includes(':') ? prop.split(':') : undefined))
-          .filter(
-            (kv): kv is [string, string] =>
-              typeof kv !== 'undefined' && kv.length >= 2,
-          )
-          .reduce((acc, [k, v]) => {
-            if (k && v) {
-              acc[k.trim()] = v.trim();
-            }
+          .map((prop) => (prop.includes(':') ? prop.split(':') : undefined))
+          .filter((kv): kv is [string, string] => typeof kv !== 'undefined' && kv.length >= 2)
+          .reduce(
+            (acc, [k, v]) => {
+              if (k && v) {
+                acc[k.trim()] = v.trim();
+              }
 
-            return acc;
-          }, {} as { [key: string]: string | undefined });
+              return acc;
+            },
+            {} as { [key: string]: string | undefined },
+          );
 
         const isIP = !!serial.match(ipRe);
-        const isGenericDevice = (properties['device'] || '').startsWith(
-          'generic',
-        );
+        const isGenericDevice = (properties['device'] || '').startsWith('generic');
         const type =
-          'usb' in properties ||
-          isIP ||
-          !serial.startsWith('emulator') ||
-          !isGenericDevice
-            ? 'hardware'
-            : 'emulator';
+          'usb' in properties || isIP || !serial.startsWith('emulator') || !isGenericDevice ? 'hardware' : 'emulator';
         const connection = 'usb' in properties ? 'usb' : isIP ? 'tcpip' : null;
 
         devices.push({
@@ -408,10 +327,7 @@ export function parseAdbDevices(output: string): Device[] {
           sdkVersion: '',
         });
       } else {
-        debug(
-          'adb devices output line does not match expected regex: %O',
-          line,
-        );
+        debug('adb devices output line does not match expected regex: %O', line);
       }
     }
   }
@@ -419,37 +335,17 @@ export function parseAdbDevices(output: string): Device[] {
   return devices;
 }
 
-export async function forwardPorts(
-  sdk: SDK,
-  device: Device,
-  ports: Ports,
-): Promise<void> {
+export async function forwardPorts(sdk: SDK, device: Device, ports: Ports): Promise<void> {
   const debug = Debug(`${modulePrefix}:${forwardPorts.name}`);
-  const args = [
-    '-s',
-    device.serial,
-    'reverse',
-    `tcp:${ports.device}`,
-    `tcp:${ports.host}`,
-  ];
+  const args = ['-s', device.serial, 'reverse', `tcp:${ports.device}`, `tcp:${ports.host}`];
 
   debug('Invoking adb with args: %O', args);
   await execAdb(sdk, args, { timeout: 5000 });
 }
 
-export async function unforwardPorts(
-  sdk: SDK,
-  device: Device,
-  ports: Ports,
-): Promise<void> {
+export async function unforwardPorts(sdk: SDK, device: Device, ports: Ports): Promise<void> {
   const debug = Debug(`${modulePrefix}:${unforwardPorts.name}`);
-  const args = [
-    '-s',
-    device.serial,
-    'reverse',
-    '--remove',
-    `tcp:${ports.device}`,
-  ];
+  const args = ['-s', device.serial, 'reverse', '--remove', `tcp:${ports.device}`];
 
   debug('Invoking adb with args: %O', args);
   await execAdb(sdk, args, { timeout: 5000 });
@@ -459,11 +355,7 @@ export interface ExecADBOptions {
   timeout?: number;
 }
 
-export async function execAdb(
-  sdk: SDK,
-  args: string[],
-  options: ExecADBOptions = {},
-): Promise<string> {
+export async function execAdb(sdk: SDK, args: string[], options: ExecADBOptions = {}): Promise<string> {
   const debug = Debug(`${modulePrefix}:${execAdb.name}`);
   let timer: NodeJS.Timer | undefined;
 
@@ -475,10 +367,7 @@ export async function execAdb(
       process.stderr.write(msg);
     }
 
-    debug(
-      'ADB timeout of %O reached, killing server and retrying...',
-      options.timeout,
-    );
+    debug('ADB timeout of %O reached, killing server and retrying...', options.timeout);
     debug('Invoking adb with args: %O', ['kill-server']);
     await execAdb(sdk, ['kill-server']);
     debug('Invoking adb with args: %O', ['start-server']);
@@ -488,9 +377,7 @@ export async function execAdb(
   };
 
   const run = async () => {
-    const platformTools = await getSDKPackage(
-      path.join(sdk.root, 'platform-tools'),
-    );
+    const platformTools = await getSDKPackage(path.join(sdk.root, 'platform-tools'));
     const adbBin = path.join(platformTools.location, 'adb');
     const { stdout } = await execFile(adbBin, args, {
       env: supplementProcessEnv(sdk),
@@ -509,7 +396,7 @@ export async function execAdb(
       timer = setTimeout(() => retry().then(resolve, reject), options.timeout);
     }
 
-    run().then(resolve, err => {
+    run().then(resolve, (err) => {
       if (!timer) {
         reject(err);
       }

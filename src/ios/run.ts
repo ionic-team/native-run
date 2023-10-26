@@ -3,13 +3,7 @@ import * as Debug from 'debug';
 import { existsSync, mkdtempSync } from 'fs';
 import * as path from 'path';
 
-import {
-  CLIException,
-  ERR_BAD_INPUT,
-  ERR_DEVICE_LOCKED,
-  ERR_TARGET_NOT_FOUND,
-  IOSRunException,
-} from '../errors';
+import { CLIException, ERR_BAD_INPUT, ERR_DEVICE_LOCKED, ERR_TARGET_NOT_FOUND, IOSRunException } from '../errors';
 import { getOptionValue } from '../utils/cli';
 import { wait } from '../utils/process';
 
@@ -42,27 +36,19 @@ async function runIpaOrAppFile({
   preferSimulator,
 }: IOSRunConfig): Promise<void> {
   if (udid) {
-    if (devices.find(d => d.UniqueDeviceID === udid)) {
+    if (devices.find((d) => d.UniqueDeviceID === udid)) {
       await runOnDevice(udid, appPath, bundleId, waitForApp);
-    } else if (simulators.find(s => s.udid === udid)) {
+    } else if (simulators.find((s) => s.udid === udid)) {
       await runOnSimulator(udid, appPath, bundleId, waitForApp);
     } else {
-      throw new IOSRunException(
-        `No device or simulator with UDID "${udid}" found`,
-        ERR_TARGET_NOT_FOUND,
-      );
+      throw new IOSRunException(`No device or simulator with UDID "${udid}" found`, ERR_TARGET_NOT_FOUND);
     }
   } else if (devices.length && !preferSimulator) {
     // no udid, use first connected device
     await runOnDevice(devices[0].UniqueDeviceID, appPath, bundleId, waitForApp);
   } else {
     // use default sim
-    await runOnSimulator(
-      simulators[simulators.length - 1].udid,
-      appPath,
-      bundleId,
-      waitForApp,
-    );
+    await runOnSimulator(simulators[simulators.length - 1].udid, appPath, bundleId, waitForApp);
   }
 }
 
@@ -83,18 +69,11 @@ async function runIpaOrAppFileOnInterval(config: IOSRunConfig): Promise<void> {
     try {
       await runIpaOrAppFile(config);
     } catch (err: any) {
-      if (
-        err instanceof IOSLibError &&
-        err.code == 'DeviceLocked' &&
-        retryCount < maxRetryCount
-      ) {
+      if (err instanceof IOSLibError && err.code == 'DeviceLocked' && retryCount < maxRetryCount) {
         await retry();
       } else {
         if (retryCount >= maxRetryCount) {
-          error = new IOSRunException(
-            `Device still locked after 1 minute. Aborting.`,
-            ERR_DEVICE_LOCKED,
-          );
+          error = new IOSRunException(`Device still locked after 1 minute. Aborting.`, ERR_DEVICE_LOCKED);
         } else {
           error = err;
         }
@@ -134,10 +113,7 @@ export async function run(args: readonly string[]): Promise<void> {
 
     const bundleId = await getBundleId(appPath);
 
-    const [devices, simulators] = await Promise.all([
-      getConnectedDevices(),
-      getSimulators(),
-    ]);
+    const [devices, simulators] = await Promise.all([getConnectedDevices(), getSimulators()]);
     // try to run on device or simulator with udid
     const config: IOSRunConfig = {
       udid,

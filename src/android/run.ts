@@ -26,12 +26,7 @@ import {
 } from './utils/adb';
 import { getApkInfo } from './utils/apk';
 import { getInstalledAVDs } from './utils/avd';
-import {
-  installApkToDevice,
-  selectDeviceByTarget,
-  selectHardwareDevice,
-  selectVirtualDevice,
-} from './utils/run';
+import { installApkToDevice, selectDeviceByTarget, selectHardwareDevice, selectVirtualDevice } from './utils/run';
 import type { SDK } from './utils/sdk';
 import { getSDK } from './utils/sdk';
 
@@ -49,9 +44,7 @@ export async function run(args: readonly string[]): Promise<void> {
       const [device, host] = port.split(':');
 
       if (!device || !host) {
-        throw new CLIException(
-          `Invalid --forward value "${port}": expecting <device port:host port>, e.g. 8080:8080`,
-        );
+        throw new CLIException(`Invalid --forward value "${port}": expecting <device port:host port>, e.g. 8080:8080`);
       }
 
       ports.push({ device, host });
@@ -64,11 +57,7 @@ export async function run(args: readonly string[]): Promise<void> {
 
   const device = await selectDevice(sdk, args);
 
-  log(
-    `Selected ${device.type === 'hardware' ? 'hardware device' : 'emulator'} ${
-      device.serial
-    }\n`,
-  );
+  log(`Selected ${device.type === 'hardware' ? 'hardware device' : 'emulator'} ${device.serial}\n`);
 
   const { appId, activityName } = await getApkInfo(apkPath);
   await waitForBoot(sdk, device);
@@ -109,10 +98,7 @@ export async function run(args: readonly string[]): Promise<void> {
   }
 }
 
-export async function selectDevice(
-  sdk: SDK,
-  args: readonly string[],
-): Promise<Device> {
+export async function selectDevice(sdk: SDK, args: readonly string[]): Promise<Device> {
   const debug = Debug(`${modulePrefix}:${selectDevice.name}`);
 
   const devices = await getDevices(sdk);
@@ -127,10 +113,7 @@ export async function selectDevice(
     if (targetDevice) {
       return targetDevice;
     } else {
-      throw new AndroidRunException(
-        `Target not found: ${target}`,
-        ERR_TARGET_NOT_FOUND,
-      );
+      throw new AndroidRunException(`Target not found: ${target}`, ERR_TARGET_NOT_FOUND);
     }
   }
 
@@ -166,8 +149,5 @@ export async function selectDevice(
     }
   }
 
-  throw new AndroidRunException(
-    'No target devices/emulators available.',
-    ERR_NO_TARGET,
-  );
+  throw new AndroidRunException('No target devices/emulators available.', ERR_NO_TARGET);
 }

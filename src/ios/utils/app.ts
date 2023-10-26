@@ -13,11 +13,9 @@ const debug = Debug('native-run:ios:utils:app');
 export async function getBundleId(appPath: string) {
   const plistPath = path.resolve(appPath, 'Info.plist');
   try {
-    const { stdout } = await execFile(
-      '/usr/libexec/PlistBuddy',
-      ['-c', 'Print :CFBundleIdentifier', plistPath],
-      { encoding: 'utf8' },
-    );
+    const { stdout } = await execFile('/usr/libexec/PlistBuddy', ['-c', 'Print :CFBundleIdentifier', plistPath], {
+      encoding: 'utf8',
+    });
     if (stdout) {
       return stdout.trim();
     }

@@ -27,18 +27,16 @@ export async function selectDeviceByTarget(
 
   debug('--target %s detected', target);
   debug('Checking if device can be found by serial: %s', target);
-  const device = devices.find(d => d.serial === target);
+  const device = devices.find((d) => d.serial === target);
 
   if (device) {
     debug('Device found by serial: %s', device.serial);
     return device;
   }
 
-  const emulatorDevices = devices.filter(d => d.type === 'emulator');
+  const emulatorDevices = devices.filter((d) => d.type === 'emulator');
 
-  const pairAVD = async (
-    emulator: Device,
-  ): Promise<[Device, AVD | undefined]> => {
+  const pairAVD = async (emulator: Device): Promise<[Device, AVD | undefined]> => {
     let avd: AVD | undefined;
 
     try {
@@ -51,17 +49,9 @@ export async function selectDeviceByTarget(
     return [emulator, avd];
   };
 
-  debug(
-    'Checking if any of %d running emulators are using AVD by ID: %s',
-    emulatorDevices.length,
-    target,
-  );
-  const emulatorsAndAVDs = await Promise.all(
-    emulatorDevices.map(emulator => pairAVD(emulator)),
-  );
-  const emulators = emulatorsAndAVDs.filter(
-    (t): t is [Device, AVD] => typeof t[1] !== 'undefined',
-  );
+  debug('Checking if any of %d running emulators are using AVD by ID: %s', emulatorDevices.length, target);
+  const emulatorsAndAVDs = await Promise.all(emulatorDevices.map((emulator) => pairAVD(emulator)));
+  const emulators = emulatorsAndAVDs.filter((t): t is [Device, AVD] => typeof t[1] !== 'undefined');
   const emulator = emulators.find(([, avd]) => avd.id === target);
 
   if (emulator) {
@@ -71,7 +61,7 @@ export async function selectDeviceByTarget(
   }
 
   debug('Checking if AVD can be found by ID: %s', target);
-  const avd = avds.find(avd => avd.id === target);
+  const avd = avds.find((avd) => avd.id === target);
 
   if (avd) {
     debug('AVD found by ID: %s', avd.id);
@@ -82,10 +72,8 @@ export async function selectDeviceByTarget(
   }
 }
 
-export async function selectHardwareDevice(
-  devices: readonly Device[],
-): Promise<Device | undefined> {
-  const hardwareDevices = devices.filter(d => d.type === 'hardware');
+export async function selectHardwareDevice(devices: readonly Device[]): Promise<Device | undefined> {
+  const hardwareDevices = devices.filter((d) => d.type === 'hardware');
 
   // If a hardware device is found, we prefer launching to it instead of in an emulator.
   if (hardwareDevices.length > 0) {
@@ -93,13 +81,9 @@ export async function selectHardwareDevice(
   }
 }
 
-export async function selectVirtualDevice(
-  sdk: SDK,
-  devices: readonly Device[],
-  avds: readonly AVD[],
-): Promise<Device> {
+export async function selectVirtualDevice(sdk: SDK, devices: readonly Device[], avds: readonly AVD[]): Promise<Device> {
   const debug = Debug(`${modulePrefix}:${selectVirtualDevice.name}`);
-  const emulators = devices.filter(d => d.type === 'emulator');
+  const emulators = devices.filter((d) => d.type === 'emulator');
 
   // If an emulator is running, use it.
   if (emulators.length > 0) {
@@ -107,28 +91,17 @@ export async function selectVirtualDevice(
     debug('Found running emulator: %s', emulator.serial);
     return emulator;
   }
-  throw new AndroidRunException(
-    'No target devices/emulators available.',
-    ERR_NO_TARGET,
-  );
+  throw new AndroidRunException('No target devices/emulators available.', ERR_NO_TARGET);
 }
 
-export async function installApkToDevice(
-  sdk: SDK,
-  device: Device,
-  apk: string,
-  appId: string,
-): Promise<void> {
+export async function installApkToDevice(sdk: SDK, device: Device, apk: string, appId: string): Promise<void> {
   log(`Installing ${apk}...\n`);
 
   try {
     await installApk(sdk, device, apk);
   } catch (e) {
     if (e instanceof ADBException) {
-      if (
-        e.code === ERR_INCOMPATIBLE_UPDATE ||
-        e.code === ERR_VERSION_DOWNGRADE
-      ) {
+      if (e.code === ERR_INCOMPATIBLE_UPDATE || e.code === ERR_VERSION_DOWNGRADE) {
         log(`${e.message} Uninstalling and trying again...\n`);
         await uninstallApp(sdk, device, appId);
         await installApk(sdk, device, apk);

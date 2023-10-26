@@ -27,11 +27,7 @@ const modulePrefix = 'native-run:android:utils:emulator';
 /**
  * Resolves when emulator is ready and running with the specified AVD.
  */
-export async function runEmulator(
-  sdk: SDK,
-  avd: AVD,
-  port: number,
-): Promise<Device> {
+export async function runEmulator(sdk: SDK, avd: AVD, port: number): Promise<Device> {
   try {
     await spawnEmulator(sdk, avd, port);
   } catch (e) {
@@ -42,7 +38,7 @@ export async function runEmulator(
 
   const serial = `emulator-${port}`;
   const devices = await getDevices(sdk);
-  const emulator = devices.find(device => device.serial === serial);
+  const emulator = devices.find((device) => device.serial === serial);
 
   if (!emulator) {
     throw new EmulatorException(`Emulator not found: ${serial}`);
@@ -51,11 +47,7 @@ export async function runEmulator(
   return emulator;
 }
 
-export async function spawnEmulator(
-  sdk: SDK,
-  avd: AVD,
-  port: number,
-): Promise<void> {
+export async function spawnEmulator(sdk: SDK, avd: AVD, port: number): Promise<void> {
   const debug = Debug(`${modulePrefix}:${spawnEmulator.name}`);
   const emulator = await getSDKPackage(path.join(sdk.root, 'emulator'));
   const emulatorBin = path.join(emulator.location, 'emulator');
@@ -72,14 +64,14 @@ export async function spawnEmulator(
       _resolve();
       cleanup();
     });
-    const reject: typeof _reject = once(err => {
+    const reject: typeof _reject = once((err) => {
       _reject(err);
       cleanup();
     });
 
     waitForDevice(sdk, `emulator-${port}`).then(
       () => resolve(),
-      err => reject(err),
+      (err) => reject(err),
     );
 
     const eventParser = through2((chunk: string, enc, cb) => {
@@ -88,26 +80,11 @@ export async function spawnEmulator(
       debug('Android Emulator: %O', line);
       const event = parseEmulatorOutput(line);
       if (event === EmulatorEvent.AlreadyRunning) {
-        reject(
-          new EmulatorException(
-            `Emulator already running with AVD [${avd.id}]`,
-            ERR_ALREADY_RUNNING,
-          ),
-        );
+        reject(new EmulatorException(`Emulator already running with AVD [${avd.id}]`, ERR_ALREADY_RUNNING));
       } else if (event === EmulatorEvent.UnknownAVD) {
-        reject(
-          new EmulatorException(
-            `Unknown AVD name [${avd.id}]`,
-            ERR_UNKNOWN_AVD,
-          ),
-        );
+        reject(new EmulatorException(`Unknown AVD name [${avd.id}]`, ERR_UNKNOWN_AVD));
       } else if (event === EmulatorEvent.AVDHomeNotFound) {
-        reject(
-          new EmulatorException(
-            `Emulator cannot find AVD home`,
-            ERR_AVD_HOME_NOT_FOUND,
-          ),
-        );
+        reject(new EmulatorException(`Emulator cannot find AVD home`, ERR_AVD_HOME_NOT_FOUND));
       }
 
       cb();
@@ -125,20 +102,15 @@ export async function spawnEmulator(
       p.stderr.push(null);
     };
 
-    p.on('close', code => {
+    p.on('close', (code) => {
       debug('Emulator closed, exit code %d', code);
 
       if (code) {
-        reject(
-          new EmulatorException(
-            `Non-zero exit code from Emulator: ${code}`,
-            ERR_NON_ZERO_EXIT,
-          ),
-        );
+        reject(new EmulatorException(`Non-zero exit code from Emulator: ${code}`, ERR_NON_ZERO_EXIT));
       }
     });
 
-    p.on('error', err => {
+    p.on('error', (err) => {
       debug('Emulator error: %O', err);
       reject(err);
     });
@@ -157,9 +129,7 @@ export function parseEmulatorOutput(line: string): EmulatorEvent | undefined {
 
   if (line.includes('Unknown AVD name')) {
     event = EmulatorEvent.UnknownAVD;
-  } else if (
-    line.includes('another emulator instance running with the current AVD')
-  ) {
+  } else if (line.includes('another emulator instance running with the current AVD')) {
     event = EmulatorEvent.AlreadyRunning;
   } else if (line.includes('Cannot find AVD system path')) {
     event = EmulatorEvent.AVDHomeNotFound;
@@ -172,18 +142,13 @@ export function parseEmulatorOutput(line: string): EmulatorEvent | undefined {
   return event;
 }
 
-export async function getAVDFromEmulator(
-  emulator: Device,
-  avds: readonly AVD[],
-): Promise<AVD> {
+export async function getAVDFromEmulator(emulator: Device, avds: readonly AVD[]): Promise<AVD> {
   const debug = Debug(`${modulePrefix}:${getAVDFromEmulator.name}`);
   const emulatorPortRegex = /^emulator-(\d+)$/;
   const m = emulator.serial.match(emulatorPortRegex);
 
   if (!m) {
-    throw new EmulatorException(
-      `Emulator ${emulator.serial} does not match expected emulator serial format`,
-    );
+    throw new EmulatorException(`Emulator ${emulator.serial} does not match expected emulator serial format`);
   }
 
   const port = Number.parseInt(m[1], 10);
@@ -198,8 +163,8 @@ export async function getAVDFromEmulator(
       readFile(path.resolve(os.homedir(), '.emulator_console_auth_token'), {
         encoding: 'utf8',
       }).then(
-        contents => resolve(contents.trim()),
-        err => reject(err),
+        (contents) => resolve(contents.trim()),
+        (err) => reject(err),
       );
     });
   });
@@ -218,9 +183,7 @@ export async function getAVDFromEmulator(
     const timer = setTimeout(() => {
       if (stage !== Stage.Complete) {
         reject(
-          new EmulatorException(
-            `Took too long to get AVD name from Android Emulator Console, something went wrong.`,
-          ),
+          new EmulatorException(`Took too long to get AVD name from Android Emulator Console, something went wrong.`),
         );
       }
     }, 3000);
@@ -241,15 +204,12 @@ export async function getAVDFromEmulator(
 
         debug('Android Console: %O', line);
 
-        if (
-          stage === Stage.Initial &&
-          line.includes('Authentication required')
-        ) {
+        if (stage === Stage.Initial && line.includes('Authentication required')) {
           stage = Stage.Auth;
         } else if (stage === Stage.Auth && line.trim() === 'OK') {
           readAuthFile.then(
-            token => sock.write(`auth ${token}\n`, 'utf8'),
-            err => reject(err),
+            (token) => sock.write(`auth ${token}\n`, 'utf8'),
+            (err) => reject(err),
           );
           stage = Stage.AuthSuccess;
         } else if (stage === Stage.AuthSuccess && line.trim() === 'OK') {
@@ -257,17 +217,12 @@ export async function getAVDFromEmulator(
           stage = Stage.Response;
         } else if (stage === Stage.Response) {
           const avdId = line.trim();
-          const avd = avds.find(avd => avd.id === avdId);
+          const avd = avds.find((avd) => avd.id === avdId);
 
           if (avd) {
             resolve(avd);
           } else {
-            reject(
-              new EmulatorException(
-                `Unknown AVD name [${avdId}]`,
-                ERR_UNKNOWN_AVD,
-              ),
-            );
+            reject(new EmulatorException(`Unknown AVD name [${avdId}]`, ERR_UNKNOWN_AVD));
           }
 
           stage = Stage.Complete;
@@ -280,9 +235,7 @@ export async function getAVDFromEmulator(
   });
 }
 
-export function parseAndroidConsoleResponse(
-  output: string,
-): string | undefined {
+export function parseAndroidConsoleResponse(output: string): string | undefined {
   const debug = Debug(`${modulePrefix}:${parseAndroidConsoleResponse.name}`);
   const m = /([\s\S]+)OK\r?\n/g.exec(output);
 

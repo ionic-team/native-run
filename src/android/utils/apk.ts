@@ -27,20 +27,12 @@ export async function readAndroidManifest(apkPath: string): Promise<any> {
   return new BinaryXmlParser(manifestBuffer).parse();
 }
 
-export async function getApkInfo(
-  apkPath: string,
-): Promise<{ appId: any; activityName: any }> {
+export async function getApkInfo(apkPath: string): Promise<{ appId: any; activityName: any }> {
   const doc = await readAndroidManifest(apkPath);
   const appId = doc.attributes.find((a: any) => a.name === 'package').value;
-  const application = doc.childNodes.find(
-    (n: any) => n.nodeName === 'application',
-  );
-  const activity = application.childNodes.find(
-    (n: any) => n.nodeName === 'activity',
-  );
-  const activityName = activity.attributes.find(
-    (a: any) => a.name === 'name',
-  ).value;
+  const application = doc.childNodes.find((n: any) => n.nodeName === 'application');
+  const activity = application.childNodes.find((n: any) => n.nodeName === 'activity');
+  const activityName = activity.attributes.find((a: any) => a.name === 'name').value;
 
   return { appId, activityName };
 }

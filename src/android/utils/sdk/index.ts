@@ -22,22 +22,13 @@ import {
 const modulePrefix = 'native-run:android:utils:sdk';
 
 const homedir = os.homedir();
-export const SDK_DIRECTORIES: ReadonlyMap<
+export const SDK_DIRECTORIES: ReadonlyMap<NodeJS.Platform, string[] | undefined> = new Map<
   NodeJS.Platform,
   string[] | undefined
-> = new Map<NodeJS.Platform, string[] | undefined>([
+>([
   ['darwin', [pathlib.join(homedir, 'Library', 'Android', 'sdk')]],
   ['linux', [pathlib.join(homedir, 'Android', 'sdk')]],
-  [
-    'win32',
-    [
-      pathlib.join(
-        process.env.LOCALAPPDATA || pathlib.join(homedir, 'AppData', 'Local'),
-        'Android',
-        'Sdk',
-      ),
-    ],
-  ],
+  ['win32', [pathlib.join(process.env.LOCALAPPDATA || pathlib.join(homedir, 'AppData', 'Local'), 'Android', 'Sdk')]],
 ]);
 
 export interface SDK {
@@ -75,10 +66,10 @@ export async function findAllSDKPackages(sdk: SDK): Promise<SDKPackage[]> {
   const sourcesRe = /^sources\/android-\d+\/.+\/.+/;
   debug('Walking %s to discover SDK packages', sdk.root);
   const contents = await readdirp(sdk.root, {
-    filter: item => pathlib.basename(item.path) === 'package.xml',
-    onError: err => debug('Error while walking SDK: %O', err),
+    filter: (item) => pathlib.basename(item.path) === 'package.xml',
+    onError: (err) => debug('Error while walking SDK: %O', err),
     walkerOptions: {
-      pathFilter: p => {
+      pathFilter: (p) => {
         if (
           [
             'bin',
@@ -108,9 +99,7 @@ export async function findAllSDKPackages(sdk: SDK): Promise<SDKPackage[]> {
     },
   });
 
-  sdk.packages = await Promise.all(
-    contents.map(p => pathlib.dirname(p)).map(p => getSDKPackage(p)),
-  );
+  sdk.packages = await Promise.all(contents.map((p) => pathlib.dirname(p)).map((p) => getSDKPackage(p)));
 
   sdk.packages.sort((a, b) => (a.name >= b.name ? 1 : -1));
 
@@ -143,10 +132,7 @@ export async function getSDKPackage(location: string): Promise<SDKPackage> {
       debug('Encountered error with %s: %O', packageXmlPath, e);
 
       if (e.code === 'ENOENT') {
-        throw new SDKException(
-          `SDK package not found by location: ${location}.`,
-          ERR_SDK_PACKAGE_NOT_FOUND,
-        );
+        throw new SDKException(`SDK package not found by location: ${location}.`, ERR_SDK_PACKAGE_NOT_FOUND);
       }
 
       throw e;
@@ -172,10 +158,7 @@ export async function resolveSDKRoot(): Promise<string> {
   debug('Looking for $ANDROID_SDK_ROOT');
 
   // No valid $ANDROID_HOME, try $ANDROID_SDK_ROOT.
-  if (
-    process.env.ANDROID_SDK_ROOT &&
-    (await isDir(process.env.ANDROID_SDK_ROOT))
-  ) {
+  if (process.env.ANDROID_SDK_ROOT && (await isDir(process.env.ANDROID_SDK_ROOT))) {
     debug('Using $ANDROID_SDK_ROOT at %s', process.env.ANDROID_SDK_ROOT);
     return process.env.ANDROID_SDK_ROOT;
   }
@@ -202,14 +185,8 @@ export async function resolveEmulatorHome(): Promise<string> {
   const debug = Debug(`${modulePrefix}:${resolveEmulatorHome.name}`);
   debug('Looking for $ANDROID_EMULATOR_HOME');
 
-  if (
-    process.env.ANDROID_EMULATOR_HOME &&
-    (await isDir(process.env.ANDROID_EMULATOR_HOME))
-  ) {
-    debug(
-      'Using $ANDROID_EMULATOR_HOME at %s',
-      process.env.ANDROID_EMULATOR_HOME,
-    );
+  if (process.env.ANDROID_EMULATOR_HOME && (await isDir(process.env.ANDROID_EMULATOR_HOME))) {
+    debug('Using $ANDROID_EMULATOR_HOME at %s', process.env.ANDROID_EMULATOR_HOME);
     return process.env.ANDROID_EMULATOR_HOME;
   }
 
@@ -222,10 +199,7 @@ export async function resolveEmulatorHome(): Promise<string> {
     return homeEmulatorHome;
   }
 
-  throw new SDKException(
-    `No valid Android Emulator home found.`,
-    ERR_EMULATOR_HOME_NOT_FOUND,
-  );
+  throw new SDKException(`No valid Android Emulator home found.`, ERR_EMULATOR_HOME_NOT_FOUND);
 }
 
 export async function resolveAVDHome(): Promise<string> {
@@ -233,10 +207,7 @@ export async function resolveAVDHome(): Promise<string> {
 
   debug('Looking for $ANDROID_AVD_HOME');
 
-  if (
-    process.env.ANDROID_AVD_HOME &&
-    (await isDir(process.env.ANDROID_AVD_HOME))
-  ) {
+  if (process.env.ANDROID_AVD_HOME && (await isDir(process.env.ANDROID_AVD_HOME))) {
     debug('Using $ANDROID_AVD_HOME at %s', process.env.ANDROID_AVD_HOME);
     return process.env.ANDROID_AVD_HOME;
   }

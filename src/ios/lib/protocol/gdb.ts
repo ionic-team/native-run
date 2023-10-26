@@ -2,11 +2,7 @@ import * as Debug from 'debug';
 import type * as net from 'net';
 
 import type { ProtocolReaderCallback, ProtocolWriter } from './protocol';
-import {
-  ProtocolClient,
-  ProtocolReader,
-  ProtocolReaderFactory,
-} from './protocol';
+import { ProtocolClient, ProtocolReader, ProtocolReaderFactory } from './protocol';
 
 const debug = Debug('native-run:ios:lib:protocol:gdb');
 const ACK_SUCCESS = '+'.charCodeAt(0);
@@ -18,11 +14,7 @@ export interface GDBMessage {
 
 export class GDBProtocolClient extends ProtocolClient<GDBMessage> {
   constructor(socket: net.Socket) {
-    super(
-      socket,
-      new ProtocolReaderFactory(GDBProtocolReader),
-      new GDBProtocolWriter(),
-    );
+    super(socket, new ProtocolReaderFactory(GDBProtocolReader), new GDBProtocolWriter());
   }
 }
 
@@ -97,7 +89,7 @@ export class GDBProtocolWriter implements ProtocolWriter {
     debug(`Socket write: ${cmd}, args: ${args}`);
     // hex encode and concat all args
     const encodedArgs = args
-      .map(arg => Buffer.from(arg).toString('hex'))
+      .map((arg) => Buffer.from(arg).toString('hex'))
       .join()
       .toUpperCase();
     const checksumStr = calculateChecksum(cmd + encodedArgs);

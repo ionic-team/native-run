@@ -3,11 +3,7 @@ import type * as net from 'net';
 import * as plist from 'plist';
 
 import type { ProtocolWriter } from './protocol';
-import {
-  PlistProtocolReader,
-  ProtocolClient,
-  ProtocolReaderFactory,
-} from './protocol';
+import { PlistProtocolReader, ProtocolClient, ProtocolReaderFactory } from './protocol';
 
 const debug = Debug('native-run:ios:lib:protocol:usbmux');
 
@@ -20,11 +16,7 @@ export interface UsbmuxMessage {
 
 export class UsbmuxProtocolClient extends ProtocolClient<UsbmuxMessage> {
   constructor(socket: net.Socket) {
-    super(
-      socket,
-      new ProtocolReaderFactory(UsbmuxProtocolReader),
-      new UsbmuxProtocolWriter(),
-    );
+    super(socket, new ProtocolReaderFactory(UsbmuxProtocolReader), new UsbmuxProtocolWriter());
   }
 }
 

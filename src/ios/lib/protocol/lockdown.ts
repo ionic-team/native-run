@@ -5,11 +5,7 @@ import * as plist from 'plist';
 import { IOSLibError } from '../lib-errors';
 
 import type { ProtocolWriter } from './protocol';
-import {
-  PlistProtocolReader,
-  ProtocolClient,
-  ProtocolReaderFactory,
-} from './protocol';
+import { PlistProtocolReader, ProtocolClient, ProtocolReaderFactory } from './protocol';
 
 const debug = Debug('native-run:ios:lib:protocol:lockdown');
 export const LOCKDOWN_HEADER_SIZE = 4;
@@ -41,9 +37,7 @@ export function isLockdownResponse(resp: any): resp is LockdownResponse {
   return isDefined(resp.Status);
 }
 
-export function isLockdownErrorResponse(
-  resp: any,
-): resp is LockdownErrorResponse {
+export function isLockdownErrorResponse(resp: any): resp is LockdownErrorResponse {
   return isDefined(resp.Error);
 }
 
@@ -51,11 +45,7 @@ export class LockdownProtocolClient<
   MessageType extends LockdownRequest | LockdownCommand = LockdownRequest,
 > extends ProtocolClient<MessageType> {
   constructor(socket: net.Socket) {
-    super(
-      socket,
-      new ProtocolReaderFactory(LockdownProtocolReader),
-      new LockdownProtocolWriter(),
-    );
+    super(socket, new ProtocolReaderFactory(LockdownProtocolReader), new LockdownProtocolWriter());
   }
 }
 

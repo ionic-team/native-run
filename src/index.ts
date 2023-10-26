@@ -1,13 +1,7 @@
 import * as Debug from 'debug';
 import * as path from 'path';
 
-import {
-  CLIException,
-  ERR_BAD_INPUT,
-  Exception,
-  ExitCode,
-  serializeError,
-} from './errors';
+import { CLIException, ERR_BAD_INPUT, Exception, ExitCode, serializeError } from './errors';
 
 const debug = Debug('native-run');
 
@@ -49,10 +43,7 @@ export async function run(): Promise<void> {
         return cmd.run(args);
       }
 
-      throw new CLIException(
-        `Unsupported platform: "${platform}"`,
-        ERR_BAD_INPUT,
-      );
+      throw new CLIException(`Unsupported platform: "${platform}"`, ERR_BAD_INPUT);
     }
   } catch (e) {
     debug('Caught fatal error: %O', e);

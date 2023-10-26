@@ -102,7 +102,10 @@ export class BinaryXmlParser {
   parent: any;
   stack: any[] = [];
   debug = false;
-  constructor(public buffer: Buffer, options: any = {}) {
+  constructor(
+    public buffer: Buffer,
+    options: any = {},
+  ) {
     this.debug = options.debug || false;
   }
 
@@ -358,11 +361,7 @@ export class BinaryXmlParser {
         // debug('stringLength:', stringLength);
         byteLength = this.readLength8();
         // debug('byteLength:', byteLength);
-        value = this.buffer.toString(
-          encoding,
-          this.cursor,
-          (this.cursor += byteLength),
-        );
+        value = this.buffer.toString(encoding, this.cursor, (this.cursor += byteLength));
         // debug('value:', value);
         assert.equal(this.readU8(), 0, 'String must end with trailing zero');
         return value;
@@ -371,11 +370,7 @@ export class BinaryXmlParser {
         // debug('stringLength:', stringLength);
         byteLength = stringLength * 2;
         // debug('byteLength:', byteLength);
-        value = this.buffer.toString(
-          encoding,
-          this.cursor,
-          (this.cursor += byteLength),
-        );
+        value = this.buffer.toString(encoding, this.cursor, (this.cursor += byteLength));
         // debug('value:', value);
         assert.equal(this.readU16(), 0, 'String must end with trailing zero');
         return value;
@@ -430,8 +425,7 @@ export class BinaryXmlParser {
 
     // const sorted = (header.flags & StringFlags.SORTED) === StringFlags.SORTED;
     // debug('sorted:', sorted);
-    const encoding =
-      (header.flags & StringFlags.UTF8) === StringFlags.UTF8 ? 'utf-8' : 'ucs2';
+    const encoding = (header.flags & StringFlags.UTF8) === StringFlags.UTF8 ? 'utf-8' : 'ucs2';
     // debug('encoding:', encoding);
 
     const stringsStart = header.startOffset + header.stringsStart;
