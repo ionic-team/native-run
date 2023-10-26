@@ -1,3 +1,20 @@
+# [2.0.0](https://github.com/ionic-team/native-run/compare/v1.7.4...v2.0.0) (2023-10-26)
+
+
+### Bug Fixes
+
+* typo in android variable logs ([#318](https://github.com/ionic-team/native-run/issues/318)) ([3d9251f](https://github.com/ionic-team/native-run/commit/3d9251f2f7f569e16cdbda58bb5304ac9385096b))
+
+
+* chore!: support only node 16+ (#354) ([eb20983](https://github.com/ionic-team/native-run/commit/eb2098358ecf2a79af2a212dae7c74140dbffb09)), closes [#354](https://github.com/ionic-team/native-run/issues/354)
+* feat(android)!: Remove AVD creation on list (#349) ([2a310ff](https://github.com/ionic-team/native-run/commit/2a310ff7283b07806a7edc2bcf1177b8e333e85c)), closes [#349](https://github.com/ionic-team/native-run/issues/349)
+
+
+### BREAKING CHANGES
+
+* drop node 10-14 support
+* removal of AVD creation feature
+
 ## [1.7.4](https://github.com/ionic-team/native-run/compare/v1.7.3...v1.7.4) (2023-10-24)
 
 
