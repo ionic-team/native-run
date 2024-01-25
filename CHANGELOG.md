@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/ionic-team/native-run/compare/v2.0.0...v2.0.1) (2024-01-25)
+
+
+### Bug Fixes
+
+* paths contain non-ascii characters cause error ([#381](https://github.com/ionic-team/native-run/issues/381)) ([77b0481](https://github.com/ionic-team/native-run/commit/77b048164faa453f2b4c8c4a2dee15a671240777))
+
 # [2.0.0](https://github.com/ionic-team/native-run/compare/v1.7.4...v2.0.0) (2023-10-26)
 
 
