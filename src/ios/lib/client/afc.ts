@@ -52,7 +52,7 @@ export class AFCClient extends ServiceClient<AFCProtocolClient> {
   async openFile(path: string): Promise<Buffer> {
     debug(`openFile: ${path}`);
     // mode + path + null terminator
-    const data = Buffer.alloc(8 + path.length + 1);
+    const data = Buffer.alloc(8 + Buffer.byteLength(path) + 1);
     // write mode
     data.writeUInt32LE(AFC_FILE_OPEN_FLAGS.WRONLY, 0);
     // then path to file
@@ -176,7 +176,7 @@ export class AFCClient extends ServiceClient<AFCProtocolClient> {
 }
 
 function toCString(s: string) {
-  const buf = Buffer.alloc(s.length + 1);
+  const buf = Buffer.alloc(Buffer.byteLength(s) + 1);
   const len = buf.write(s);
   buf.writeUInt8(0, len);
   return buf;
