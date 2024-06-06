@@ -45,7 +45,7 @@
     "yauzl": "^2.10.0"
   },
   "devDependencies": {
-    "@ionic/eslint-config": "^0.3.0",
+    "@ionic/eslint-config": "^0.4.0",
     "@ionic/prettier-config": "^4.0.0",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
@@ -58,7 +58,7 @@
     "@types/split2": "^4.2.2",
     "@types/through2": "^2.0.40",
     "@types/yauzl": "^2.10.2",
-    "eslint": "^7.8.1",
+    "eslint": "^8.57.0",
     "jest": "^26.4.2",
     "prettier": "^3.0.3",
     "semantic-release": "^19.0.5",

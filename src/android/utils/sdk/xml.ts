@@ -36,7 +36,7 @@ export function getPathFromPackageXml(packageXml: ElementTree): string {
 export function getNameFromPackageXml(packageXml: ElementTree): string {
   const name = packageXml.find('./localPackage/display-name');
 
-  if (!name || !name.text) {
+  if (!name?.text) {
     throw new SDKException(`Invalid SDK package name.`, ERR_INVALID_SDK_PACKAGE);
   }
 
