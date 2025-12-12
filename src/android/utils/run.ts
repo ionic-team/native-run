@@ -17,6 +17,28 @@ import type { SDK } from './sdk';
 
 const modulePrefix = 'native-run:android:utils:run';
 
+async function findAvailableEmulatorPort(devices: readonly Device[], start = 5554, end = 5584): Promise<number> {
+  const debug = Debug(`${modulePrefix}:${findAvailableEmulatorPort.name}`);
+  const usedPorts = new Set<number>();
+
+  for (const d of devices) {
+    const m = d.serial.match(/^emulator-(\d+)$/);
+    if (m) {
+      usedPorts.add(Number(m[1]));
+    }
+  }
+
+  for (let port = start; port <= end; port += 2) {
+    if (!usedPorts.has(port)) {
+      debug('Available emulator port found: %d', port);
+      return port;
+    }
+  }
+
+  debug('No available emulator ports found in range %d-%d; defaulting to 5554', start, end);
+  return 5554;
+}
+
 export async function selectDeviceByTarget(
   sdk: SDK,
   devices: readonly Device[],
@@ -65,7 +87,9 @@ export async function selectDeviceByTarget(
 
   if (avd) {
     debug('AVD found by ID: %s', avd.id);
-    const device = await runEmulator(sdk, avd, 5554); // TODO: 5554 will not always be available at this point
+    const port = await findAvailableEmulatorPort(devices);
+    debug('Using emulator port: %d', port);
+    const device = await runEmulator(sdk, avd, port);
     debug('Emulator ready, running avd: %s on %s', avd.id, device.serial);
 
     return device;
