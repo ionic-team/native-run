@@ -17,7 +17,7 @@ import type { SDK } from './sdk';
 
 const modulePrefix = 'native-run:android:utils:run';
 
-async function findAvailableEmulatorPort(devices: readonly Device[], start = 5554, end = 5584): Promise<number> {
+export async function findAvailableEmulatorPort(devices: readonly Device[], start = 5554, end = 5584): Promise<number> {
   const debug = Debug(`${modulePrefix}:${findAvailableEmulatorPort.name}`);
   const usedPorts = new Set<number>();
 
@@ -39,6 +39,37 @@ async function findAvailableEmulatorPort(devices: readonly Device[], start = 555
   return 5554;
 }
 
+export function isLikelyEmulator(device: Device): boolean {
+  const serialEmu = /^emulator-(\d+)$/;
+
+  if (serialEmu.test(device.serial)) {
+    return true;
+  }
+
+  if (device.type === 'emulator') {
+    return true;
+  }
+
+  const props = device.properties || {};
+  const deviceProp = (props['device'] || '').toLowerCase();
+  const productProp = (props['product'] || '').toLowerCase();
+  const model = (device.model || '').toLowerCase();
+
+  if (deviceProp.startsWith('emu') || deviceProp.includes('generic')) {
+    return true;
+  }
+
+  if (productProp.includes('sdk_gphone') || productProp.includes('google_sdk')) {
+    return true;
+  }
+
+  if (model.includes('android_sdk') || model.includes('sdk_gphone')) {
+    return true;
+  }
+
+  return false;
+}
+
 export async function selectDeviceByTarget(
   sdk: SDK,
   devices: readonly Device[],
@@ -56,7 +87,7 @@ export async function selectDeviceByTarget(
     return device;
   }
 
-  const emulatorDevices = devices.filter((d) => d.type === 'emulator');
+  const emulatorDevices = devices.filter(isLikelyEmulator);
 
   const pairAVD = async (emulator: Device): Promise<[Device, AVD | undefined]> => {
     let avd: AVD | undefined;
