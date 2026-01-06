@@ -22,6 +22,14 @@ export async function getConnectedDevices() {
       const socket = await new UsbmuxdClient(UsbmuxdClient.connectUsbmuxdSocket()).connect(d, 62078);
       const device = await new LockdowndClient(socket).getAllValues();
       socket.end();
+
+      // For network-connected devices, UniqueDeviceID may not be present in lockdownd response
+      // Use SerialNumber from usbmuxd device info as fallback (they are the same value)
+      if (!device.UniqueDeviceID && d.Properties && d.Properties.SerialNumber) {
+        device.UniqueDeviceID = d.Properties.SerialNumber;
+        debug(`Using SerialNumber as UniqueDeviceID for network device: ${device.UniqueDeviceID}`);
+      }
+
       return device;
     }),
   );
