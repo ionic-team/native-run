@@ -1,3 +1,10 @@
+## [2.0.2](https://github.com/ionic-team/native-run/compare/v2.0.1...v2.0.2) (2026-01-07)
+
+
+### Bug Fixes
+
+* **android:** select available emulator port and improve emulator detection ([#399](https://github.com/ionic-team/native-run/issues/399)) ([45745fe](https://github.com/ionic-team/native-run/commit/45745fe2897c6cbded83bc735f66f910c0351018))
+
 ## [2.0.1](https://github.com/ionic-team/native-run/compare/v2.0.0...v2.0.1) (2024-01-25)
 
 
