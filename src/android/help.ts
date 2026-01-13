@@ -28,6 +28,8 @@ const help = `
     --target <id> ........... Use a specific target
     --connect ............... Tie process to app process
     --forward <port:port> ... Forward a port from device to host
+    --timeout <timeout> ..... ADB timeout in miliseconds
+                              Default is 5000
 `;
 
 export async function run(args: readonly string[]): Promise<void> {
