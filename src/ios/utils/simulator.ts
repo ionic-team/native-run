@@ -1,3 +1,4 @@
+import { pathExists } from '@ionic/utils-fs';
 import { spawnSync } from 'child_process'; // TODO: need cross-spawn for windows?
 import * as Debug from 'debug';
 
@@ -8,6 +9,12 @@ import { onBeforeExit } from '../../utils/process';
 import { getXCodePath } from './xcode';
 
 const debug = Debug('native-run:ios:utils:simulator');
+
+/**
+ * Xcode 27 removed Simulator.app and replaced it with Device Hub, which lives
+ * outside the developer directory and so can only be located by bundle id.
+ */
+const DEVICE_HUB_BUNDLE_ID = 'com.apple.dt.Devices';
 
 export interface Simulator {
   availability: '(available)' | '(unavailable)';
@@ -67,6 +74,25 @@ export async function getSimulators(): Promise<SimulatorResult[]> {
   }
 }
 
+/**
+ * Returns the `open` arguments used to bring up the simulator UI.
+ *
+ * Prefers Simulator.app when it is present so behavior is unchanged on Xcode 26
+ * and earlier, and falls back to opening Device Hub by bundle id on Xcode 27+,
+ * where Simulator.app no longer exists.
+ */
+async function getSimulatorOpenArgs(): Promise<string[]> {
+  const xCodePath = await getXCodePath();
+  const simulatorAppPath = `${xCodePath}/Applications/Simulator.app`;
+
+  if (await pathExists(simulatorAppPath)) {
+    return [simulatorAppPath];
+  }
+
+  debug(`Simulator.app not found at ${simulatorAppPath}, falling back to Device Hub`);
+  return ['-b', DEVICE_HUB_BUNDLE_ID];
+}
+
 export async function runOnSimulator(udid: string, appPath: string, bundleId: string, waitForApp: boolean) {
   debug(`Booting simulator ${udid}`);
   const bootResult = spawnSync('xcrun', ['simctl', 'boot', udid], {
@@ -83,13 +109,10 @@ export async function runOnSimulator(udid: string, appPath: string, bundleId: st
     throw new Exception(`There was an error installing app on simulator: ${installResult.stderr}`);
   }
 
-  const xCodePath = await getXCodePath();
   debug(`Running simulator ${udid}`);
-  const openResult = spawnSync(
-    'open',
-    [`${xCodePath}/Applications/Simulator.app`, '--args', '-CurrentDeviceUDID', udid],
-    { encoding: 'utf8' },
-  );
+  const openResult = spawnSync('open', [...(await getSimulatorOpenArgs()), '--args', '-CurrentDeviceUDID', udid], {
+    encoding: 'utf8',
+  });
   if (openResult.status) {
     throw new Exception(`There was an error opening simulator: ${openResult.stderr}`);
   }
