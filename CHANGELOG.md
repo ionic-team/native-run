@@ -1,3 +1,17 @@
+## [2.0.3](https://github.com/ionic-team/native-run/compare/v2.0.2...v2.0.3) (2026-01-08)
+
+
+### Bug Fixes
+
+* Support wireless iOS devices ([#398](https://github.com/ionic-team/native-run/issues/398)) ([cf7a229](https://github.com/ionic-team/native-run/commit/cf7a2290d662d0dc087957a86b581d1447a6587e))
+
+## [2.0.2](https://github.com/ionic-team/native-run/compare/v2.0.1...v2.0.2) (2026-01-07)
+
+
+### Bug Fixes
+
+* **android:** select available emulator port and improve emulator detection ([#399](https://github.com/ionic-team/native-run/issues/399)) ([45745fe](https://github.com/ionic-team/native-run/commit/45745fe2897c6cbded83bc735f66f910c0351018))
+
 ## [2.0.1](https://github.com/ionic-team/native-run/compare/v2.0.0...v2.0.1) (2024-01-25)
 
 

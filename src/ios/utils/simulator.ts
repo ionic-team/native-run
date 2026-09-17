@@ -5,7 +5,7 @@ import { Exception } from '../../errors';
 import { log } from '../../utils/log';
 import { onBeforeExit } from '../../utils/process';
 
-import { getXCodePath } from './xcode';
+import { getXCodePath, getXcodeVersionInfo } from './xcode';
 
 const debug = Debug('native-run:ios:utils:simulator');
 
@@ -84,12 +84,13 @@ export async function runOnSimulator(udid: string, appPath: string, bundleId: st
   }
 
   const xCodePath = await getXCodePath();
+  const [xcodeVersion] = getXcodeVersionInfo();
+  const xcodeMajorVersion = Number(xcodeVersion.split('.')[0]);
+  const simulatorAppPath =
+    xcodeMajorVersion >= 27 ? `${xCodePath}/../Applications/DeviceHub.app`  : `${xCodePath}/Applications/Simulator.app`;
+
   debug(`Running simulator ${udid}`);
-  const openResult = spawnSync(
-    'open',
-    [`${xCodePath}/Applications/Simulator.app`, '--args', '-CurrentDeviceUDID', udid],
-    { encoding: 'utf8' },
-  );
+  const openResult = spawnSync('open', [simulatorAppPath, '--args', '-CurrentDeviceUDID', udid], { encoding: 'utf8' });
   if (openResult.status) {
     throw new Exception(`There was an error opening simulator: ${openResult.stderr}`);
   }
