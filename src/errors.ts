@@ -78,10 +78,7 @@ export type AVDExceptionCode = typeof ERR_UNSUITABLE_API_INSTALLATION;
 export class AVDException extends AndroidException<AVDExceptionCode> {}
 
 export type EmulatorExceptionCode =
-  | typeof ERR_ALREADY_RUNNING
-  | typeof ERR_AVD_HOME_NOT_FOUND
-  | typeof ERR_NON_ZERO_EXIT
-  | typeof ERR_UNKNOWN_AVD;
+  typeof ERR_ALREADY_RUNNING | typeof ERR_AVD_HOME_NOT_FOUND | typeof ERR_NON_ZERO_EXIT | typeof ERR_UNKNOWN_AVD;
 
 export class EmulatorException extends AndroidException<EmulatorExceptionCode> {}
 
@@ -98,10 +95,7 @@ export type SDKExceptionCode =
 export class SDKException extends AndroidException<SDKExceptionCode> {}
 
 export type IOSRunExceptionCode =
-  | typeof ERR_TARGET_NOT_FOUND
-  | typeof ERR_NO_DEVICE
-  | typeof ERR_NO_TARGET
-  | typeof ERR_DEVICE_LOCKED;
+  typeof ERR_TARGET_NOT_FOUND | typeof ERR_NO_DEVICE | typeof ERR_NO_TARGET | typeof ERR_DEVICE_LOCKED;
 
 export class IOSRunException extends Exception<IOSRunExceptionCode> {}
 

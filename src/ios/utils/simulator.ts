@@ -1,3 +1,4 @@
+import { pathExists } from '@ionic/utils-fs';
 import { spawnSync } from 'child_process'; // TODO: need cross-spawn for windows?
 import * as Debug from 'debug';
 
@@ -85,11 +86,22 @@ export async function runOnSimulator(udid: string, appPath: string, bundleId: st
 
   const xCodePath = await getXCodePath();
   debug(`Running simulator ${udid}`);
-  const openResult = spawnSync(
-    'open',
-    [`${xCodePath}/Applications/Simulator.app`, '--args', '-CurrentDeviceUDID', udid],
-    { encoding: 'utf8' },
-  );
+
+  const simulatorApp = `${xCodePath}/Applications/Simulator.app`;
+  const deviceHubApp = `${xCodePath}/../Applications/DeviceHub.app`;
+
+  let openArgs: string[];
+
+  if (await pathExists(simulatorApp)) {
+    openArgs = [simulatorApp, '--args', '-CurrentDeviceUDID', udid];
+  } else if (await pathExists(deviceHubApp)) {
+    openArgs = [`devices://device/open?id=${udid}`];
+  } else {
+    throw new Exception(`Unable to find Simulator.app or DeviceHub.app in ${xCodePath}`);
+  }
+
+  const openResult = spawnSync('open', openArgs, { encoding: 'utf8' });
+
   if (openResult.status) {
     throw new Exception(`There was an error opening simulator: ${openResult.stderr}`);
   }
