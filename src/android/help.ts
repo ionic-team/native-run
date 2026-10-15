@@ -28,6 +28,12 @@ const help = `
     --target <id> ........... Use a specific target
     --connect ............... Tie process to app process
     --forward <port:port> ... Forward a port from device to host
+
+    ADB operations use a default timeout of 5000 milliseconds. Set
+    NATIVE_RUN_ADB_TIMEOUT to change it for all ADB operations.
+    The legacy ADB_TIMEOUT variable is also supported, but
+    NATIVE_RUN_ADB_TIMEOUT takes precedence when both are set.
+    Invalid or non-positive values fall back to the 5000 millisecond default.
 `;
 
 export async function run(args: readonly string[]): Promise<void> {
