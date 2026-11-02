@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/ionic-team/native-run/compare/v2.0.3...v2.1.0) (2026-11-02)
+
+
+### Features
+
+* support device hub for Xcode 27+ ([#408](https://github.com/ionic-team/native-run/issues/408)) ([6260bec](https://github.com/ionic-team/native-run/commit/6260bec7cdb708dbe1cc9c5b80627f025c76a44f))
+
 ## [2.0.3](https://github.com/ionic-team/native-run/compare/v2.0.2...v2.0.3) (2026-01-08)
 
 
