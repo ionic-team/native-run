@@ -36,6 +36,7 @@ export async function run(args: readonly string[]): Promise<void> {
   const sdk = await getSDK();
   const apkPath = getOptionValue(args, '--app');
   const forwardedPorts = getOptionValues(args, '--forward');
+  const timeout = Number.parseFloat(getOptionValue(args, '--timeout', '5000'));
 
   const ports: Ports[] = [];
 
@@ -74,7 +75,7 @@ export async function run(args: readonly string[]): Promise<void> {
   await installApkToDevice(sdk, device, apkPath, appId);
 
   log(`Starting application activity ${appId}/${activityName}...\n`);
-  await startActivity(sdk, device, appId, activityName);
+  await startActivity(sdk, device, appId, activityName, timeout);
 
   log(`Run Successful\n`);
 

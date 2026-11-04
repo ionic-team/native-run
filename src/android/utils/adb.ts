@@ -269,12 +269,13 @@ export async function startActivity(
   device: Device,
   packageName: string,
   activityName: string,
+  timeout: number,
 ): Promise<void> {
   const debug = Debug(`${modulePrefix}:${startActivity.name}`);
   const args = ['-s', device.serial, 'shell', 'am', 'start', '-W', '-n', `${packageName}/${activityName}`];
 
   debug('Invoking adb with args: %O', args);
-  await execAdb(sdk, args, { timeout: 5000 });
+  await execAdb(sdk, args, { timeout: timeout });
 }
 
 export function parseAdbDevices(output: string): Device[] {
