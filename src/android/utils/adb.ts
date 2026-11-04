@@ -274,7 +274,9 @@ export async function startActivity(
   const args = ['-s', device.serial, 'shell', 'am', 'start', '-W', '-n', `${packageName}/${activityName}`];
 
   debug('Invoking adb with args: %O', args);
-  await execAdb(sdk, args, { timeout: 5000 });
+
+  // This particular ADB command may take a long time to execute
+  await execAdb(sdk, args, { timeout: 15000 });
 }
 
 export function parseAdbDevices(output: string): Device[] {
