@@ -3,6 +3,45 @@ import * as os from 'os';
 import type * as adb from '../adb';
 
 describe('android/utils/adb', () => {
+  describe('getAdbTimeout', () => {
+    let adbUtils: typeof adb;
+
+    beforeEach(async () => {
+      jest.resetModules();
+      adbUtils = await import('../adb');
+    });
+
+    afterEach(() => {
+      delete process.env.NATIVE_RUN_ADB_TIMEOUT;
+      delete process.env.ADB_TIMEOUT;
+    });
+
+    it('should read the timeout from NATIVE_RUN_ADB_TIMEOUT', () => {
+      process.env.NATIVE_RUN_ADB_TIMEOUT = '12345';
+
+      expect(adbUtils.getAdbTimeout()).toBe(12345);
+    });
+
+    it('should prefer NATIVE_RUN_ADB_TIMEOUT over the legacy ADB_TIMEOUT', () => {
+      process.env.NATIVE_RUN_ADB_TIMEOUT = '12345';
+      process.env.ADB_TIMEOUT = '67890';
+
+      expect(adbUtils.getAdbTimeout()).toBe(12345);
+    });
+
+    it('should support the legacy ADB_TIMEOUT variable', () => {
+      process.env.ADB_TIMEOUT = '12345';
+
+      expect(adbUtils.getAdbTimeout()).toBe(12345);
+    });
+
+    it('should fall back to 5000 when the timeout is invalid', () => {
+      process.env.ADB_TIMEOUT = 'nope';
+
+      expect(adbUtils.getAdbTimeout()).toBe(5000);
+    });
+  });
+
   describe('parseAdbDevices', () => {
     let adbUtils: typeof adb;
 
