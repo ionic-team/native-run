@@ -289,7 +289,7 @@ export function parseAdbDevices(output: string): Device[] {
 
   for (const line of lines) {
     if (line && !line.startsWith('List')) {
-      const m = line.match(re);
+      const m = line.replace(/\r$/, '').match(re);
 
       if (m) {
         const [, serial, state, description] = m;
